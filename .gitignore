@@ -31,3 +31,6 @@ build/
 
 ### VS Code ###
 .vscode/
+
+##Add to ignore to not commit by mistake
+/src/main/resources/application.properties
