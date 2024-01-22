@@ -1,6 +1,7 @@
 package data.unit.processor;
 
 import data.entity.ExecutionRecord;
+import data.utility.BatchJobType;
 import data.utility.ExecutionRecordUtil;
 import eu.europeana.metis.transformation.service.EuropeanaGeneratedIdsMap;
 import eu.europeana.metis.transformation.service.EuropeanaIdCreator;
@@ -56,7 +57,7 @@ public class XsltTransformerItemProcessor implements ItemProcessor<ExecutionReco
     } catch (EuropeanaIdException | TransformationException | IOException e) {
       throw new RuntimeException(e);
     }
-    return ExecutionRecordUtil.prepareResultExecutionRecord(executionRecord, resultString, "TRANSFORMATION", jobInstanceId.toString());
+    return ExecutionRecordUtil.prepareResultExecutionRecord(executionRecord, resultString, BatchJobType.TRANSFORMATION.name(), jobInstanceId.toString());
   }
 
   private XsltTransformer prepareXsltTransformer()

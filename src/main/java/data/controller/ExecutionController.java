@@ -43,6 +43,7 @@ public class ExecutionController {
   private final Job oaiHarvestBatchJob;
   private final Job validationBatchJob;
   private final Job tranformationBatchJob;
+  private final Job normalizationBatchJob;
   private final JobExplorer jobExplorer;
   private final JobOperator jobOperator;
   private final ExecutionRecordRepository executionRecordRepository;
@@ -53,6 +54,7 @@ public class ExecutionController {
       @Qualifier("oaiHarvestBatchJob") Job oaiHarvestBatchJob,
       @Qualifier("validationBatchJob") Job validationBatchJob,
       @Qualifier("transformationBatchJob") Job tranformationBatchJob,
+      @Qualifier("normalizationBatchJob") Job normalizationBatchJob,
       JobExplorer jobExplorer,
       JobOperator jobOperator,
       ExecutionRecordRepository executionRecordRepository) {
@@ -61,6 +63,7 @@ public class ExecutionController {
     this.oaiHarvestBatchJob = oaiHarvestBatchJob;
     this.validationBatchJob = validationBatchJob;
     this.tranformationBatchJob = tranformationBatchJob;
+    this.normalizationBatchJob = normalizationBatchJob;
     this.jobExplorer = jobExplorer;
     this.jobOperator = jobOperator;
     this.executionRecordRepository = executionRecordRepository;
@@ -90,9 +93,10 @@ public class ExecutionController {
     final Job batchJob = switch (BatchJobType.valueOf(targetJob)) {
       case DEFAULT -> defaultBatchJob;
       case OAI_HARVEST -> oaiHarvestBatchJob;
+      case VALIDATION -> throw new IllegalStateException("Unexpected value: " + BatchJobType.valueOf(targetJob));
       case VALIDATION_EXTERNAL, VALIDATION_INTERNAL -> validationBatchJob;
       case TRANSFORMATION -> tranformationBatchJob;
-      default -> throw new IllegalStateException("Unexpected value: " + BatchJobType.valueOf(targetJob));
+      case NORMALIZATION -> normalizationBatchJob;
     };
 
     final JobExecution jobExecution = taskExecutorJobLauncher.run(batchJob, params);

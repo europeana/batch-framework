@@ -3,6 +3,7 @@ package data.unit.processor;
 import static data.utility.ExecutionRecordUtil.prepareResultExecutionRecord;
 
 import data.entity.ExecutionRecord;
+import data.utility.BatchJobType;
 import lombok.Setter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,6 +24,6 @@ public class DefaultItemProcessor implements ItemProcessor<ExecutionRecord, Exec
   @Override
   public ExecutionRecord process(ExecutionRecord executionRecord) throws Exception {
     LOGGER.info("DefaultItemProcessor thread: {}", Thread.currentThread());
-    return prepareResultExecutionRecord(executionRecord, executionRecord.getRecordData(), "DEFAULT", jobInstanceId.toString());
+    return prepareResultExecutionRecord(executionRecord, executionRecord.getRecordData(), BatchJobType.DEFAULT.name(), jobInstanceId.toString());
   }
 }

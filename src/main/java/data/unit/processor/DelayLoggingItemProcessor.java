@@ -26,7 +26,7 @@ public class DelayLoggingItemProcessor implements ItemProcessor<ExecutionRecord,
         executionRecord.getExecutionRecordKey().getDatasetId(),
         executionRecord.getExecutionRecordKey().getExecutionId(),
         executionRecord.getExecutionRecordKey().getRecordId());
-    Thread.sleep(10000);
+    Thread.sleep(1000);
     return executionRecord;
   }
 }

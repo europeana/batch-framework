@@ -1,6 +1,7 @@
 package data.unit.processor;
 
 import data.entity.ExecutionRecord;
+import data.utility.BatchJobType;
 import data.utility.ExecutionRecordUtil;
 import eu.europeana.metis.harvesting.oaipmh.OaiRecord;
 import eu.europeana.metis.transformation.service.EuropeanaGeneratedIdsMap;
@@ -32,6 +33,7 @@ public class OaiHarvestItemProcessor implements ItemProcessor<OaiRecord, Executi
     EuropeanaIdCreator europeanIdCreator = new EuropeanaIdCreator();
     final EuropeanaGeneratedIdsMap europeanaGeneratedIdsMap = europeanIdCreator.constructEuropeanaId(resultString, datasetId);
     final String europeanaGeneratedId = europeanaGeneratedIdsMap.getEuropeanaGeneratedId();
-    return ExecutionRecordUtil.prepareResultExecutionRecord(datasetId, jobInstanceId.toString(), europeanaGeneratedId, "OAI_HARVEST", resultString);
+    return ExecutionRecordUtil.prepareResultExecutionRecord(datasetId, jobInstanceId.toString(), europeanaGeneratedId,
+        BatchJobType.OAI_HARVEST.name(), resultString);
   }
 }
