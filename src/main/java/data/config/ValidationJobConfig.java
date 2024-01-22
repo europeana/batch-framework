@@ -30,7 +30,7 @@ public class ValidationJobConfig {
   private static final Logger LOGGER = LoggerFactory.getLogger(ValidationJobConfig.class);
   public static final String BATCH_JOB = BatchJobType.VALIDATION.name();
   public static final String STEP_NAME = "validationStep";
-  public static final int CHUNK_SIZE = 10;
+  public static final int CHUNK_SIZE = 1;
   public static final int PARALLELIZATION = 2;
 
   @Bean

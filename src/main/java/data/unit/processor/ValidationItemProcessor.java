@@ -31,8 +31,8 @@ public class ValidationItemProcessor implements ItemProcessor<ExecutionRecord, E
 
   @Value("#{jobParameters['targetJob']}")
   private BatchJobType targetJob;
-  @Value("#{stepExecution.jobExecution.id}")
-  private Long jobId;
+  @Value("#{stepExecution.jobExecution.jobInstance.id}")
+  private Long jobInstanceId;
 
   public ValidationItemProcessor() {
     properties.setProperty("predefinedSchemas", "localhost");
@@ -47,6 +47,12 @@ public class ValidationItemProcessor implements ItemProcessor<ExecutionRecord, E
     validationService = new ValidationExecutionService(properties);
   }
 
+  /**
+   * @param executionRecord
+   * @return
+   * @throws InterruptedException
+   * @throws TransformationException
+   */
   @Override
   public ExecutionRecord process(@NonNull ExecutionRecord executionRecord) throws InterruptedException, TransformationException {
     final String reorderedFileContent = reorderFileContent(executionRecord.getRecordData());
@@ -74,7 +80,7 @@ public class ValidationItemProcessor implements ItemProcessor<ExecutionRecord, E
     } else {
       LOGGER.info("Validation Failure for datasetId {}, recordId {}", executionRecord.getExecutionRecordKey().getDatasetId(), executionRecord.getExecutionRecordKey().getRecordId());
     }
-    return ExecutionRecordUtil.prepareResultExecutionRecord(executionRecord, executionRecord.getRecordData(), targetJob.name(), jobId.toString());
+    return ExecutionRecordUtil.prepareResultExecutionRecord(executionRecord, executionRecord.getRecordData(), targetJob.name(), jobInstanceId.toString());
   }
 
   private String reorderFileContent(String recordData) throws TransformationException {

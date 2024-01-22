@@ -37,8 +37,8 @@ public class XsltTransformerItemProcessor implements ItemProcessor<ExecutionReco
   private String datasetLanguage;
   @Value("#{jobParameters['xsltUrl']}")
   private String xsltUrl;
-  @Value("#{stepExecution.jobExecution.id}")
-  private Long jobId;
+  @Value("#{stepExecution.jobExecution.jobInstance.id}")
+  private Long jobInstanceId;
 
   @Override
   public ExecutionRecord process(@NonNull ExecutionRecord executionRecord) throws InterruptedException {
@@ -56,7 +56,7 @@ public class XsltTransformerItemProcessor implements ItemProcessor<ExecutionReco
     } catch (EuropeanaIdException | TransformationException | IOException e) {
       throw new RuntimeException(e);
     }
-    return ExecutionRecordUtil.prepareResultExecutionRecord(executionRecord, resultString, "TRANSFORMATION", jobId.toString());
+    return ExecutionRecordUtil.prepareResultExecutionRecord(executionRecord, resultString, "TRANSFORMATION", jobInstanceId.toString());
   }
 
   private XsltTransformer prepareXsltTransformer()

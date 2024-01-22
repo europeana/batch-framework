@@ -11,11 +11,19 @@ import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.BatchStatus;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobExecution;
+import org.springframework.batch.core.JobInstance;
 import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.JobParametersBuilder;
+import org.springframework.batch.core.JobParametersInvalidException;
 import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.explore.JobExplorer;
+import org.springframework.batch.core.launch.JobExecutionNotRunningException;
 import org.springframework.batch.core.launch.JobLauncher;
+import org.springframework.batch.core.launch.JobOperator;
+import org.springframework.batch.core.launch.NoSuchJobException;
+import org.springframework.batch.core.launch.NoSuchJobExecutionException;
+import org.springframework.batch.core.repository.JobInstanceAlreadyCompleteException;
+import org.springframework.batch.core.repository.JobRestartException;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -36,6 +44,7 @@ public class ExecutionController {
   private final Job validationBatchJob;
   private final Job tranformationBatchJob;
   private final JobExplorer jobExplorer;
+  private final JobOperator jobOperator;
   private final ExecutionRecordRepository executionRecordRepository;
 
   public ExecutionController(
@@ -45,6 +54,7 @@ public class ExecutionController {
       @Qualifier("validationBatchJob") Job validationBatchJob,
       @Qualifier("transformationBatchJob") Job tranformationBatchJob,
       JobExplorer jobExplorer,
+      JobOperator jobOperator,
       ExecutionRecordRepository executionRecordRepository) {
     this.taskExecutorJobLauncher = taskExecutorJobLauncher;
     this.defaultBatchJob = defaultBatchJob;
@@ -52,6 +62,7 @@ public class ExecutionController {
     this.validationBatchJob = validationBatchJob;
     this.tranformationBatchJob = tranformationBatchJob;
     this.jobExplorer = jobExplorer;
+    this.jobOperator = jobOperator;
     this.executionRecordRepository = executionRecordRepository;
   }
 
@@ -85,9 +96,42 @@ public class ExecutionController {
     };
 
     final JobExecution jobExecution = taskExecutorJobLauncher.run(batchJob, params);
-    LOGGER.info("JobExecution identifier: {}", jobExecution.getJobId());
+    LOGGER.info("JobInstance identifier: {}", jobExecution.getJobInstance().getInstanceId());
     return ResponseEntity.ok().body("Batch job has been invoked");
   }
+
+  @GetMapping("/stop")
+  public ResponseEntity<String> stopJob(@RequestParam Long jobInstanceId)
+      throws NoSuchJobExecutionException, JobExecutionNotRunningException {
+    final JobInstance jobInstance = jobExplorer.getJobInstance(jobInstanceId);
+    if (jobInstance == null) {
+      return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No job instance found");
+    }
+    final JobExecution lastJobExecution = jobExplorer.getLastJobExecution(jobInstance);
+    if (lastJobExecution == null) {
+      return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No job execution found");
+    }
+
+    final boolean returnStatus = jobOperator.stop(lastJobExecution.getId());
+    return ResponseEntity.ok().body(String.format("Job stop executed with status: %s", returnStatus));
+  }
+
+  @GetMapping("/restart")
+  public ResponseEntity<String> restartJob(@RequestParam Long jobInstanceId)
+      throws NoSuchJobExecutionException, JobInstanceAlreadyCompleteException, NoSuchJobException, JobParametersInvalidException, JobRestartException {
+    final JobInstance jobInstance = jobExplorer.getJobInstance(jobInstanceId);
+    if (jobInstance == null) {
+      return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No job instance found");
+    }
+    final JobExecution lastJobExecution = jobExplorer.getLastJobExecution(jobInstance);
+    if (lastJobExecution == null) {
+      return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No job execution found");
+    }
+
+    final Long id = jobOperator.restart(lastJobExecution.getId());
+    return ResponseEntity.ok().body(String.format("Job restart executed with id: %s", id));
+  }
+
 
   @GetMapping("/status")
   public ResponseEntity<Map<String, Object>> getJobStatus(@RequestParam Long jobExecutionId) {

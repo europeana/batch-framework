@@ -22,8 +22,8 @@ public class OaiHarvestItemProcessor implements ItemProcessor<OaiRecord, Executi
   private static final Logger LOGGER = LoggerFactory.getLogger(OaiHarvestItemProcessor.class);
   @Value("#{jobParameters['datasetId']}")
   private String datasetId;
-  @Value("#{stepExecution.jobExecution.id}")
-  private Long jobId;
+  @Value("#{stepExecution.jobExecution.jobInstance.id}")
+  private Long jobInstanceId;
 
   @Override
   public ExecutionRecord process(OaiRecord oaiRecord) throws Exception {
@@ -32,6 +32,6 @@ public class OaiHarvestItemProcessor implements ItemProcessor<OaiRecord, Executi
     EuropeanaIdCreator europeanIdCreator = new EuropeanaIdCreator();
     final EuropeanaGeneratedIdsMap europeanaGeneratedIdsMap = europeanIdCreator.constructEuropeanaId(resultString, datasetId);
     final String europeanaGeneratedId = europeanaGeneratedIdsMap.getEuropeanaGeneratedId();
-    return ExecutionRecordUtil.prepareResultExecutionRecord(datasetId, jobId.toString(), europeanaGeneratedId, "OAI_HARVEST", resultString);
+    return ExecutionRecordUtil.prepareResultExecutionRecord(datasetId, jobInstanceId.toString(), europeanaGeneratedId, "OAI_HARVEST", resultString);
   }
 }

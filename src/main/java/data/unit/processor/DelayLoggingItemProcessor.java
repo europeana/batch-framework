@@ -16,17 +16,17 @@ public class DelayLoggingItemProcessor implements ItemProcessor<ExecutionRecord,
 
   private static final Logger LOGGER = LoggerFactory.getLogger(DelayLoggingItemProcessor.class);
 
-  @Value("#{stepExecution.jobExecution.id}")
-  private Long jobId;
+  @Value("#{stepExecution.jobExecution.jobInstance.id}")
+  private Long jobInstanceId;
 
   @Override
   public ExecutionRecord process(ExecutionRecord executionRecord) throws Exception {
     LOGGER.info("Processing jobId {}, datasetId, executionId, recordId: {}, {}, {}",
-        jobId,
+        jobInstanceId,
         executionRecord.getExecutionRecordKey().getDatasetId(),
         executionRecord.getExecutionRecordKey().getExecutionId(),
         executionRecord.getExecutionRecordKey().getRecordId());
-    Thread.sleep(1000);
+    Thread.sleep(10000);
     return executionRecord;
   }
 }

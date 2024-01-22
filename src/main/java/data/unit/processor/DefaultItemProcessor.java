@@ -17,12 +17,12 @@ import org.springframework.stereotype.Component;
 public class DefaultItemProcessor implements ItemProcessor<ExecutionRecord, ExecutionRecord> {
   private static final Logger LOGGER = LoggerFactory.getLogger(DefaultItemProcessor.class);
 
-  @Value("#{stepExecution.jobExecution.id}")
-  private Long jobId;
+  @Value("#{stepExecution.jobExecution.jobInstance.id}")
+  private Long jobInstanceId;
 
   @Override
   public ExecutionRecord process(ExecutionRecord executionRecord) throws Exception {
     LOGGER.info("DefaultItemProcessor thread: {}", Thread.currentThread());
-    return prepareResultExecutionRecord(executionRecord, executionRecord.getRecordData(), "DEFAULT", jobId.toString());
+    return prepareResultExecutionRecord(executionRecord, executionRecord.getRecordData(), "DEFAULT", jobInstanceId.toString());
   }
 }
