@@ -17,6 +17,8 @@
     <version.postgresql>42.6.0</version.postgresql>
     <version.maven.compiler.plugin>3.8.1</version.maven.compiler.plugin>
     <version.metis>12-SNAPSHOT</version.metis>
+    <version.netty>4.1.100.Final</version.netty>
+    <version.reactor>3.4.24</version.reactor>
   </properties>
   <dependencies>
     <dependency>
@@ -77,6 +79,104 @@
       <artifactId>metis-normalization</artifactId>
       <version>${version.metis}</version>
     </dependency>
+
+    <!--    ENRICHMENT DEPENDENCIES-->
+<!--    Additionally enrichment was build with <version.spring>6.1.2</version.spring> temporarily locally for this project to avoid no class found errors-->
+    <dependency>
+      <groupId>eu.europeana.metis</groupId>
+      <artifactId>metis-enrichment-client</artifactId>
+      <version>${version.metis}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>eu.europeana.corelib</groupId>
+          <artifactId>corelib-lookup</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.springframework</groupId>
+          <artifactId>spring-webflux</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>io.projectreactor</groupId>
+          <artifactId>reactor-core</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <!-- client entity api dependencies -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-webflux</artifactId>
+      <exclusions>
+        <exclusion>
+          <groupId>org.springframework.boot</groupId>
+          <artifactId>spring-boot-starter-logging</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>io.projectreactor.netty</groupId>
+          <artifactId>reactor-netty</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-autoconfigure</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.netty</groupId>
+      <artifactId>netty-codec</artifactId>
+      <version>${version.netty}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.netty</groupId>
+      <artifactId>netty-codec-http</artifactId>
+      <version>${version.netty}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.netty</groupId>
+      <artifactId>netty-handler</artifactId>
+      <version>${version.netty}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.netty</groupId>
+      <artifactId>netty-codec-http2</artifactId>
+      <version>${version.netty}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.netty</groupId>
+      <artifactId>netty-resolver-dns</artifactId>
+      <version>${version.netty}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.netty</groupId>
+      <artifactId>netty-codec-dns</artifactId>
+      <version>${version.netty}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.netty</groupId>
+      <artifactId>netty-common</artifactId>
+      <version>${version.netty}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.netty</groupId>
+      <artifactId>netty-buffer</artifactId>
+      <version>${version.netty}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.netty</groupId>
+      <artifactId>netty-transport</artifactId>
+      <version>${version.netty}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.netty</groupId>
+      <artifactId>netty-resolver</artifactId>
+      <version>${version.netty}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.projectreactor</groupId>
+      <artifactId>reactor-core</artifactId>
+      <version>${version.reactor}</version>
+    </dependency>
+    <!-- end of client entity api entities -->
+    <!--    ENRICHMENT DEPENDENCIES-->
   </dependencies>
 
   <build>
@@ -95,5 +195,35 @@
       </plugin>
     </plugins>
   </build>
+
+  <repositories>
+
+    <!--Release repositories-->
+    <repository>
+      <id>libs-release</id>
+      <name>libs-release</name>
+      <url>https://artifactory.eanadev.org/artifactory/libs-release</url>
+      <releases>
+        <enabled>true</enabled>
+      </releases>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+    </repository>
+
+    <!--Snapshot repositories-->
+    <repository>
+      <id>libs-snapshot</id>
+      <name>libs-snapshots</name>
+      <url>https://artifactory.eanadev.org/artifactory/libs-snapshot</url>
+      <releases>
+        <enabled>false</enabled>
+      </releases>
+      <snapshots>
+        <enabled>true</enabled>
+        <updatePolicy>always</updatePolicy>
+      </snapshots>
+    </repository>
+  </repositories>
 
 </project>
