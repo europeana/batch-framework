@@ -4,6 +4,7 @@ package data.controller;
 import data.repositories.ExecutionRecordRepository;
 import data.utility.BatchJobType;
 import java.lang.invoke.MethodHandles;
+import java.time.temporal.ChronoUnit;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -147,17 +148,23 @@ public class ExecutionController {
 
 
   @GetMapping("/status")
-  public ResponseEntity<Map<String, Object>> getJobStatus(@RequestParam Long jobExecutionId) {
+  public ResponseEntity<Map<String, Object>> getJobStatus(@RequestParam Long jobInstanceId) {
     Map<String, Object> response = new HashMap<>();
-    final JobExecution jobExecution = jobExplorer.getJobExecution(jobExecutionId);
-    if (jobExecution == null) {
+
+    final JobInstance jobInstance = jobExplorer.getJobInstance(jobInstanceId);
+    if (jobInstance == null) {
+      response.put("message", "No job instance found");
+      return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+    }
+    final JobExecution lastJobExecution = jobExplorer.getLastJobExecution(jobInstance);
+    if (lastJobExecution == null) {
       response.put("message", "No job execution found");
       return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
     }
 
-    BatchStatus batchStatus = jobExecution.getStatus();
+    BatchStatus batchStatus = lastJobExecution.getStatus();
     response.put("status", batchStatus.toString());
-    Collection<StepExecution> stepExecutions = jobExecution.getStepExecutions();
+    Collection<StepExecution> stepExecutions = lastJobExecution.getStepExecutions();
     for (StepExecution stepExecution : stepExecutions) {
       // In our case, there's only one step. If you have multiple steps, you might want to key by step name.
       response.put("readCount", stepExecution.getReadCount());
@@ -166,9 +173,9 @@ public class ExecutionController {
       response.put("skipCount", stepExecution.getSkipCount());
       response.put("rollbackCount", stepExecution.getRollbackCount());
       response.put("executionRecordsInDB", executionRecordRepository.count());
-      // Progress indicator. Assuming you know the total records in advance (100,000 in this case).
-      int progress = (int) (((double) stepExecution.getReadCount() / 4) * 100);
-      response.put("progress", progress + "%");
+      if (stepExecution.getStartTime() != null && stepExecution.getEndTime() != null) {
+        response.put("Duration in seconds", stepExecution.getStartTime().until(stepExecution.getEndTime(), ChronoUnit.SECONDS));
+      }
     }
     return ResponseEntity.ok().body(response);
   }
