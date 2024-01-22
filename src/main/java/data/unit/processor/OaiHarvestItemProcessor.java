@@ -6,6 +6,7 @@ import data.utility.ExecutionRecordUtil;
 import eu.europeana.metis.harvesting.oaipmh.OaiRecord;
 import eu.europeana.metis.transformation.service.EuropeanaGeneratedIdsMap;
 import eu.europeana.metis.transformation.service.EuropeanaIdCreator;
+import java.lang.invoke.MethodHandles;
 import java.nio.charset.StandardCharsets;
 import lombok.Setter;
 import org.slf4j.Logger;
@@ -20,7 +21,7 @@ import org.springframework.stereotype.Component;
 @Setter
 public class OaiHarvestItemProcessor implements ItemProcessor<OaiRecord, ExecutionRecord> {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(OaiHarvestItemProcessor.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   @Value("#{jobParameters['datasetId']}")
   private String datasetId;
   @Value("#{stepExecution.jobExecution.jobInstance.id}")

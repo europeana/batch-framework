@@ -4,6 +4,7 @@ import static data.utility.ExecutionRecordUtil.prepareResultExecutionRecord;
 
 import data.entity.ExecutionRecord;
 import data.utility.BatchJobType;
+import java.lang.invoke.MethodHandles;
 import lombok.Setter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,7 +17,7 @@ import org.springframework.stereotype.Component;
 @StepScope
 @Setter
 public class DefaultItemProcessor implements ItemProcessor<ExecutionRecord, ExecutionRecord> {
-  private static final Logger LOGGER = LoggerFactory.getLogger(DefaultItemProcessor.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   @Value("#{stepExecution.jobExecution.jobInstance.id}")
   private Long jobInstanceId;

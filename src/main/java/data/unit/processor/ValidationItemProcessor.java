@@ -8,6 +8,7 @@ import eu.europeana.metis.transformation.service.XsltTransformer;
 import eu.europeana.validation.model.ValidationResult;
 import eu.europeana.validation.service.ValidationExecutionService;
 import java.io.StringWriter;
+import java.lang.invoke.MethodHandles;
 import java.nio.charset.StandardCharsets;
 import java.util.Properties;
 import lombok.Setter;
@@ -24,9 +25,9 @@ import org.springframework.stereotype.Component;
 @Setter
 public class ValidationItemProcessor implements ItemProcessor<ExecutionRecord, ExecutionRecord> {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(ValidationItemProcessor.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static final String EDM_SORTER_FILE_URL = "http://ftp.eanadev.org/schema_zips/edm_sorter_20230809.xsl";
-  private static ValidationExecutionService validationService;
+  private ValidationExecutionService validationService;
   private final Properties properties = new Properties();
 
   @Value("#{jobParameters['targetJob']}")

@@ -1,5 +1,6 @@
 package data.config;
 
+import java.lang.invoke.MethodHandles;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.launch.JobLauncher;
@@ -13,7 +14,7 @@ import org.springframework.core.task.TaskExecutor;
 @Configuration
 public class CommonBatchConfig {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(CommonBatchConfig.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   @Bean
   public TaskExecutor taskExecutor() {

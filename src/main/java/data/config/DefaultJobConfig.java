@@ -4,6 +4,7 @@ import data.entity.ExecutionRecord;
 import data.repositories.ExecutionRecordRepository;
 import data.unit.reader.DefaultRepositoryItemReader;
 import data.utility.BatchJobType;
+import java.lang.invoke.MethodHandles;
 import java.util.Arrays;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,7 +27,7 @@ import org.springframework.transaction.PlatformTransactionManager;
 @Configuration
 public class DefaultJobConfig {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(DefaultJobConfig.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   public static final String BATCH_JOB = BatchJobType.DEFAULT.name();
   public static final String STEP_NAME = "defaultStep";
   public static final int CHUNK_SIZE = 10;

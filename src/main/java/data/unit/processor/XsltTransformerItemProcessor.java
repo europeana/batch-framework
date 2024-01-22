@@ -10,6 +10,7 @@ import eu.europeana.metis.transformation.service.TransformationException;
 import eu.europeana.metis.transformation.service.XsltTransformer;
 import java.io.IOException;
 import java.io.StringWriter;
+import java.lang.invoke.MethodHandles;
 import java.nio.charset.StandardCharsets;
 import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
@@ -26,7 +27,7 @@ import org.springframework.stereotype.Component;
 @Setter
 public class XsltTransformerItemProcessor implements ItemProcessor<ExecutionRecord, ExecutionRecord> {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(XsltTransformerItemProcessor.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   @Value("#{jobParameters['datasetId']}")
   private String datasetId;

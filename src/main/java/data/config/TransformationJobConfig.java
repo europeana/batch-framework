@@ -5,6 +5,7 @@ import data.repositories.ExecutionRecordRepository;
 import data.unit.processor.XsltTransformerItemProcessor;
 import data.unit.reader.DefaultRepositoryItemReader;
 import data.utility.BatchJobType;
+import java.lang.invoke.MethodHandles;
 import java.util.Arrays;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,7 +28,7 @@ import org.springframework.transaction.PlatformTransactionManager;
 @Configuration
 public class TransformationJobConfig {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(TransformationJobConfig.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   public static final String BATCH_JOB = BatchJobType.TRANSFORMATION.name();
   public static final String STEP_NAME = "transformationStep";
   public static final int CHUNK_SIZE = 10;

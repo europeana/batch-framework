@@ -3,6 +3,7 @@ package data.controller;
 
 import data.repositories.ExecutionRecordRepository;
 import data.utility.BatchJobType;
+import java.lang.invoke.MethodHandles;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -36,7 +37,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/")
 public class ExecutionController {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(ExecutionController.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   private final JobLauncher taskExecutorJobLauncher;
   private final Job defaultBatchJob;

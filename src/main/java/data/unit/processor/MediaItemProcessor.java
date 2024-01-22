@@ -19,6 +19,7 @@ import eu.europeana.metis.mediaprocessing.model.RdfResourceEntry;
 import eu.europeana.metis.mediaprocessing.model.ResourceExtractionResult;
 import eu.europeana.metis.mediaprocessing.model.Thumbnail;
 import jakarta.annotation.PostConstruct;
+import java.lang.invoke.MethodHandles;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import lombok.Setter;
@@ -35,7 +36,7 @@ import org.springframework.stereotype.Component;
 @Setter
 public class MediaItemProcessor implements ItemProcessor<ExecutionRecord, ExecutionRecord> {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(MediaItemProcessor.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private MediaExtractor mediaExtractor;
   private RdfSerializer rdfSerializer;
   private RdfDeserializer rdfDeserializer;

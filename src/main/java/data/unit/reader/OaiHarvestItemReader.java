@@ -9,6 +9,7 @@ import eu.europeana.metis.harvesting.oaipmh.OaiRecord;
 import eu.europeana.metis.harvesting.oaipmh.OaiRecordHeader;
 import eu.europeana.metis.harvesting.oaipmh.OaiRecordHeaderIterator;
 import java.io.IOException;
+import java.lang.invoke.MethodHandles;
 import java.util.LinkedList;
 import java.util.List;
 import lombok.Setter;
@@ -24,7 +25,7 @@ import org.springframework.stereotype.Component;
 @Setter
 public class OaiHarvestItemReader implements ItemReader<OaiRecord> {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(OaiHarvestItemReader.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   @Value("#{jobParameters['oaiEndpoint']}")
   private String oaiEndpoint;

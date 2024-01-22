@@ -1,6 +1,7 @@
 package data.unit.processor;
 
 import data.entity.ExecutionRecord;
+import java.lang.invoke.MethodHandles;
 import lombok.Setter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,7 +15,7 @@ import org.springframework.stereotype.Component;
 @Setter
 public class DelayLoggingItemProcessor implements ItemProcessor<ExecutionRecord, ExecutionRecord> {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(DelayLoggingItemProcessor.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   @Value("#{stepExecution.jobExecution.jobInstance.id}")
   private Long jobInstanceId;

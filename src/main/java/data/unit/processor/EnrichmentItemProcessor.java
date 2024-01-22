@@ -36,7 +36,7 @@ public class EnrichmentItemProcessor implements ItemProcessor<ExecutionRecord, E
   private EnrichmentWorker enrichmentWorker;
 
   @Override
-  public ExecutionRecord process(ExecutionRecord executionRecord) throws Exception {
+  public ExecutionRecord process(ExecutionRecord executionRecord) {
     ProcessedResult<String> result = enrichmentWorker.process(executionRecord.getRecordData());
     return ExecutionRecordUtil.prepareResultExecutionRecord(executionRecord, result.getProcessedRecord(),
         BatchJobType.ENRICHMENT.name(), jobInstanceId.toString());

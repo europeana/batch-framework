@@ -5,6 +5,7 @@ import data.unit.processor.OaiHarvestItemProcessor;
 import data.unit.reader.OaiHarvestItemReader;
 import data.utility.BatchJobType;
 import eu.europeana.metis.harvesting.oaipmh.OaiRecord;
+import java.lang.invoke.MethodHandles;
 import java.util.Arrays;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,7 +26,7 @@ import org.springframework.transaction.PlatformTransactionManager;
 @Configuration
 public class OaiHarvestJobConfig {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(OaiHarvestJobConfig.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   public static final String BATCH_JOB = BatchJobType.OAI_HARVEST.name();
   public static final String STEP_NAME = "oaiHarvestStep";
   public static final int CHUNK_SIZE = 10;
