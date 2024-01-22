@@ -45,6 +45,7 @@ public class ExecutionController {
   private final Job tranformationBatchJob;
   private final Job normalizationBatchJob;
   private final Job enrichmentBatchJob;
+  private final Job mediaBatchJob;
   private final JobExplorer jobExplorer;
   private final JobOperator jobOperator;
   private final ExecutionRecordRepository executionRecordRepository;
@@ -57,6 +58,7 @@ public class ExecutionController {
       @Qualifier("transformationBatchJob") Job tranformationBatchJob,
       @Qualifier("normalizationBatchJob") Job normalizationBatchJob,
       @Qualifier("enrichmentBatchJob") Job enrichmentBatchJob,
+      @Qualifier("mediaBatchJob") Job mediaBatchJob,
       JobExplorer jobExplorer,
       JobOperator jobOperator,
       ExecutionRecordRepository executionRecordRepository) {
@@ -67,6 +69,7 @@ public class ExecutionController {
     this.tranformationBatchJob = tranformationBatchJob;
     this.normalizationBatchJob = normalizationBatchJob;
     this.enrichmentBatchJob = enrichmentBatchJob;
+    this.mediaBatchJob = mediaBatchJob;
     this.jobExplorer = jobExplorer;
     this.jobOperator = jobOperator;
     this.executionRecordRepository = executionRecordRepository;
@@ -101,6 +104,7 @@ public class ExecutionController {
       case TRANSFORMATION -> tranformationBatchJob;
       case NORMALIZATION -> normalizationBatchJob;
       case ENRICHMENT -> enrichmentBatchJob;
+      case MEDIA -> mediaBatchJob;
     };
 
     final JobExecution jobExecution = taskExecutorJobLauncher.run(batchJob, params);
