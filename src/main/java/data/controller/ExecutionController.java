@@ -32,8 +32,9 @@ public class ExecutionController {
 
   private final JobLauncher taskExecutorJobLauncher;
   private final Job defaultBatchJob;
-  private final Job tranformationBatchJob;
   private final Job oaiHarvestBatchJob;
+  private final Job validationBatchJob;
+  private final Job tranformationBatchJob;
   private final JobExplorer jobExplorer;
   private final ExecutionRecordRepository executionRecordRepository;
 
@@ -41,12 +42,14 @@ public class ExecutionController {
       JobLauncher taskExecutorJobLauncher,
       @Qualifier("defaultBatchJob") Job defaultBatchJob,
       @Qualifier("oaiHarvestBatchJob") Job oaiHarvestBatchJob,
+      @Qualifier("validationBatchJob") Job validationBatchJob,
       @Qualifier("transformationBatchJob") Job tranformationBatchJob,
       JobExplorer jobExplorer,
       ExecutionRecordRepository executionRecordRepository) {
     this.taskExecutorJobLauncher = taskExecutorJobLauncher;
     this.defaultBatchJob = defaultBatchJob;
     this.oaiHarvestBatchJob = oaiHarvestBatchJob;
+    this.validationBatchJob = validationBatchJob;
     this.tranformationBatchJob = tranformationBatchJob;
     this.jobExplorer = jobExplorer;
     this.executionRecordRepository = executionRecordRepository;
@@ -56,17 +59,18 @@ public class ExecutionController {
   public ResponseEntity<String> handle(@RequestParam String datasetId, @RequestParam String executionId,
       @RequestParam String targetJob) throws Exception {
     JobParameters params = new JobParametersBuilder()
+        /////////Common parameters
         .addString("datasetId", datasetId)
         .addString("executionId", executionId)
         .addString("targetJob", targetJob)
         //Add this to be able to re-run the same job. If parameters are identical the job is declined.
         .addString("executionUUID", String.valueOf(System.currentTimeMillis()))
-        ////////
+        ////////Transformation parameters
         .addString("datasetName", "idA_metisDatasetNameA")
         .addString("datasetCountry", "Greece")
-        .addString("datasetLanguage", "El")
+        .addString("datasetLanguage", "el")
         .addString("xsltUrl", "https://metis-core-rest.test.eanadev.org/datasets/xslt/6204e5e2514e773e6745f7e9")
-        /////////
+        /////////Oai harvest parameters
         .addString("oaiEndpoint", "https://metis-repository-rest.test.eanadev.org/repository/oai")
         .addString("oaiSet", "spring_batch_test_9_valid")
         .addString("oaiMetadataPrefix", "edm")
@@ -75,7 +79,9 @@ public class ExecutionController {
     final Job batchJob = switch (BatchJobType.valueOf(targetJob)) {
       case DEFAULT -> defaultBatchJob;
       case OAI_HARVEST -> oaiHarvestBatchJob;
+      case VALIDATION_EXTERNAL, VALIDATION_INTERNAL -> validationBatchJob;
       case TRANSFORMATION -> tranformationBatchJob;
+      default -> throw new IllegalStateException("Unexpected value: " + BatchJobType.valueOf(targetJob));
     };
 
     final JobExecution jobExecution = taskExecutorJobLauncher.run(batchJob, params);
