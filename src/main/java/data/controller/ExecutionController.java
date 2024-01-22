@@ -26,7 +26,6 @@ import org.springframework.batch.core.launch.NoSuchJobException;
 import org.springframework.batch.core.launch.NoSuchJobExecutionException;
 import org.springframework.batch.core.repository.JobInstanceAlreadyCompleteException;
 import org.springframework.batch.core.repository.JobRestartException;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -41,37 +40,19 @@ public class ExecutionController {
   private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   private final JobLauncher taskExecutorJobLauncher;
-  private final Job defaultBatchJob;
-  private final Job oaiHarvestBatchJob;
-  private final Job validationBatchJob;
-  private final Job tranformationBatchJob;
-  private final Job normalizationBatchJob;
-  private final Job enrichmentBatchJob;
-  private final Job mediaBatchJob;
   private final JobExplorer jobExplorer;
   private final JobOperator jobOperator;
+  private final BatchJobsWrapper batchJobsWrapper;
   private final ExecutionRecordRepository executionRecordRepository;
 
   public ExecutionController(
       JobLauncher taskExecutorJobLauncher,
-      @Qualifier("defaultBatchJob") Job defaultBatchJob,
-      @Qualifier("oaiHarvestBatchJob") Job oaiHarvestBatchJob,
-      @Qualifier("validationBatchJob") Job validationBatchJob,
-      @Qualifier("transformationBatchJob") Job tranformationBatchJob,
-      @Qualifier("normalizationBatchJob") Job normalizationBatchJob,
-      @Qualifier("enrichmentBatchJob") Job enrichmentBatchJob,
-      @Qualifier("mediaBatchJob") Job mediaBatchJob,
       JobExplorer jobExplorer,
       JobOperator jobOperator,
+      BatchJobsWrapper batchJobsWrapper,
       ExecutionRecordRepository executionRecordRepository) {
     this.taskExecutorJobLauncher = taskExecutorJobLauncher;
-    this.defaultBatchJob = defaultBatchJob;
-    this.oaiHarvestBatchJob = oaiHarvestBatchJob;
-    this.validationBatchJob = validationBatchJob;
-    this.tranformationBatchJob = tranformationBatchJob;
-    this.normalizationBatchJob = normalizationBatchJob;
-    this.enrichmentBatchJob = enrichmentBatchJob;
-    this.mediaBatchJob = mediaBatchJob;
+    this.batchJobsWrapper = batchJobsWrapper;
     this.jobExplorer = jobExplorer;
     this.jobOperator = jobOperator;
     this.executionRecordRepository = executionRecordRepository;
@@ -99,14 +80,14 @@ public class ExecutionController {
         .toJobParameters();
 
     final Job batchJob = switch (BatchJobType.valueOf(targetJob)) {
-      case DEFAULT -> defaultBatchJob;
-      case OAI_HARVEST -> oaiHarvestBatchJob;
+      case DEFAULT -> batchJobsWrapper.defaultBatchJob();
+      case OAI_HARVEST -> batchJobsWrapper.oaiHarvestBatchJob();
       case VALIDATION -> throw new IllegalStateException("Unexpected value: " + BatchJobType.valueOf(targetJob));
-      case VALIDATION_EXTERNAL, VALIDATION_INTERNAL -> validationBatchJob;
-      case TRANSFORMATION -> tranformationBatchJob;
-      case NORMALIZATION -> normalizationBatchJob;
-      case ENRICHMENT -> enrichmentBatchJob;
-      case MEDIA -> mediaBatchJob;
+      case VALIDATION_EXTERNAL, VALIDATION_INTERNAL -> batchJobsWrapper.validationBatchJob();
+      case TRANSFORMATION -> batchJobsWrapper.tranformationBatchJob();
+      case NORMALIZATION -> batchJobsWrapper.normalizationBatchJob();
+      case ENRICHMENT -> batchJobsWrapper.enrichmentBatchJob();
+      case MEDIA -> batchJobsWrapper.mediaBatchJob();
     };
 
     final JobExecution jobExecution = taskExecutorJobLauncher.run(batchJob, params);
