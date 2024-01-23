@@ -46,6 +46,7 @@ public class MediaItemProcessor implements ItemProcessor<ExecutionRecord, Execut
 
   @Override
   public ExecutionRecord process(ExecutionRecord executionRecord) throws Exception {
+    LOGGER.info("MediaItemProcessor thread: {}", Thread.currentThread());
     final byte[] rdfBytes = executionRecord.getRecordData().getBytes(StandardCharsets.UTF_8);
     final EnrichedRdf enrichedRdf = getEnrichedRdf(rdfBytes);
 
@@ -115,7 +116,7 @@ public class MediaItemProcessor implements ItemProcessor<ExecutionRecord, Execut
 
   private void storeThumbnails(String recordId, List<Thumbnail> thumbnails) {
     if (nonNull(thumbnails)) {
-      LOGGER.info("Fake storing thumbnail");
+      LOGGER.debug("Fake storing thumbnail");
     }
   }
 

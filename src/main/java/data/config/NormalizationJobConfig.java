@@ -2,11 +2,10 @@ package data.config;
 
 import data.entity.ExecutionRecord;
 import data.repositories.ExecutionRecordRepository;
-import data.unit.processor.NormalizationItemProcessor;
+import data.unit.processor.listener.DelayLoggingItemProcessListener;
 import data.unit.reader.DefaultRepositoryItemReader;
 import data.utility.BatchJobType;
 import java.lang.invoke.MethodHandles;
-import java.util.Arrays;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.Job;
@@ -18,7 +17,6 @@ import org.springframework.batch.core.step.builder.StepBuilder;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.data.RepositoryItemReader;
 import org.springframework.batch.item.data.RepositoryItemWriter;
-import org.springframework.batch.item.support.CompositeItemProcessor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.task.TaskExecutor;
@@ -30,8 +28,8 @@ public class NormalizationJobConfig {
   private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   public static final String BATCH_JOB = BatchJobType.NORMALIZATION.name();
   public static final String STEP_NAME = "normalizationStep";
-  public static final int CHUNK_SIZE = 1;
-  public static final int PARALLELIZATION = 2;
+  public static final int CHUNK_SIZE = 100;
+  public static final int PARALLELIZATION = 10;
 
   @Bean
   public Job normalizationBatchJob(JobRepository jobRepository, Step normalizationStep) {
@@ -43,14 +41,16 @@ public class NormalizationJobConfig {
   @Bean
   public Step normalizationStep(JobRepository jobRepository, PlatformTransactionManager transactionManager,
       RepositoryItemReader<ExecutionRecord> normalizationRepositoryItemReader,
-      ItemProcessor<ExecutionRecord, ExecutionRecord> compositeNormalizationItemProcessor,
+      ItemProcessor<ExecutionRecord, ExecutionRecord> normalizationItemProcessor,
       RepositoryItemWriter<ExecutionRecord> writer,
+      DelayLoggingItemProcessListener<ExecutionRecord> delayLoggingItemProcessListener,
       TaskExecutor normalizationStepAsyncTaskExecutor) {
     return new StepBuilder(STEP_NAME, jobRepository)
         .<ExecutionRecord, ExecutionRecord>chunk(CHUNK_SIZE, transactionManager)
         .reader(normalizationRepositoryItemReader)
-        .processor(compositeNormalizationItemProcessor)
+        .processor(normalizationItemProcessor)
         .writer(writer)
+        .listener(delayLoggingItemProcessListener)
         .taskExecutor(normalizationStepAsyncTaskExecutor)
         .build();
   }
@@ -62,15 +62,6 @@ public class NormalizationJobConfig {
     final DefaultRepositoryItemReader defaultRepositoryItemReader = new DefaultRepositoryItemReader(executionRecordRepository);
     defaultRepositoryItemReader.setPageSize(CHUNK_SIZE);
     return defaultRepositoryItemReader;
-  }
-
-  @Bean
-  public ItemProcessor<ExecutionRecord, ExecutionRecord> compositeNormalizationItemProcessor(
-      NormalizationItemProcessor normalizationItemProcessor,
-      ItemProcessor<ExecutionRecord, ExecutionRecord> delayLoggingItemProcessor) {
-    CompositeItemProcessor<ExecutionRecord, ExecutionRecord> compositeItemProcessor = new CompositeItemProcessor<>();
-    compositeItemProcessor.setDelegates(Arrays.asList(normalizationItemProcessor, delayLoggingItemProcessor));
-    return compositeItemProcessor;
   }
 
   @Bean

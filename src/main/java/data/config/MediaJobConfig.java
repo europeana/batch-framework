@@ -2,11 +2,10 @@ package data.config;
 
 import data.entity.ExecutionRecord;
 import data.repositories.ExecutionRecordRepository;
-import data.unit.processor.MediaItemProcessor;
+import data.unit.processor.listener.DelayLoggingItemProcessListener;
 import data.unit.reader.DefaultRepositoryItemReader;
 import data.utility.BatchJobType;
 import java.lang.invoke.MethodHandles;
-import java.util.Arrays;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.Job;
@@ -18,7 +17,6 @@ import org.springframework.batch.core.step.builder.StepBuilder;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.data.RepositoryItemReader;
 import org.springframework.batch.item.data.RepositoryItemWriter;
-import org.springframework.batch.item.support.CompositeItemProcessor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.task.TaskExecutor;
@@ -31,8 +29,8 @@ public class MediaJobConfig {
   private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   public static final String BATCH_JOB = BatchJobType.MEDIA.name();
   public static final String STEP_NAME = "mediaStep";
-  public static final int CHUNK_SIZE = 4;
-  public static final int PARALLELIZATION = 4;
+  public static final int CHUNK_SIZE = 10;
+  public static final int PARALLELIZATION = 1;
 
   @Bean
   public Job mediaBatchJob(JobRepository jobRepository, Step mediaStep) {
@@ -44,14 +42,16 @@ public class MediaJobConfig {
   @Bean
   public Step mediaStep(JobRepository jobRepository, PlatformTransactionManager transactionManager,
       RepositoryItemReader<ExecutionRecord> mediaRepositoryItemReader,
-      ItemProcessor<ExecutionRecord, ExecutionRecord> compositeMediaItemProcessor,
+      ItemProcessor<ExecutionRecord, ExecutionRecord> mediaItemProcessor,
       RepositoryItemWriter<ExecutionRecord> writer,
+      DelayLoggingItemProcessListener<ExecutionRecord> delayLoggingItemProcessListener,
       TaskExecutor mediaStepAsyncTaskExecutor) {
     return new StepBuilder(STEP_NAME, jobRepository)
         .<ExecutionRecord, ExecutionRecord>chunk(CHUNK_SIZE, transactionManager)
         .reader(mediaRepositoryItemReader)
-        .processor(compositeMediaItemProcessor)
+        .processor(mediaItemProcessor)
         .writer(writer)
+        .listener(delayLoggingItemProcessListener)
         .taskExecutor(mediaStepAsyncTaskExecutor)
         .build();
   }
@@ -63,15 +63,6 @@ public class MediaJobConfig {
     final DefaultRepositoryItemReader defaultRepositoryItemReader = new DefaultRepositoryItemReader(executionRecordRepository);
     defaultRepositoryItemReader.setPageSize(CHUNK_SIZE);
     return defaultRepositoryItemReader;
-  }
-
-  @Bean
-  public ItemProcessor<ExecutionRecord, ExecutionRecord> compositeMediaItemProcessor(
-      MediaItemProcessor mediaItemProcessor,
-      ItemProcessor<ExecutionRecord, ExecutionRecord> delayLoggingItemProcessor) {
-    CompositeItemProcessor<ExecutionRecord, ExecutionRecord> compositeItemProcessor = new CompositeItemProcessor<>();
-    compositeItemProcessor.setDelegates(Arrays.asList(mediaItemProcessor, delayLoggingItemProcessor));
-    return compositeItemProcessor;
   }
 
   @Bean

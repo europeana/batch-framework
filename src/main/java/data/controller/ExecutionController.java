@@ -74,8 +74,11 @@ public class ExecutionController {
         .addString("datasetLanguage", "el")
         .addString("xsltUrl", "https://metis-core-rest.test.eanadev.org/datasets/xslt/6204e5e2514e773e6745f7e9")
         /////////Oai harvest parameters
-        .addString("oaiEndpoint", "https://metis-repository-rest.test.eanadev.org/repository/oai")
-        .addString("oaiSet", "spring_batch_test_9_valid")
+//        .addString("oaiEndpoint", "https://metis-repository-rest.test.eanadev.org/repository/oai")
+//        .addString("oaiSet", "spring_batch_test_9_valid")
+//        .addString("oaiMetadataPrefix", "edm")
+        .addString("oaiEndpoint", "https://aggregator.ekt.gr/aggregator-oai/request")
+        .addString("oaiSet", "mantamado")
         .addString("oaiMetadataPrefix", "edm")
         .toJobParameters();
 
@@ -92,7 +95,7 @@ public class ExecutionController {
 
     final JobExecution jobExecution = taskExecutorJobLauncher.run(batchJob, params);
     LOGGER.info("JobInstance identifier: {}", jobExecution.getJobInstance().getInstanceId());
-    return ResponseEntity.ok().body("Batch job has been invoked");
+    return ResponseEntity.ok().body("Batch job has been invoked\n");
   }
 
   @GetMapping("/stop")

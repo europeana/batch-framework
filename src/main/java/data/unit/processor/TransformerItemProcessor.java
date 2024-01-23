@@ -25,7 +25,7 @@ import org.springframework.stereotype.Component;
 @Component
 @StepScope
 @Setter
-public class XsltTransformerItemProcessor implements ItemProcessor<ExecutionRecord, ExecutionRecord> {
+public class TransformerItemProcessor implements ItemProcessor<ExecutionRecord, ExecutionRecord> {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
