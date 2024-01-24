@@ -74,9 +74,9 @@ public class ExecutionController {
         .addString("datasetLanguage", "el")
         .addString("xsltUrl", "https://metis-core-rest.test.eanadev.org/datasets/xslt/6204e5e2514e773e6745f7e9")
         /////////Oai harvest parameters
-//        .addString("oaiEndpoint", "https://metis-repository-rest.test.eanadev.org/repository/oai")
-//        .addString("oaiSet", "spring_batch_test_9_valid")
-//        .addString("oaiMetadataPrefix", "edm")
+        //        .addString("oaiEndpoint", "https://metis-repository-rest.test.eanadev.org/repository/oai")
+        //        .addString("oaiSet", "spring_batch_test_9_valid")
+        //        .addString("oaiMetadataPrefix", "edm")
         .addString("oaiEndpoint", "https://aggregator.ekt.gr/aggregator-oai/request")
         .addString("oaiSet", "mantamado")
         .addString("oaiMetadataPrefix", "edm")
@@ -146,10 +146,16 @@ public class ExecutionController {
       return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
     }
 
+    final JobParameters jobParameters = lastJobExecution.getJobParameters();
+    final String datasetId = String.valueOf(jobParameters.getParameter("datasetId").getValue());
+    final String executionId = String.valueOf(jobParameters.getParameter("executionId").getValue());
+    final BatchJobType targetJob = BatchJobType.valueOf(String.valueOf(jobParameters.getParameter("targetJob").getValue()));
+
     BatchStatus batchStatus = lastJobExecution.getStatus();
     response.put("status", batchStatus.toString());
     Collection<StepExecution> stepExecutions = lastJobExecution.getStepExecutions();
     for (StepExecution stepExecution : stepExecutions) {
+
       // In our case, there's only one step. If you have multiple steps, you might want to key by step name.
       response.put("readCount", stepExecution.getReadCount());
       response.put("writeCount", stepExecution.getWriteCount());
@@ -157,6 +163,22 @@ public class ExecutionController {
       response.put("skipCount", stepExecution.getSkipCount());
       response.put("rollbackCount", stepExecution.getRollbackCount());
       response.put("executionRecordsInDB", executionRecordRepository.count());
+
+      //Calculate progress
+      final long sourceTotal = executionRecordRepository.countByExecutionRecordKeyDatasetIdAndExecutionRecordKeyExecutionId(
+          datasetId,
+          executionId);
+      final long targetTotal = executionRecordRepository.countByExecutionRecordKeyDatasetIdAndExecutionRecordKeyExecutionId(
+          datasetId,
+          String.valueOf(jobInstanceId));
+      response.put("targetTotal", targetTotal);
+      int progress = 0;
+      if (sourceTotal > 0 && targetTotal > 0 && targetJob != BatchJobType.OAI_HARVEST) {
+        response.put("sourceTotal", sourceTotal);
+        progress = Math.toIntExact(targetTotal * 100 / sourceTotal);
+      }
+      response.put("progress", progress);
+
       if (stepExecution.getStartTime() != null && stepExecution.getEndTime() != null) {
         response.put("Duration in seconds", stepExecution.getStartTime().until(stepExecution.getEndTime(), ChronoUnit.SECONDS));
       }

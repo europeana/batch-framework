@@ -10,4 +10,5 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface ExecutionRecordRepository extends JpaRepository<ExecutionRecord, ExecutionRecordKey> {
   Page<ExecutionRecord> findByExecutionRecordKeyDatasetIdAndExecutionRecordKeyExecutionId(String datasetId, String executionId, Pageable pageable);
+  long countByExecutionRecordKeyDatasetIdAndExecutionRecordKeyExecutionId(String datasetId, String executionId);
 }
