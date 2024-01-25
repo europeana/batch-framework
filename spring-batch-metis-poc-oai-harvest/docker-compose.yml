@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  container:
+    image: spring-batch/spring-batch-metis-poc-oai-harvest:latest
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    environment:
+      JDK_JAVA_OPTIONS: -Xms500m -Xmx500m
+    command: ["java", "-jar", "/app.jar",
+              "datasetId=1",
+              "executionId=1",
+              "targetJob=OAI_HARVEST",
+              "executionUUID=111111",
+              "oaiEndpoint=https://aggregator.ekt.gr/aggregator-oai/request",
+              "oaiSet=mantamado",
+              "oaiMetadataPrefix=edm"]
+    memswap_limit: -1
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 1500M
+        reservations:
+          cpus: '2'
+          memory: 1500M
+    volumes:
+#      - /data/metis-configuration/k8s/common-components/custom-truststore-jks/custom-truststore.jks:/data/certificates/custom-truststore.jks
+      - /data/spring-batch-metis-poc/batch-application.properties:/application.properties
+#      - /data/metis-configuration/k8s/common-components/log4j2-xml/log4j2.xml:/data/logging/log4j2.xml
