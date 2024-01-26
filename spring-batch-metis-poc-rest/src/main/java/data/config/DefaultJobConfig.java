@@ -29,8 +29,8 @@ public class DefaultJobConfig {
   private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   public static final String BATCH_JOB = BatchJobType.DEFAULT.name();
   public static final String STEP_NAME = "defaultStep";
-  public static final int CHUNK_SIZE = 10;
-  public static final int PARALLELIZATION = 2;
+  public int chunkSize = 10;
+  public int parallelization = 2;
 
   @Bean
   public Job defaultBatchJob(JobRepository jobRepository, Step defaultStep) {
@@ -47,7 +47,7 @@ public class DefaultJobConfig {
       DelayLoggingItemProcessListener<ExecutionRecord> delayLoggingItemProcessListener,
       TaskExecutor defaultStepAsyncTaskExecutor) {
     return new StepBuilder(STEP_NAME, jobRepository)
-        .<ExecutionRecord, ExecutionRecord>chunk(CHUNK_SIZE, transactionManager)
+        .<ExecutionRecord, ExecutionRecord>chunk(chunkSize, transactionManager)
         .reader(defaultRepositoryItemReader)
         .processor(defaultItemProcessor)
         .writer(writer)
@@ -60,15 +60,15 @@ public class DefaultJobConfig {
   @StepScope
   public RepositoryItemReader<ExecutionRecord> defaultRepositoryItemReader(ExecutionRecordRepository executionRecordRepository) {
     final DefaultRepositoryItemReader defaultRepositoryItemReader = new DefaultRepositoryItemReader(executionRecordRepository);
-    defaultRepositoryItemReader.setPageSize(CHUNK_SIZE);
+    defaultRepositoryItemReader.setPageSize(chunkSize);
     return defaultRepositoryItemReader;
   }
 
   @Bean
   public TaskExecutor defaultStepAsyncTaskExecutor() {
     ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-    executor.setCorePoolSize(PARALLELIZATION);
-    executor.setMaxPoolSize(PARALLELIZATION);
+    executor.setCorePoolSize(parallelization);
+    executor.setMaxPoolSize(parallelization);
     executor.initialize();
     return executor;
   }

@@ -15,6 +15,7 @@ import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.step.builder.StepBuilder;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.data.RepositoryItemWriter;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.task.TaskExecutor;
@@ -27,11 +28,14 @@ public class OaiHarvestJobConfig {
   private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   public static final String BATCH_JOB = BatchJobType.OAI_HARVEST.name();
   public static final String STEP_NAME = "oaiHarvestStep";
-  public static final int CHUNK_SIZE = 10;
-  public static final int PARALLELIZATION = 10;
+  @Value("${oaiharvest.chunk.size}")
+  public int chunkSize;
+  @Value("${oaiharvest.parallelization.size}")
+  public int parallelization;
 
   @Bean
   public Job oaiHarvestBatchJob(JobRepository jobRepository, Step oaiHarvestStep) {
+    LOGGER.info("Chunk size: {}, Parallelization size: {}", chunkSize, parallelization);
     return new JobBuilder(BATCH_JOB, jobRepository)
         .start(oaiHarvestStep)
         .build();
@@ -45,20 +49,21 @@ public class OaiHarvestJobConfig {
       DelayLoggingItemProcessListener<OaiRecord> delayLoggingItemProcessListener,
       TaskExecutor oaiHarvestStepAsyncTaskExecutor) {
     return new StepBuilder(STEP_NAME, jobRepository)
-        .<OaiRecord, ExecutionRecord>chunk(CHUNK_SIZE, transactionManager)
+        .<OaiRecord, ExecutionRecord>chunk(chunkSize, transactionManager)
         .reader(oaiHarvestItemReader)
         .processor(oaiHarvestItemProcessor)
         .writer(writer)
         .listener(delayLoggingItemProcessListener)
         .taskExecutor(oaiHarvestStepAsyncTaskExecutor)
+        .throttleLimit(parallelization)
         .build();
   }
 
   @Bean
   public TaskExecutor oaiHarvestStepAsyncTaskExecutor() {
     ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-    executor.setCorePoolSize(PARALLELIZATION);
-    executor.setMaxPoolSize(PARALLELIZATION);
+    executor.setCorePoolSize(parallelization);
+    executor.setMaxPoolSize(parallelization);
     executor.initialize();
     return executor;
   }

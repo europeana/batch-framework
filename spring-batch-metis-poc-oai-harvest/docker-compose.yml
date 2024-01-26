@@ -12,7 +12,7 @@ services:
               "datasetId=1",
               "executionId=1",
               "targetJob=OAI_HARVEST",
-              "executionUUID=111111",
+              "executionUUID=40",
               "oaiEndpoint=https://aggregator.ekt.gr/aggregator-oai/request",
               "oaiSet=mantamado",
               "oaiMetadataPrefix=edm"]

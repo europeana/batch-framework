@@ -11,4 +11,14 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
+
+  <modules>
+    <module>spring-batch-metis-poc-common</module>
+    <module>spring-batch-metis-poc-oai-harvest</module>
+    <module>spring-batch-metis-poc-validation</module>
+    <module>spring-batch-metis-poc-transformation</module>
+    <module>spring-batch-metis-poc-normalization</module>
+    <module>spring-batch-metis-poc-enrichment</module>
+    <module>spring-batch-metis-poc-media</module>
+  </modules>
 </project>

@@ -17,6 +17,7 @@ import org.springframework.batch.core.step.builder.StepBuilder;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.data.RepositoryItemReader;
 import org.springframework.batch.item.data.RepositoryItemWriter;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.task.TaskExecutor;
@@ -28,11 +29,14 @@ public class NormalizationJobConfig {
   private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   public static final String BATCH_JOB = BatchJobType.NORMALIZATION.name();
   public static final String STEP_NAME = "normalizationStep";
-  public static final int CHUNK_SIZE = 100;
-  public static final int PARALLELIZATION = 10;
+  @Value("${normalization.chunk.size}")
+  public int chunkSize;
+  @Value("${normalization.parallelization.size}")
+  public int parallelization;
 
   @Bean
   public Job normalizationBatchJob(JobRepository jobRepository, Step normalizationStep) {
+    LOGGER.info("Chunk size: {}, Parallelization size: {}", chunkSize, parallelization);
     return new JobBuilder(BATCH_JOB, jobRepository)
         .start(normalizationStep)
         .build();
@@ -46,12 +50,13 @@ public class NormalizationJobConfig {
       DelayLoggingItemProcessListener<ExecutionRecord> delayLoggingItemProcessListener,
       TaskExecutor normalizationStepAsyncTaskExecutor) {
     return new StepBuilder(STEP_NAME, jobRepository)
-        .<ExecutionRecord, ExecutionRecord>chunk(CHUNK_SIZE, transactionManager)
+        .<ExecutionRecord, ExecutionRecord>chunk(chunkSize, transactionManager)
         .reader(normalizationRepositoryItemReader)
         .processor(normalizationItemProcessor)
         .writer(writer)
         .listener(delayLoggingItemProcessListener)
         .taskExecutor(normalizationStepAsyncTaskExecutor)
+        .throttleLimit(parallelization)
         .build();
   }
 
@@ -60,15 +65,15 @@ public class NormalizationJobConfig {
   public RepositoryItemReader<ExecutionRecord> normalizationRepositoryItemReader(
       ExecutionRecordRepository executionRecordRepository) {
     final DefaultRepositoryItemReader defaultRepositoryItemReader = new DefaultRepositoryItemReader(executionRecordRepository);
-    defaultRepositoryItemReader.setPageSize(CHUNK_SIZE);
+    defaultRepositoryItemReader.setPageSize(chunkSize);
     return defaultRepositoryItemReader;
   }
 
   @Bean
   public TaskExecutor normalizationStepAsyncTaskExecutor() {
     ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-    executor.setCorePoolSize(PARALLELIZATION);
-    executor.setMaxPoolSize(PARALLELIZATION);
+    executor.setCorePoolSize(parallelization);
+    executor.setMaxPoolSize(parallelization);
     executor.initialize();
     return executor;
   }

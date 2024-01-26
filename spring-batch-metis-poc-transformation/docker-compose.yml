@@ -8,11 +8,12 @@ services:
       dockerfile: Dockerfile
     environment:
       JDK_JAVA_OPTIONS: -Xms500m -Xmx500m
+#      JAVA_TOOL_OPTIONS: -agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=*:5005
     command: ["java", "-jar", "/app.jar",
               "datasetId=1",
-              "executionId=208",
+              "executionId=233",
               "targetJob=TRANSFORMATION",
-              "executionUUID=3",
+              "executionUUID=26",
               "datasetName=idA_metisDatasetNameA",
               "datasetCountry=Greece",
               "datasetLanguage=el",

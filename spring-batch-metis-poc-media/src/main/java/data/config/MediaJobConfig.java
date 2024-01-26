@@ -17,6 +17,7 @@ import org.springframework.batch.core.step.builder.StepBuilder;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.data.RepositoryItemReader;
 import org.springframework.batch.item.data.RepositoryItemWriter;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.task.TaskExecutor;
@@ -29,11 +30,14 @@ public class MediaJobConfig {
   private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   public static final String BATCH_JOB = BatchJobType.MEDIA.name();
   public static final String STEP_NAME = "mediaStep";
-  public static final int CHUNK_SIZE = 10;
-  public static final int PARALLELIZATION = 1;
+  @Value("${media.chunk.size}")
+  public int chunkSize;
+  @Value("${media.parallelization.size}")
+  public int parallelization;
 
   @Bean
   public Job mediaBatchJob(JobRepository jobRepository, Step mediaStep) {
+    LOGGER.info("Chunk size: {}, Parallelization size: {}", chunkSize, parallelization);
     return new JobBuilder(BATCH_JOB, jobRepository)
         .start(mediaStep)
         .build();
@@ -47,12 +51,13 @@ public class MediaJobConfig {
       DelayLoggingItemProcessListener<ExecutionRecord> delayLoggingItemProcessListener,
       TaskExecutor mediaStepAsyncTaskExecutor) {
     return new StepBuilder(STEP_NAME, jobRepository)
-        .<ExecutionRecord, ExecutionRecord>chunk(CHUNK_SIZE, transactionManager)
+        .<ExecutionRecord, ExecutionRecord>chunk(chunkSize, transactionManager)
         .reader(mediaRepositoryItemReader)
         .processor(mediaItemProcessor)
         .writer(writer)
         .listener(delayLoggingItemProcessListener)
         .taskExecutor(mediaStepAsyncTaskExecutor)
+        .throttleLimit(parallelization)
         .build();
   }
 
@@ -61,15 +66,15 @@ public class MediaJobConfig {
   public RepositoryItemReader<ExecutionRecord> mediaRepositoryItemReader(
       ExecutionRecordRepository executionRecordRepository) {
     final DefaultRepositoryItemReader defaultRepositoryItemReader = new DefaultRepositoryItemReader(executionRecordRepository);
-    defaultRepositoryItemReader.setPageSize(CHUNK_SIZE);
+    defaultRepositoryItemReader.setPageSize(chunkSize);
     return defaultRepositoryItemReader;
   }
 
   @Bean
   public TaskExecutor mediaStepAsyncTaskExecutor() {
     ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-    executor.setCorePoolSize(PARALLELIZATION);
-    executor.setMaxPoolSize(PARALLELIZATION);
+    executor.setCorePoolSize(parallelization);
+    executor.setMaxPoolSize(parallelization);
     executor.initialize();
     return executor;
   }

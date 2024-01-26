@@ -17,6 +17,7 @@ import org.springframework.batch.core.step.builder.StepBuilder;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.data.RepositoryItemReader;
 import org.springframework.batch.item.data.RepositoryItemWriter;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.task.TaskExecutor;
@@ -29,11 +30,14 @@ public class TransformationJobConfig {
   private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   public static final String BATCH_JOB = BatchJobType.TRANSFORMATION.name();
   public static final String STEP_NAME = "transformationStep";
-  public static final int CHUNK_SIZE = 100;
-  public static final int PARALLELIZATION = 10;
+  @Value("${transformation.chunk.size}")
+  public int chunkSize;
+  @Value("${transformation.parallelization.size}")
+  public int parallelization;
 
   @Bean
   public Job transformationBatchJob(JobRepository jobRepository, Step tranformationStep) {
+    LOGGER.info("Chunk size: {}, Parallelization size: {}", chunkSize, parallelization);
     return new JobBuilder(BATCH_JOB, jobRepository)
         .start(tranformationStep)
         .build();
@@ -47,12 +51,13 @@ public class TransformationJobConfig {
       DelayLoggingItemProcessListener<ExecutionRecord> delayLoggingItemProcessListener,
       TaskExecutor transformationStepAsyncTaskExecutor) {
     return new StepBuilder(STEP_NAME, jobRepository)
-        .<ExecutionRecord, ExecutionRecord>chunk(CHUNK_SIZE, transactionManager)
+        .<ExecutionRecord, ExecutionRecord>chunk(chunkSize, transactionManager)
         .reader(trasnformationRepositoryItemReader)
         .processor(transformerItemProcessor)
         .writer(writer)
         .listener(delayLoggingItemProcessListener)
         .taskExecutor(transformationStepAsyncTaskExecutor)
+        .throttleLimit(parallelization)
         .build();
   }
 
@@ -61,15 +66,15 @@ public class TransformationJobConfig {
   public RepositoryItemReader<ExecutionRecord> trasnformationRepositoryItemReader(
       ExecutionRecordRepository executionRecordRepository) {
     final DefaultRepositoryItemReader defaultRepositoryItemReader = new DefaultRepositoryItemReader(executionRecordRepository);
-    defaultRepositoryItemReader.setPageSize(CHUNK_SIZE);
+    defaultRepositoryItemReader.setPageSize(chunkSize);
     return defaultRepositoryItemReader;
   }
 
   @Bean
   public TaskExecutor transformationStepAsyncTaskExecutor() {
     ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-    executor.setCorePoolSize(PARALLELIZATION);
-    executor.setMaxPoolSize(PARALLELIZATION);
+    executor.setCorePoolSize(parallelization);
+    executor.setMaxPoolSize(parallelization);
     executor.initialize();
     return executor;
   }

@@ -10,10 +10,10 @@ services:
       JDK_JAVA_OPTIONS: -Xms500m -Xmx500m
     command: ["java", "-jar", "/app.jar",
               "datasetId=1",
-              "executionId=209",
+              "executionId=234",
 #              "targetJob=VALIDATION_EXTERNAL",
               "targetJob=VALIDATION_INTERNAL",
-              "executionUUID=4"]
+              "executionUUID=36"]
     memswap_limit: -1
     deploy:
       resources:
