@@ -66,8 +66,6 @@ public class ExecutionController {
         .addString("datasetId", datasetId)
         .addString("executionId", executionId)
         .addString("targetJob", targetJob)
-        //Add this to be able to re-run the same job. If parameters are identical the job is declined.
-        .addString("executionUUID", String.valueOf(System.currentTimeMillis()))
         ////////Transformation parameters
         .addString("datasetName", "idA_metisDatasetNameA")
         .addString("datasetCountry", "Greece")

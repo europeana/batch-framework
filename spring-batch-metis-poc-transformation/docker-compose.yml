@@ -13,7 +13,6 @@ services:
               "datasetId=1",
               "executionId=233",
               "targetJob=TRANSFORMATION",
-              "executionUUID=26",
               "datasetName=idA_metisDatasetNameA",
               "datasetCountry=Greece",
               "datasetLanguage=el",

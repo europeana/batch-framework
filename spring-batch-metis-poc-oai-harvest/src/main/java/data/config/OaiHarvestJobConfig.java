@@ -1,6 +1,7 @@
 package data.config;
 
 import data.entity.ExecutionRecord;
+import data.incrementer.TimestampJobParametersIncrementer;
 import data.unit.processor.listener.DelayLoggingItemProcessListener;
 import data.unit.reader.OaiHarvestItemReader;
 import data.utility.BatchJobType;
@@ -37,6 +38,7 @@ public class OaiHarvestJobConfig {
   public Job oaiHarvestBatchJob(JobRepository jobRepository, Step oaiHarvestStep) {
     LOGGER.info("Chunk size: {}, Parallelization size: {}", chunkSize, parallelization);
     return new JobBuilder(BATCH_JOB, jobRepository)
+        .incrementer(new TimestampJobParametersIncrementer())
         .start(oaiHarvestStep)
         .build();
   }

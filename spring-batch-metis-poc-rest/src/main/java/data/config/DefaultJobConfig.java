@@ -1,6 +1,7 @@
 package data.config;
 
 import data.entity.ExecutionRecord;
+import data.incrementer.TimestampJobParametersIncrementer;
 import data.repositories.ExecutionRecordRepository;
 import data.unit.processor.listener.DelayLoggingItemProcessListener;
 import data.unit.reader.DefaultRepositoryItemReader;
@@ -35,6 +36,7 @@ public class DefaultJobConfig {
   @Bean
   public Job defaultBatchJob(JobRepository jobRepository, Step defaultStep) {
     return new JobBuilder(BATCH_JOB, jobRepository)
+        .incrementer(new TimestampJobParametersIncrementer())
         .start(defaultStep)
         .build();
   }

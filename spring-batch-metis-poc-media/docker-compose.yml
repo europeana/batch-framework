@@ -11,8 +11,7 @@ services:
     command: ["java", "-jar", "/app.jar",
               "datasetId=1",
               "executionId=257",
-              "targetJob=MEDIA",
-              "executionUUID=261"]
+              "targetJob=MEDIA"]
     # Disable memory swap by setting the same value as memory limit
     memswap_limit: 1500M
     deploy:

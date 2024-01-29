@@ -1,6 +1,7 @@
 package data.config;
 
 import data.entity.ExecutionRecord;
+import data.incrementer.TimestampJobParametersIncrementer;
 import data.repositories.ExecutionRecordRepository;
 import data.unit.processor.listener.DelayLoggingItemProcessListener;
 import data.unit.reader.DefaultRepositoryItemReader;
@@ -38,6 +39,7 @@ public class NormalizationJobConfig {
   public Job normalizationBatchJob(JobRepository jobRepository, Step normalizationStep) {
     LOGGER.info("Chunk size: {}, Parallelization size: {}", chunkSize, parallelization);
     return new JobBuilder(BATCH_JOB, jobRepository)
+        .incrementer(new TimestampJobParametersIncrementer())
         .start(normalizationStep)
         .build();
   }

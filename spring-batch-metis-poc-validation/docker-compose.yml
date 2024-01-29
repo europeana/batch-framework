@@ -10,10 +10,10 @@ services:
       JDK_JAVA_OPTIONS: -Xms500m -Xmx500m
     command: ["java", "-jar", "/app.jar",
               "datasetId=1",
-              "executionId=234",
-#              "targetJob=VALIDATION_EXTERNAL",
-              "targetJob=VALIDATION_INTERNAL",
-              "executionUUID=36"]
+              "executionId=268",
+              "targetJob=VALIDATION_EXTERNAL",
+#              "targetJob=VALIDATION_INTERNAL"
+              ]
     # Disable memory swap by setting the same value as memory limit
     memswap_limit: 1500M
     deploy:

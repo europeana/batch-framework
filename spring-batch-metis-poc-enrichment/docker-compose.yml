@@ -11,8 +11,7 @@ services:
     command: ["java", "-jar", "/app.jar",
               "datasetId=1",
               "executionId=240",
-              "targetJob=ENRICHMENT",
-              "executionUUID=153"]
+              "targetJob=ENRICHMENT"]
     # Disable memory swap by setting the same value as memory limit
     memswap_limit: 1500M
     deploy:

@@ -1,6 +1,7 @@
 package data.config;
 
 import data.entity.ExecutionRecord;
+import data.incrementer.TimestampJobParametersIncrementer;
 import data.repositories.ExecutionRecordRepository;
 import data.unit.processor.listener.DelayLoggingItemProcessListener;
 import data.unit.reader.DefaultRepositoryItemReader;
@@ -39,6 +40,7 @@ public class TransformationJobConfig {
   public Job transformationBatchJob(JobRepository jobRepository, Step tranformationStep) {
     LOGGER.info("Chunk size: {}, Parallelization size: {}", chunkSize, parallelization);
     return new JobBuilder(BATCH_JOB, jobRepository)
+        .incrementer(new TimestampJobParametersIncrementer())
         .start(tranformationStep)
         .build();
   }
