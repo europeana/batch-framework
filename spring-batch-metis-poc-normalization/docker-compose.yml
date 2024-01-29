@@ -13,7 +13,8 @@ services:
               "executionId=236",
               "targetJob=NORMALIZATION",
               "executionUUID=54"]
-    memswap_limit: -1
+    # Disable memory swap by setting the same value as memory limit
+    memswap_limit: 1500M
     deploy:
       resources:
         limits:

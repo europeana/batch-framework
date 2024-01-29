@@ -14,7 +14,8 @@ services:
 #              "targetJob=VALIDATION_EXTERNAL",
               "targetJob=VALIDATION_INTERNAL",
               "executionUUID=36"]
-    memswap_limit: -1
+    # Disable memory swap by setting the same value as memory limit
+    memswap_limit: 1500M
     deploy:
       resources:
         limits:

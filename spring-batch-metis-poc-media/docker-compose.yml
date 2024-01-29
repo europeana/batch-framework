@@ -12,8 +12,9 @@ services:
               "datasetId=1",
               "executionId=257",
               "targetJob=MEDIA",
-              "executionUUID=259"]
-    memswap_limit: -1
+              "executionUUID=261"]
+    # Disable memory swap by setting the same value as memory limit
+    memswap_limit: 1500M
     deploy:
       resources:
         limits:

@@ -18,7 +18,8 @@ services:
               "datasetCountry=Greece",
               "datasetLanguage=el",
               "xsltUrl=https://metis-core-rest.test.eanadev.org/datasets/xslt/6204e5e2514e773e6745f7e9"]
-    memswap_limit: -1
+    # Disable memory swap by setting the same value as memory limit
+    memswap_limit: 1500M
     deploy:
       resources:
         limits:

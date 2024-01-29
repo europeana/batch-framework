@@ -16,7 +16,8 @@ services:
               "oaiEndpoint=https://aggregator.ekt.gr/aggregator-oai/request",
               "oaiSet=mantamado",
               "oaiMetadataPrefix=edm"]
-    memswap_limit: -1
+    # Disable memory swap by setting the same value as memory limit
+    memswap_limit: 1500M
     deploy:
       resources:
         limits:
