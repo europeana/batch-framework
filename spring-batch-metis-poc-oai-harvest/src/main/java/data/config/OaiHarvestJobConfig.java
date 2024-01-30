@@ -1,10 +1,10 @@
 package data.config;
 
-import data.entity.ExecutionRecord;
+import data.entity.ExecutionRecordDTO;
 import data.incrementer.TimestampJobParametersIncrementer;
 import data.unit.reader.OaiHarvestItemReader;
+import data.unit.writer.ExecutionRecordDTOItemWriter;
 import data.utility.BatchJobType;
-import eu.europeana.metis.harvesting.oaipmh.OaiRecord;
 import java.lang.invoke.MethodHandles;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,8 +13,6 @@ import org.springframework.batch.core.Step;
 import org.springframework.batch.core.job.builder.JobBuilder;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.step.builder.StepBuilder;
-import org.springframework.batch.item.ItemProcessor;
-import org.springframework.batch.item.data.RepositoryItemWriter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -45,16 +43,12 @@ public class OaiHarvestJobConfig {
   @Bean
   public Step oaiHarvestStep(JobRepository jobRepository, PlatformTransactionManager transactionManager,
       OaiHarvestItemReader oaiHarvestItemReader,
-      ItemProcessor<OaiRecord, ExecutionRecord> oaiHarvestItemProcessor,
-      RepositoryItemWriter<ExecutionRecord> writer,
-//      DelayLoggingItemProcessListener<OaiRecord> delayLoggingItemProcessListener,
+      ExecutionRecordDTOItemWriter writer,
       TaskExecutor oaiHarvestStepAsyncTaskExecutor) {
     return new StepBuilder(STEP_NAME, jobRepository)
-        .<OaiRecord, ExecutionRecord>chunk(chunkSize, transactionManager)
+        .<ExecutionRecordDTO, ExecutionRecordDTO>chunk(chunkSize, transactionManager)
         .reader(oaiHarvestItemReader)
-        .processor(oaiHarvestItemProcessor)
         .writer(writer)
-//        .listener(delayLoggingItemProcessListener)
         .taskExecutor(oaiHarvestStepAsyncTaskExecutor)
         .throttleLimit(parallelization)
         .build();

@@ -7,13 +7,10 @@ import lombok.Setter;
 @Setter
 public class ExecutionRecordDTO {
 
-//  private String datasetId;
-//  private String executionId;
-//  private String recordId;
-//  private String executionName;
-//  private String recordData;
-//  private String exception;
-  ExecutionRecord executionRecord;
-  ExecutionRecordExceptionLog executionRecordExceptionLog;
-
+  private String datasetId;
+  private String executionId;
+  private String recordId;
+  private String executionName;
+  private String recordData;
+  private String exception;
 }

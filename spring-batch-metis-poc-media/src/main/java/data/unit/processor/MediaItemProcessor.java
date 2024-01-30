@@ -6,6 +6,7 @@ import data.entity.ExecutionRecord;
 import data.entity.ExecutionRecordDTO;
 import data.unit.processor.listener.MetisItemProcessor;
 import data.utility.BatchJobType;
+import data.utility.ExecutionRecordUtil;
 import data.utility.MethodUtil;
 import eu.europeana.metis.mediaprocessing.MediaExtractor;
 import eu.europeana.metis.mediaprocessing.MediaProcessorFactory;
@@ -43,7 +44,7 @@ public class MediaItemProcessor implements MetisItemProcessor<ExecutionRecord, E
 
   private static final BatchJobType batchJobType = BatchJobType.MEDIA;
   private final MethodUtil<String> methodUtil = new MethodUtil<>();
-  private final Function<ExecutionRecord, String> function = getFunction();
+  private final Function<ExecutionRecordDTO, String> function = getFunction();
   private final MediaExtractor mediaExtractor;
   private final RdfSerializer rdfSerializer;
   private final RdfDeserializer rdfDeserializer;
@@ -57,7 +58,7 @@ public class MediaItemProcessor implements MetisItemProcessor<ExecutionRecord, E
   }
 
   @Override
-  public Function<ExecutionRecord, String> getFunction() {
+  public Function<ExecutionRecordDTO, String> getFunction() {
     return executionRecord -> {
       LOGGER.info("MediaItemProcessor thread: {}", Thread.currentThread());
       final byte[] rdfBytes = executionRecord.getRecordData().getBytes(StandardCharsets.UTF_8);
@@ -77,7 +78,7 @@ public class MediaItemProcessor implements MetisItemProcessor<ExecutionRecord, E
       boolean hasMainThumbnail = false;
       if (resourceMainThumbnail != null) {
         hasMainThumbnail = processResourceWithoutThumbnail(resourceMainThumbnail,
-            executionRecord.getExecutionRecordKey().getRecordId(), enrichedRdf, mediaExtractor);
+            executionRecord.getRecordId(), enrichedRdf, mediaExtractor);
       }
       List<RdfResourceEntry> remainingResourcesList = null;
       try {
@@ -87,12 +88,12 @@ public class MediaItemProcessor implements MetisItemProcessor<ExecutionRecord, E
       }
       if (hasMainThumbnail) {
         remainingResourcesList.forEach(entry ->
-            processResourceWithThumbnail(entry, executionRecord.getExecutionRecordKey().getRecordId(), enrichedRdf,
+            processResourceWithThumbnail(entry, executionRecord.getRecordId(), enrichedRdf,
                 mediaExtractor)
         );
       } else {
         remainingResourcesList.forEach(entry ->
-            processResourceWithoutThumbnail(entry, executionRecord.getExecutionRecordKey().getRecordId(), enrichedRdf,
+            processResourceWithoutThumbnail(entry, executionRecord.getRecordId(), enrichedRdf,
                 mediaExtractor)
         );
       }
@@ -108,29 +109,8 @@ public class MediaItemProcessor implements MetisItemProcessor<ExecutionRecord, E
 
   @Override
   public ExecutionRecordDTO process(ExecutionRecord executionRecord) throws Exception {
-    return methodUtil.executeCapturing(executionRecord, function, Function.identity(), batchJobType, jobInstanceId.toString());
-
-    //    LOGGER.info("MediaItemProcessor thread: {}", Thread.currentThread());
-    //    final byte[] rdfBytes = executionRecord.getRecordData().getBytes(StandardCharsets.UTF_8);
-    //    final EnrichedRdf enrichedRdf = getEnrichedRdf(rdfBytes);
-    //
-    //    RdfResourceEntry resourceMainThumbnail = rdfDeserializer.getMainThumbnailResourceForMediaExtraction(rdfBytes);
-    //    boolean hasMainThumbnail = false;
-    //    if (resourceMainThumbnail != null) {
-    //      hasMainThumbnail = processResourceWithoutThumbnail(resourceMainThumbnail, executionRecord.getExecutionRecordKey().getRecordId(), enrichedRdf, mediaExtractor);
-    //    }
-    //    List<RdfResourceEntry> remainingResourcesList = rdfDeserializer.getRemainingResourcesForMediaExtraction(rdfBytes);
-    //    if (hasMainThumbnail) {
-    //      remainingResourcesList.forEach(entry ->
-    //          processResourceWithThumbnail(entry, executionRecord.getExecutionRecordKey().getRecordId(), enrichedRdf, mediaExtractor)
-    //      );
-    //    } else {
-    //      remainingResourcesList.forEach(entry ->
-    //          processResourceWithoutThumbnail(entry, executionRecord.getExecutionRecordKey().getRecordId(), enrichedRdf, mediaExtractor)
-    //      );
-    //    }
-    //    String resultString = new String(getOutputRdf(enrichedRdf), StandardCharsets.UTF_8);
-    //    return ExecutionRecordUtil.prepareResultExecutionRecord(executionRecord, resultString, BatchJobType.MEDIA.name(), jobInstanceId.toString());
+    final ExecutionRecordDTO executionRecordDTO = ExecutionRecordUtil.converter(executionRecord);
+    return methodUtil.executeCapturing(executionRecordDTO, function, Function.identity(), batchJobType, jobInstanceId.toString());
   }
 
   private EnrichedRdf getEnrichedRdf(byte[] rdfBytes) throws RdfDeserializationException {
@@ -183,15 +163,4 @@ public class MediaItemProcessor implements MetisItemProcessor<ExecutionRecord, E
       LOGGER.debug("Fake storing thumbnail");
     }
   }
-
-  //  @PostConstruct
-  //  private void postConstruct() throws MediaProcessorException {
-  //    final RdfConverterFactory rdfConverterFactory = new RdfConverterFactory();
-  //    rdfDeserializer = rdfConverterFactory.createRdfDeserializer();
-  //    rdfSerializer = rdfConverterFactory.createRdfSerializer();
-  //    final MediaProcessorFactory mediaProcessorFactory = new MediaProcessorFactory();
-  //    mediaExtractor = mediaProcessorFactory.createMediaExtractor();
-  //    function = getFunction();
-  //  }
-
 }

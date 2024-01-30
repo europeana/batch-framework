@@ -1,16 +1,18 @@
 package data.unit.writer;
 
-import data.entity.ExecutionRecord;
 import data.entity.ExecutionRecordDTO;
-import data.entity.ExecutionRecordExceptionLog;
 import data.repositories.ExecutionRecordExceptionLogRepository;
 import data.repositories.ExecutionRecordRepository;
+import data.utility.ExecutionRecordUtil;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.item.Chunk;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
+@StepScope
 public class ExecutionRecordDTOItemWriter implements ItemWriter<ExecutionRecordDTO> {
 
   private final ExecutionRecordRepository executionRecordRepository;
@@ -25,13 +27,11 @@ public class ExecutionRecordDTOItemWriter implements ItemWriter<ExecutionRecordD
   @Override
   public void write(Chunk<? extends ExecutionRecordDTO> chunk) throws Exception {
     for (ExecutionRecordDTO item : chunk) {
-      final ExecutionRecord executionRecord = item.getExecutionRecord();
-      final ExecutionRecordExceptionLog executionRecordExceptionLog = item.getExecutionRecordExceptionLog();
-      if ( executionRecord != null){
-        executionRecordRepository.save(executionRecord);
+      if (StringUtils.isNotBlank(item.getRecordData())){
+        executionRecordRepository.save(ExecutionRecordUtil.converter(item));
       }
       else{
-        executionRecordExceptionLogRepository.save(executionRecordExceptionLog);
+        executionRecordExceptionLogRepository.save(ExecutionRecordUtil.converterExceptionLog(item));
       }
     }
   }

@@ -4,6 +4,7 @@ import data.entity.ExecutionRecord;
 import data.entity.ExecutionRecordDTO;
 import data.unit.processor.listener.MetisItemProcessor;
 import data.utility.BatchJobType;
+import data.utility.ExecutionRecordUtil;
 import data.utility.MethodUtil;
 import eu.europeana.metis.transformation.service.EuropeanaGeneratedIdsMap;
 import eu.europeana.metis.transformation.service.EuropeanaIdCreator;
@@ -46,11 +47,11 @@ public class TransformerItemProcessor implements MetisItemProcessor<ExecutionRec
 
   private static final BatchJobType batchJobType = BatchJobType.TRANSFORMATION;
   private MethodUtil<String> methodUtil = new MethodUtil<>();
-  private final Function<ExecutionRecord, String> function = getFunction();
+  private final Function<ExecutionRecordDTO, String> function = getFunction();
 
   @Override
-  public Function<ExecutionRecord, String> getFunction() {
-    return executionRecord -> {
+  public Function<ExecutionRecordDTO, String> getFunction() {
+    return executionRecordDTO -> {
       final XsltTransformer xsltTransformer;
       try {
         xsltTransformer = prepareXsltTransformer();
@@ -58,7 +59,7 @@ public class TransformerItemProcessor implements MetisItemProcessor<ExecutionRec
         throw new RuntimeException(e);
       }
 
-      final byte[] contentBytes = executionRecord.getRecordData().getBytes(StandardCharsets.UTF_8);
+      final byte[] contentBytes = executionRecordDTO.getRecordData().getBytes(StandardCharsets.UTF_8);
       final String resultString;
       try (StringWriter writer = xsltTransformer.transform(contentBytes, prepareEuropeanaGeneratedIdsMap(contentBytes))) {
         resultString = writer.toString();
@@ -71,56 +72,8 @@ public class TransformerItemProcessor implements MetisItemProcessor<ExecutionRec
 
   @Override
   public ExecutionRecordDTO process(@NonNull ExecutionRecord executionRecord) throws Exception {
-    return methodUtil.executeCapturing(executionRecord, function, Function.identity(), batchJobType, jobInstanceId.toString());
-//    final Function<ExecutionRecord, String> function = executionRecord1 -> {
-//      final XsltTransformer xsltTransformer;
-//      try {
-//        xsltTransformer = prepareXsltTransformer();
-//      } catch (TransformationException e) {
-//        throw new RuntimeException(e);
-//      }
-//
-//      final byte[] contentBytes = executionRecord1.getRecordData().getBytes(StandardCharsets.UTF_8);
-//      final String resultString;
-//      try (StringWriter writer = xsltTransformer.transform(contentBytes, prepareEuropeanaGeneratedIdsMap(contentBytes))) {
-//        resultString = writer.toString();
-//      } catch (EuropeanaIdException | TransformationException | IOException e) {
-//        throw new RuntimeException(e);
-//      }
-//      return resultString;
-//    };
-
-
-//    final ExecutionRecordDTO executionRecordDTO = new ExecutionRecordDTO();
-//    int number = new Random().nextInt(10 - 1 + 1) + 1;
-//    if (number % 10 == 0) {
-//      LOGGER.info("NUMBER {}: ", number);
-//      final TransformationException transformationException = new TransformationException(
-//          new RuntimeException("On random%10 == 0 exception"));
-//      final ExecutionRecordExceptionLog executionRecordExceptionLog = ExecutionRecordUtil.prepareResultExecutionRecordExceptionLog(
-//          executionRecord, transformationException.getMessage(), BatchJobType.TRANSFORMATION.name(), jobInstanceId.toString());
-//      executionRecordDTO.setExecutionRecordExceptionLog(executionRecordExceptionLog);
-//      return executionRecordDTO;
-//    }
-//
-//    final XsltTransformer xsltTransformer;
-//    try {
-//      xsltTransformer = prepareXsltTransformer();
-//    } catch (TransformationException e) {
-//      throw new RuntimeException(e);
-//    }
-//
-//    final byte[] contentBytes = executionRecord.getRecordData().getBytes(StandardCharsets.UTF_8);
-//    final String resultString;
-//    try (StringWriter writer = xsltTransformer.transform(contentBytes, prepareEuropeanaGeneratedIdsMap(contentBytes))) {
-//      resultString = writer.toString();
-//    } catch (EuropeanaIdException | TransformationException | IOException e) {
-//      throw new RuntimeException(e);
-//    }
-//    final ExecutionRecord resultExecutionRecord = ExecutionRecordUtil.prepareResultExecutionRecord(executionRecord, resultString,
-//        BatchJobType.TRANSFORMATION.name(), jobInstanceId.toString());
-//    executionRecordDTO.setExecutionRecord(resultExecutionRecord);
-//    return executionRecordDTO;
+    final ExecutionRecordDTO executionRecordDTO = ExecutionRecordUtil.converter(executionRecord);
+    return methodUtil.executeCapturing(executionRecordDTO, function, Function.identity(), batchJobType, jobInstanceId.toString());
   }
 
   private XsltTransformer prepareXsltTransformer()

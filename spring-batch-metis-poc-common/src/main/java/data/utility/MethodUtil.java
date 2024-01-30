@@ -1,28 +1,22 @@
 package data.utility;
 
-import data.entity.ExecutionRecord;
 import data.entity.ExecutionRecordDTO;
-import data.entity.ExecutionRecordExceptionLog;
 import java.util.function.Function;
 
-public class MethodUtil<T> {
+public class MethodUtil<O> {
 
   public ExecutionRecordDTO  executeCapturing(
-      ExecutionRecord executionRecord, Function<ExecutionRecord, T> function, Function<T, String> getRecordString,
+      ExecutionRecordDTO executionRecordDTO, Function<ExecutionRecordDTO, O> function, Function<O, String> getRecordString,
       BatchJobType batchJobType, String executionId) {
-    final ExecutionRecordDTO executionRecordDTO = new ExecutionRecordDTO();
+    ExecutionRecordDTO resultExecutionRecordDTO;
     try{
-      final T result = function.apply(executionRecord);
-      final ExecutionRecord resultExecutionRecord = ExecutionRecordUtil.prepareResultExecutionRecord(executionRecord,
-          getRecordString.apply(result), batchJobType.name(), executionId);
-      executionRecordDTO.setExecutionRecord(resultExecutionRecord);
+      final O result = function.apply(executionRecordDTO);
+      resultExecutionRecordDTO = ExecutionRecordUtil.createSuccess(executionRecordDTO, getRecordString.apply(result), batchJobType, executionId);
     }
     catch (Exception exception){
-      final ExecutionRecordExceptionLog executionRecordExceptionLog = ExecutionRecordUtil.prepareResultExecutionRecordExceptionLog(
-          executionRecord, exception.getMessage(), batchJobType.name(), executionId);
-      executionRecordDTO.setExecutionRecordExceptionLog(executionRecordExceptionLog);
+      resultExecutionRecordDTO = ExecutionRecordUtil.createFailure(executionRecordDTO, exception.getMessage(), batchJobType, executionId);
     }
-    return executionRecordDTO;
+    return resultExecutionRecordDTO;
   }
 
 }

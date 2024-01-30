@@ -4,6 +4,7 @@ import data.entity.ExecutionRecord;
 import data.entity.ExecutionRecordDTO;
 import data.unit.processor.listener.MetisItemProcessor;
 import data.utility.BatchJobType;
+import data.utility.ExecutionRecordUtil;
 import data.utility.MethodUtil;
 import eu.europeana.normalization.Normalizer;
 import eu.europeana.normalization.NormalizerFactory;
@@ -26,11 +27,11 @@ public class NormalizationItemProcessor implements MetisItemProcessor<ExecutionR
 
   private static final BatchJobType batchJobType = BatchJobType.NORMALIZATION;
   private MethodUtil<NormalizationResult> methodUtil = new MethodUtil<>();
-  private final Function<ExecutionRecord, NormalizationResult> function = getFunction();
+  private final Function<ExecutionRecordDTO, NormalizationResult> function = getFunction();
   private final NormalizerFactory normalizerFactory = new NormalizerFactory();
 
   @Override
-  public Function<ExecutionRecord, NormalizationResult> getFunction() {
+  public Function<ExecutionRecordDTO, NormalizationResult> getFunction() {
     return executionRecord -> {
       final Normalizer normalizer;
       try {
@@ -46,14 +47,8 @@ public class NormalizationItemProcessor implements MetisItemProcessor<ExecutionR
 
   @Override
   public ExecutionRecordDTO process(ExecutionRecord executionRecord) throws Exception {
-    return methodUtil.executeCapturing(executionRecord, function, NormalizationResult::getNormalizedRecordInEdmXml, batchJobType,
+    final ExecutionRecordDTO executionRecordDTO = ExecutionRecordUtil.converter(executionRecord);
+    return methodUtil.executeCapturing(executionRecordDTO, function, NormalizationResult::getNormalizedRecordInEdmXml, batchJobType,
         jobInstanceId.toString());
   }
-
-  //    final Normalizer normalizer = normalizerFactory.getNormalizer();
-  //    NormalizationResult normalizationResult = normalizer.normalize(executionRecord.getRecordData());
-  //
-  //    return ExecutionRecordUtil.prepareResultExecutionRecord(executionRecord, normalizationResult.getNormalizedRecordInEdmXml(), BatchJobType.NORMALIZATION.name(), jobInstanceId.toString());
-
-//  }
 }

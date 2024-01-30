@@ -1,10 +1,9 @@
 package data.unit.processor.listener;
 
-import data.entity.ExecutionRecord;
 import data.entity.ExecutionRecordDTO;
-import data.entity.ExecutionRecordExceptionLog;
 import java.lang.invoke.MethodHandles;
 import lombok.Setter;
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,24 +28,21 @@ public class DelayLoggingItemProcessListener<T> implements ItemProcessListener<T
   }
 
   @Override
-  public void afterProcess(@NotNull T item, ExecutionRecordDTO executionRecord) {
-    final ExecutionRecord executionRecord1 = executionRecord.getExecutionRecord();
-    final ExecutionRecordExceptionLog executionRecordExceptionLog = executionRecord.getExecutionRecordExceptionLog();
-
-    if (executionRecord1 != null){
+  public void afterProcess(@NotNull T item, ExecutionRecordDTO executionRecordDTO) {
+    if (StringUtils.isNotBlank(executionRecordDTO.getRecordData())){
       LOGGER.info("AfterProcess LOG_DELAY success jobId {}, datasetId, executionId, recordId: {}, {}, {}",
           jobInstanceId,
-          executionRecord1.getExecutionRecordKey().getDatasetId(),
-          executionRecord1.getExecutionRecordKey().getExecutionId(),
-          executionRecord1.getExecutionRecordKey().getRecordId());
+          executionRecordDTO.getDatasetId(),
+          executionRecordDTO.getExecutionId(),
+          executionRecordDTO.getRecordId());
     }
     else{
       LOGGER.info("AfterProcess LOG_DELAY failure jobId {}, datasetId: {}, executionId: {}, recordId: {}, exception: {}",
           jobInstanceId,
-          executionRecordExceptionLog.getExecutionRecordKey().getDatasetId(),
-          executionRecordExceptionLog.getExecutionRecordKey().getExecutionId(),
-          executionRecordExceptionLog.getExecutionRecordKey().getRecordId(),
-          executionRecordExceptionLog.getException()
+          executionRecordDTO.getDatasetId(),
+          executionRecordDTO.getExecutionId(),
+          executionRecordDTO.getRecordId(),
+          executionRecordDTO.getException()
       );
     }
 //    try {

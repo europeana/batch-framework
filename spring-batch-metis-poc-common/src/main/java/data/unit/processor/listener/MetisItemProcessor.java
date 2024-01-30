@@ -5,5 +5,5 @@ import org.springframework.batch.item.ItemProcessor;
 
 public interface MetisItemProcessor<I, O, R> extends ItemProcessor<I, O> {
 
-  Function<I, R> getFunction();
+  Function<O, R> getFunction();
 }

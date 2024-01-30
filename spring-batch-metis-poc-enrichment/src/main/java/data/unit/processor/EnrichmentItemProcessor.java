@@ -4,6 +4,7 @@ import data.entity.ExecutionRecord;
 import data.entity.ExecutionRecordDTO;
 import data.unit.processor.listener.MetisItemProcessor;
 import data.utility.BatchJobType;
+import data.utility.ExecutionRecordUtil;
 import data.utility.MethodUtil;
 import eu.europeana.enrichment.rest.client.EnrichmentWorker;
 import eu.europeana.enrichment.rest.client.EnrichmentWorkerImpl;
@@ -38,17 +39,18 @@ public class EnrichmentItemProcessor implements MetisItemProcessor<ExecutionReco
 
   private static final BatchJobType batchJobType = BatchJobType.ENRICHMENT;
   private MethodUtil<ProcessedResult<String>> methodUtil = new MethodUtil<>();
-  private final Function<ExecutionRecord, ProcessedResult<String>> function = getFunction();
+  private final Function<ExecutionRecordDTO, ProcessedResult<String>> function = getFunction();
   private EnrichmentWorker enrichmentWorker;
 
   @Override
-  public Function<ExecutionRecord, ProcessedResult<String>> getFunction() {
+  public Function<ExecutionRecordDTO, ProcessedResult<String>> getFunction() {
     return executionRecord -> enrichmentWorker.process(executionRecord.getRecordData());
   }
 
   @Override
   public ExecutionRecordDTO process(@NotNull ExecutionRecord executionRecord) {
-    return methodUtil.executeCapturing(executionRecord, function, ProcessedResult::getProcessedRecord, batchJobType,
+    final ExecutionRecordDTO executionRecordDTO = ExecutionRecordUtil.converter(executionRecord);
+    return methodUtil.executeCapturing(executionRecordDTO, function, ProcessedResult::getProcessedRecord, batchJobType,
         jobInstanceId.toString());
   }
 
