@@ -2,7 +2,6 @@ package data.config;
 
 import data.entity.ExecutionRecord;
 import data.incrementer.TimestampJobParametersIncrementer;
-import data.unit.processor.listener.DelayLoggingItemProcessListener;
 import data.unit.reader.OaiHarvestItemReader;
 import data.utility.BatchJobType;
 import eu.europeana.metis.harvesting.oaipmh.OaiRecord;
@@ -48,14 +47,14 @@ public class OaiHarvestJobConfig {
       OaiHarvestItemReader oaiHarvestItemReader,
       ItemProcessor<OaiRecord, ExecutionRecord> oaiHarvestItemProcessor,
       RepositoryItemWriter<ExecutionRecord> writer,
-      DelayLoggingItemProcessListener<OaiRecord> delayLoggingItemProcessListener,
+//      DelayLoggingItemProcessListener<OaiRecord> delayLoggingItemProcessListener,
       TaskExecutor oaiHarvestStepAsyncTaskExecutor) {
     return new StepBuilder(STEP_NAME, jobRepository)
         .<OaiRecord, ExecutionRecord>chunk(chunkSize, transactionManager)
         .reader(oaiHarvestItemReader)
         .processor(oaiHarvestItemProcessor)
         .writer(writer)
-        .listener(delayLoggingItemProcessListener)
+//        .listener(delayLoggingItemProcessListener)
         .taskExecutor(oaiHarvestStepAsyncTaskExecutor)
         .throttleLimit(parallelization)
         .build();

@@ -1,6 +1,7 @@
 package data.config;
 
 import data.entity.ExecutionRecord;
+import data.entity.ExecutionRecordDTO;
 import data.incrementer.TimestampJobParametersIncrementer;
 import data.repositories.ExecutionRecordRepository;
 import data.unit.processor.listener.DelayLoggingItemProcessListener;
@@ -16,8 +17,8 @@ import org.springframework.batch.core.job.builder.JobBuilder;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.step.builder.StepBuilder;
 import org.springframework.batch.item.ItemProcessor;
+import org.springframework.batch.item.ItemWriter;
 import org.springframework.batch.item.data.RepositoryItemReader;
-import org.springframework.batch.item.data.RepositoryItemWriter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -47,16 +48,16 @@ public class NormalizationJobConfig {
   @Bean
   public Step normalizationStep(JobRepository jobRepository, PlatformTransactionManager transactionManager,
       RepositoryItemReader<ExecutionRecord> normalizationRepositoryItemReader,
-      ItemProcessor<ExecutionRecord, ExecutionRecord> normalizationItemProcessor,
-      RepositoryItemWriter<ExecutionRecord> writer,
+      ItemProcessor<ExecutionRecord, ExecutionRecordDTO> normalizationItemProcessor,
+      ItemWriter<ExecutionRecordDTO> executionRecordDTOItemWriter,
       DelayLoggingItemProcessListener<ExecutionRecord> delayLoggingItemProcessListener,
       TaskExecutor normalizationStepAsyncTaskExecutor) {
     return new StepBuilder(STEP_NAME, jobRepository)
-        .<ExecutionRecord, ExecutionRecord>chunk(chunkSize, transactionManager)
+        .<ExecutionRecord, ExecutionRecordDTO>chunk(chunkSize, transactionManager)
         .reader(normalizationRepositoryItemReader)
         .processor(normalizationItemProcessor)
-        .writer(writer)
         .listener(delayLoggingItemProcessListener)
+        .writer(executionRecordDTOItemWriter)
         .taskExecutor(normalizationStepAsyncTaskExecutor)
         .throttleLimit(parallelization)
         .build();

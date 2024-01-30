@@ -1,8 +1,10 @@
 package data.unit.processor;
 
 import data.entity.ExecutionRecord;
+import data.entity.ExecutionRecordDTO;
+import data.unit.processor.listener.MetisItemProcessor;
 import data.utility.BatchJobType;
-import data.utility.ExecutionRecordUtil;
+import data.utility.MethodUtil;
 import eu.europeana.metis.transformation.service.TransformationException;
 import eu.europeana.metis.transformation.service.XsltTransformer;
 import eu.europeana.validation.model.ValidationResult;
@@ -11,11 +13,11 @@ import java.io.StringWriter;
 import java.lang.invoke.MethodHandles;
 import java.nio.charset.StandardCharsets;
 import java.util.Properties;
+import java.util.function.Function;
 import lombok.Setter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.configuration.annotation.StepScope;
-import org.springframework.batch.item.ItemProcessor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
@@ -23,17 +25,20 @@ import org.springframework.stereotype.Component;
 @Component
 @StepScope
 @Setter
-public class ValidationItemProcessor implements ItemProcessor<ExecutionRecord, ExecutionRecord> {
-
-  private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-  private static final String EDM_SORTER_FILE_URL = "http://ftp.eanadev.org/schema_zips/edm_sorter_20230809.xsl";
-  private ValidationExecutionService validationService;
-  private final Properties properties = new Properties();
+public class ValidationItemProcessor implements MetisItemProcessor<ExecutionRecord, ExecutionRecordDTO, String> {
 
   @Value("#{jobParameters['targetJob']}")
   private BatchJobType targetJob;
   @Value("#{stepExecution.jobExecution.jobInstance.id}")
   private Long jobInstanceId;
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+  private static final String EDM_SORTER_FILE_URL = "http://ftp.eanadev.org/schema_zips/edm_sorter_20230809.xsl";
+  private ValidationExecutionService validationService;
+  private final Properties properties = new Properties();
+  private MethodUtil<String> methodUtil = new MethodUtil<>();
+  private final Function<ExecutionRecord, String> function = getFunction();
+//  private static final BatchJobType batchJobType = BatchJobType.VALIDATION;
 
   public ValidationItemProcessor() {
     properties.setProperty("predefinedSchemas", "localhost");
@@ -48,40 +53,109 @@ public class ValidationItemProcessor implements ItemProcessor<ExecutionRecord, E
     validationService = new ValidationExecutionService(properties);
   }
 
-  /**
-   * @param executionRecord
-   * @return
-   * @throws InterruptedException
-   * @throws TransformationException
-   */
   @Override
-  public ExecutionRecord process(@NonNull ExecutionRecord executionRecord) throws InterruptedException, TransformationException {
-    final String reorderedFileContent = reorderFileContent(executionRecord.getRecordData());
-    String schema;
-    String rootFileLocation;
-    String schematronFileLocation;
-    switch (targetJob) {
-      case BatchJobType.VALIDATION_EXTERNAL -> {
-        schema = properties.getProperty("predefinedSchemas.edm-external.url");
-        rootFileLocation = properties.getProperty("predefinedSchemas.edm-external.rootLocation");
-        schematronFileLocation =properties.getProperty("predefinedSchemas.edm-external.schematronLocation");
+  public Function<ExecutionRecord, String> getFunction() {
+    return executionRecord -> {
+      final String reorderedFileContent;
+      try {
+        reorderedFileContent = reorderFileContent(executionRecord.getRecordData());
+      } catch (TransformationException e) {
+        throw new RuntimeException(e);
       }
-      case BatchJobType.VALIDATION_INTERNAL-> {
-        schema = properties.getProperty("predefinedSchemas.edm-internal.url");
-        rootFileLocation = properties.getProperty("predefinedSchemas.edm-internal.rootLocation");
-        schematronFileLocation =properties.getProperty("predefinedSchemas.edm-internal.schematronLocation");
+      String schema;
+      String rootFileLocation;
+      String schematronFileLocation;
+      switch (targetJob) {
+        case BatchJobType.VALIDATION_EXTERNAL -> {
+          schema = properties.getProperty("predefinedSchemas.edm-external.url");
+          rootFileLocation = properties.getProperty("predefinedSchemas.edm-external.rootLocation");
+          schematronFileLocation =properties.getProperty("predefinedSchemas.edm-external.schematronLocation");
+        }
+        case BatchJobType.VALIDATION_INTERNAL-> {
+          schema = properties.getProperty("predefinedSchemas.edm-internal.url");
+          rootFileLocation = properties.getProperty("predefinedSchemas.edm-internal.rootLocation");
+          schematronFileLocation =properties.getProperty("predefinedSchemas.edm-internal.schematronLocation");
+        }
+        default -> throw new IllegalStateException("Unexpected value: " + targetJob);
       }
-      default -> throw new IllegalStateException("Unexpected value: " + targetJob);
-    }
 
-    ValidationResult result =
-        validationService.singleValidation(schema, rootFileLocation, schematronFileLocation, reorderedFileContent);
-    if (result.isSuccess()) {
-      LOGGER.info("Validation Success for datasetId {}, recordId {}", executionRecord.getExecutionRecordKey().getDatasetId(), executionRecord.getExecutionRecordKey().getRecordId());
-    } else {
-      LOGGER.info("Validation Failure for datasetId {}, recordId {}", executionRecord.getExecutionRecordKey().getDatasetId(), executionRecord.getExecutionRecordKey().getRecordId());
-    }
-    return ExecutionRecordUtil.prepareResultExecutionRecord(executionRecord, executionRecord.getRecordData(), targetJob.name(), jobInstanceId.toString());
+      ValidationResult result =
+          validationService.singleValidation(schema, rootFileLocation, schematronFileLocation, reorderedFileContent);
+      if (result.isSuccess()) {
+        LOGGER.info("Validation Success for datasetId {}, recordId {}", executionRecord.getExecutionRecordKey().getDatasetId(), executionRecord.getExecutionRecordKey().getRecordId());
+      } else {
+        LOGGER.info("Validation Failure for datasetId {}, recordId {}", executionRecord.getExecutionRecordKey().getDatasetId(), executionRecord.getExecutionRecordKey().getRecordId());
+      }
+      return executionRecord.getRecordData();
+    };
+  }
+
+  @Override
+  public ExecutionRecordDTO process(@NonNull ExecutionRecord executionRecord) {
+    return methodUtil.executeCapturing(executionRecord, function, Function.identity(), targetJob,
+        jobInstanceId.toString());
+//    final Function<ExecutionRecord, String> function = executionRecord1 -> {
+//      final String reorderedFileContent;
+//      try {
+//        reorderedFileContent = reorderFileContent(executionRecord.getRecordData());
+//      } catch (TransformationException e) {
+//        throw new RuntimeException(e);
+//      }
+//      String schema;
+//      String rootFileLocation;
+//      String schematronFileLocation;
+//      switch (targetJob) {
+//        case BatchJobType.VALIDATION_EXTERNAL -> {
+//          schema = properties.getProperty("predefinedSchemas.edm-external.url");
+//          rootFileLocation = properties.getProperty("predefinedSchemas.edm-external.rootLocation");
+//          schematronFileLocation =properties.getProperty("predefinedSchemas.edm-external.schematronLocation");
+//        }
+//        case BatchJobType.VALIDATION_INTERNAL-> {
+//          schema = properties.getProperty("predefinedSchemas.edm-internal.url");
+//          rootFileLocation = properties.getProperty("predefinedSchemas.edm-internal.rootLocation");
+//          schematronFileLocation =properties.getProperty("predefinedSchemas.edm-internal.schematronLocation");
+//        }
+//        default -> throw new IllegalStateException("Unexpected value: " + targetJob);
+//      }
+//
+//      ValidationResult result =
+//          validationService.singleValidation(schema, rootFileLocation, schematronFileLocation, reorderedFileContent);
+//      if (result.isSuccess()) {
+//        LOGGER.info("Validation Success for datasetId {}, recordId {}", executionRecord.getExecutionRecordKey().getDatasetId(), executionRecord.getExecutionRecordKey().getRecordId());
+//      } else {
+//        LOGGER.info("Validation Failure for datasetId {}, recordId {}", executionRecord.getExecutionRecordKey().getDatasetId(), executionRecord.getExecutionRecordKey().getRecordId());
+//      }
+//      return executionRecord.getRecordData();
+//    };
+
+
+
+//    final String reorderedFileContent = reorderFileContent(executionRecord.getRecordData());
+//    String schema;
+//    String rootFileLocation;
+//    String schematronFileLocation;
+//    switch (targetJob) {
+//      case BatchJobType.VALIDATION_EXTERNAL -> {
+//        schema = properties.getProperty("predefinedSchemas.edm-external.url");
+//        rootFileLocation = properties.getProperty("predefinedSchemas.edm-external.rootLocation");
+//        schematronFileLocation =properties.getProperty("predefinedSchemas.edm-external.schematronLocation");
+//      }
+//      case BatchJobType.VALIDATION_INTERNAL-> {
+//        schema = properties.getProperty("predefinedSchemas.edm-internal.url");
+//        rootFileLocation = properties.getProperty("predefinedSchemas.edm-internal.rootLocation");
+//        schematronFileLocation =properties.getProperty("predefinedSchemas.edm-internal.schematronLocation");
+//      }
+//      default -> throw new IllegalStateException("Unexpected value: " + targetJob);
+//    }
+//
+//    ValidationResult result =
+//        validationService.singleValidation(schema, rootFileLocation, schematronFileLocation, reorderedFileContent);
+//    if (result.isSuccess()) {
+//      LOGGER.info("Validation Success for datasetId {}, recordId {}", executionRecord.getExecutionRecordKey().getDatasetId(), executionRecord.getExecutionRecordKey().getRecordId());
+//    } else {
+//      LOGGER.info("Validation Failure for datasetId {}, recordId {}", executionRecord.getExecutionRecordKey().getDatasetId(), executionRecord.getExecutionRecordKey().getRecordId());
+//    }
+//    return ExecutionRecordUtil.prepareResultExecutionRecord(executionRecord, executionRecord.getRecordData(), targetJob.name(), jobInstanceId.toString());
   }
 
   private String reorderFileContent(String recordData) throws TransformationException {

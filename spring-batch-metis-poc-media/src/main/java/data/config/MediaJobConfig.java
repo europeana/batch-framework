@@ -1,6 +1,7 @@
 package data.config;
 
 import data.entity.ExecutionRecord;
+import data.entity.ExecutionRecordDTO;
 import data.incrementer.TimestampJobParametersIncrementer;
 import data.repositories.ExecutionRecordRepository;
 import data.unit.processor.listener.DelayLoggingItemProcessListener;
@@ -16,8 +17,8 @@ import org.springframework.batch.core.job.builder.JobBuilder;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.step.builder.StepBuilder;
 import org.springframework.batch.item.ItemProcessor;
+import org.springframework.batch.item.ItemWriter;
 import org.springframework.batch.item.data.RepositoryItemReader;
-import org.springframework.batch.item.data.RepositoryItemWriter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -48,16 +49,16 @@ public class MediaJobConfig {
   @Bean
   public Step mediaStep(JobRepository jobRepository, PlatformTransactionManager transactionManager,
       RepositoryItemReader<ExecutionRecord> mediaRepositoryItemReader,
-      ItemProcessor<ExecutionRecord, ExecutionRecord> mediaItemProcessor,
-      RepositoryItemWriter<ExecutionRecord> writer,
+      ItemProcessor<ExecutionRecord, ExecutionRecordDTO> mediaItemProcessor,
+      ItemWriter<ExecutionRecordDTO> executionRecordDTOItemWriter,
       DelayLoggingItemProcessListener<ExecutionRecord> delayLoggingItemProcessListener,
       TaskExecutor mediaStepAsyncTaskExecutor) {
     return new StepBuilder(STEP_NAME, jobRepository)
-        .<ExecutionRecord, ExecutionRecord>chunk(chunkSize, transactionManager)
+        .<ExecutionRecord, ExecutionRecordDTO>chunk(chunkSize, transactionManager)
         .reader(mediaRepositoryItemReader)
         .processor(mediaItemProcessor)
-        .writer(writer)
         .listener(delayLoggingItemProcessListener)
+        .writer(executionRecordDTOItemWriter)
         .taskExecutor(mediaStepAsyncTaskExecutor)
         .throttleLimit(parallelization)
         .build();

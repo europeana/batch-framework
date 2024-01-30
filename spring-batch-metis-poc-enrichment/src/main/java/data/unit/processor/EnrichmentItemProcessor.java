@@ -1,8 +1,10 @@
 package data.unit.processor;
 
 import data.entity.ExecutionRecord;
+import data.entity.ExecutionRecordDTO;
+import data.unit.processor.listener.MetisItemProcessor;
 import data.utility.BatchJobType;
-import data.utility.ExecutionRecordUtil;
+import data.utility.MethodUtil;
 import eu.europeana.enrichment.rest.client.EnrichmentWorker;
 import eu.europeana.enrichment.rest.client.EnrichmentWorkerImpl;
 import eu.europeana.enrichment.rest.client.dereference.DereferencerProvider;
@@ -11,16 +13,17 @@ import eu.europeana.enrichment.rest.client.exceptions.DereferenceException;
 import eu.europeana.enrichment.rest.client.exceptions.EnrichmentException;
 import eu.europeana.enrichment.rest.client.report.ProcessedResult;
 import jakarta.annotation.PostConstruct;
+import java.util.function.Function;
 import lombok.Setter;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.batch.core.configuration.annotation.StepScope;
-import org.springframework.batch.item.ItemProcessor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
 @StepScope
 @Setter
-public class EnrichmentItemProcessor implements ItemProcessor<ExecutionRecord, ExecutionRecord> {
+public class EnrichmentItemProcessor implements MetisItemProcessor<ExecutionRecord, ExecutionRecordDTO, ProcessedResult<String>> {
 
   @Value("${enrichment.dereference-url}")
   private String dereferenceURL;
@@ -30,16 +33,23 @@ public class EnrichmentItemProcessor implements ItemProcessor<ExecutionRecord, E
   private String enrichmentEntityApiUrl;
   @Value("${enrichment.entity-api-key}")
   private String enrichmentEntityApiKey;
-
   @Value("#{stepExecution.jobExecution.jobInstance.id}")
   private Long jobInstanceId;
+
+  private static final BatchJobType batchJobType = BatchJobType.ENRICHMENT;
+  private MethodUtil<ProcessedResult<String>> methodUtil = new MethodUtil<>();
+  private final Function<ExecutionRecord, ProcessedResult<String>> function = getFunction();
   private EnrichmentWorker enrichmentWorker;
 
   @Override
-  public ExecutionRecord process(ExecutionRecord executionRecord) {
-    ProcessedResult<String> result = enrichmentWorker.process(executionRecord.getRecordData());
-    return ExecutionRecordUtil.prepareResultExecutionRecord(executionRecord, result.getProcessedRecord(),
-        BatchJobType.ENRICHMENT.name(), jobInstanceId.toString());
+  public Function<ExecutionRecord, ProcessedResult<String>> getFunction() {
+    return executionRecord -> enrichmentWorker.process(executionRecord.getRecordData());
+  }
+
+  @Override
+  public ExecutionRecordDTO process(@NotNull ExecutionRecord executionRecord) {
+    return methodUtil.executeCapturing(executionRecord, function, ProcessedResult::getProcessedRecord, batchJobType,
+        jobInstanceId.toString());
   }
 
   @PostConstruct

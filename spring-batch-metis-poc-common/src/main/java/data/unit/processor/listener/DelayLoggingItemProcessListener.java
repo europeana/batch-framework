@@ -1,6 +1,8 @@
 package data.unit.processor.listener;
 
 import data.entity.ExecutionRecord;
+import data.entity.ExecutionRecordDTO;
+import data.entity.ExecutionRecordExceptionLog;
 import java.lang.invoke.MethodHandles;
 import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
@@ -14,7 +16,7 @@ import org.springframework.stereotype.Component;
 @Component
 @StepScope
 @Setter
-public class DelayLoggingItemProcessListener<T> implements ItemProcessListener<T, ExecutionRecord> {
+public class DelayLoggingItemProcessListener<T> implements ItemProcessListener<T, ExecutionRecordDTO> {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
@@ -27,12 +29,26 @@ public class DelayLoggingItemProcessListener<T> implements ItemProcessListener<T
   }
 
   @Override
-  public void afterProcess(@NotNull T item, ExecutionRecord executionRecord) {
-    LOGGER.info("AfterProcess LOG_DELAY jobId {}, datasetId, executionId, recordId: {}, {}, {}",
-        jobInstanceId,
-        executionRecord.getExecutionRecordKey().getDatasetId(),
-        executionRecord.getExecutionRecordKey().getExecutionId(),
-        executionRecord.getExecutionRecordKey().getRecordId());
+  public void afterProcess(@NotNull T item, ExecutionRecordDTO executionRecord) {
+    final ExecutionRecord executionRecord1 = executionRecord.getExecutionRecord();
+    final ExecutionRecordExceptionLog executionRecordExceptionLog = executionRecord.getExecutionRecordExceptionLog();
+
+    if (executionRecord1 != null){
+      LOGGER.info("AfterProcess LOG_DELAY success jobId {}, datasetId, executionId, recordId: {}, {}, {}",
+          jobInstanceId,
+          executionRecord1.getExecutionRecordKey().getDatasetId(),
+          executionRecord1.getExecutionRecordKey().getExecutionId(),
+          executionRecord1.getExecutionRecordKey().getRecordId());
+    }
+    else{
+      LOGGER.info("AfterProcess LOG_DELAY failure jobId {}, datasetId: {}, executionId: {}, recordId: {}, exception: {}",
+          jobInstanceId,
+          executionRecordExceptionLog.getExecutionRecordKey().getDatasetId(),
+          executionRecordExceptionLog.getExecutionRecordKey().getExecutionId(),
+          executionRecordExceptionLog.getExecutionRecordKey().getRecordId(),
+          executionRecordExceptionLog.getException()
+      );
+    }
 //    try {
 //      Thread.sleep(1000);
 //    } catch (InterruptedException e) {
