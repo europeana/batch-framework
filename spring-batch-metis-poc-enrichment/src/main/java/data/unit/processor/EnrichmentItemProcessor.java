@@ -14,12 +14,12 @@ import eu.europeana.enrichment.rest.client.exceptions.DereferenceException;
 import eu.europeana.enrichment.rest.client.exceptions.EnrichmentException;
 import eu.europeana.enrichment.rest.client.report.ProcessedResult;
 import jakarta.annotation.PostConstruct;
-import java.util.function.Function;
 import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import org.springframework.util.function.ThrowingFunction;
 
 @Component
 @StepScope
@@ -39,11 +39,11 @@ public class EnrichmentItemProcessor implements MetisItemProcessor<ExecutionReco
 
   private static final BatchJobType batchJobType = BatchJobType.ENRICHMENT;
   private MethodUtil<ProcessedResult<String>> methodUtil = new MethodUtil<>();
-  private final Function<ExecutionRecordDTO, ProcessedResult<String>> function = getFunction();
+  private final ThrowingFunction<ExecutionRecordDTO, ProcessedResult<String>> function = getFunction();
   private EnrichmentWorker enrichmentWorker;
 
   @Override
-  public Function<ExecutionRecordDTO, ProcessedResult<String>> getFunction() {
+  public ThrowingFunction<ExecutionRecordDTO, ProcessedResult<String>> getFunction() {
     return executionRecord -> enrichmentWorker.process(executionRecord.getRecordData());
   }
 

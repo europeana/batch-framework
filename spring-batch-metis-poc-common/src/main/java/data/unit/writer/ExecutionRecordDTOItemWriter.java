@@ -25,13 +25,13 @@ public class ExecutionRecordDTOItemWriter implements ItemWriter<ExecutionRecordD
   }
 
   @Override
-  public void write(Chunk<? extends ExecutionRecordDTO> chunk) throws Exception {
-    for (ExecutionRecordDTO item : chunk) {
-      if (StringUtils.isNotBlank(item.getRecordData())){
-        executionRecordRepository.save(ExecutionRecordUtil.converter(item));
+  public void write(Chunk<? extends ExecutionRecordDTO> chunk) {
+    for (ExecutionRecordDTO executionRecordDTO : chunk) {
+      if (StringUtils.isNotBlank(executionRecordDTO.getRecordData())){
+        executionRecordRepository.save(ExecutionRecordUtil.converter(executionRecordDTO));
       }
       else{
-        executionRecordExceptionLogRepository.save(ExecutionRecordUtil.converterExceptionLog(item));
+        executionRecordExceptionLogRepository.save(ExecutionRecordUtil.converterExceptionLog(executionRecordDTO));
       }
     }
   }

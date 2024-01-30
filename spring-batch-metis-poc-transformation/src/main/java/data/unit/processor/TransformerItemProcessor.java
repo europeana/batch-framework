@@ -11,7 +11,6 @@ import eu.europeana.metis.transformation.service.EuropeanaIdCreator;
 import eu.europeana.metis.transformation.service.EuropeanaIdException;
 import eu.europeana.metis.transformation.service.TransformationException;
 import eu.europeana.metis.transformation.service.XsltTransformer;
-import java.io.IOException;
 import java.io.StringWriter;
 import java.lang.invoke.MethodHandles;
 import java.nio.charset.StandardCharsets;
@@ -24,6 +23,7 @@ import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
+import org.springframework.util.function.ThrowingFunction;
 
 @Component
 @StepScope
@@ -47,31 +47,24 @@ public class TransformerItemProcessor implements MetisItemProcessor<ExecutionRec
 
   private static final BatchJobType batchJobType = BatchJobType.TRANSFORMATION;
   private MethodUtil<String> methodUtil = new MethodUtil<>();
-  private final Function<ExecutionRecordDTO, String> function = getFunction();
+  private final ThrowingFunction<ExecutionRecordDTO, String> function = getFunction();
 
   @Override
-  public Function<ExecutionRecordDTO, String> getFunction() {
+  public ThrowingFunction<ExecutionRecordDTO, String> getFunction() {
     return executionRecordDTO -> {
       final XsltTransformer xsltTransformer;
-      try {
-        xsltTransformer = prepareXsltTransformer();
-      } catch (TransformationException e) {
-        throw new RuntimeException(e);
-      }
-
+      xsltTransformer = prepareXsltTransformer();
       final byte[] contentBytes = executionRecordDTO.getRecordData().getBytes(StandardCharsets.UTF_8);
       final String resultString;
       try (StringWriter writer = xsltTransformer.transform(contentBytes, prepareEuropeanaGeneratedIdsMap(contentBytes))) {
         resultString = writer.toString();
-      } catch (EuropeanaIdException | TransformationException | IOException e) {
-        throw new RuntimeException(e);
       }
       return resultString;
     };
   }
 
   @Override
-  public ExecutionRecordDTO process(@NonNull ExecutionRecord executionRecord) throws Exception {
+  public ExecutionRecordDTO process(@NonNull ExecutionRecord executionRecord) {
     final ExecutionRecordDTO executionRecordDTO = ExecutionRecordUtil.converter(executionRecord);
     return methodUtil.executeCapturing(executionRecordDTO, function, Function.identity(), batchJobType, jobInstanceId.toString());
   }
@@ -83,7 +76,6 @@ public class TransformerItemProcessor implements MetisItemProcessor<ExecutionRec
 
   private EuropeanaGeneratedIdsMap prepareEuropeanaGeneratedIdsMap(byte[] content)
       throws EuropeanaIdException {
-    //Prepare europeana identifiers
     EuropeanaGeneratedIdsMap europeanaGeneratedIdsMap = null;
     if (!StringUtils.isBlank(datasetId)) {
       String fileDataString = new String(content, StandardCharsets.UTF_8);
