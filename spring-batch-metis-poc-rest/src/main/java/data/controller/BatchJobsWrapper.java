@@ -6,9 +6,8 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.stereotype.Component;
 
 @Component
-@EnableConfigurationProperties({})
+@EnableConfigurationProperties()
 public record BatchJobsWrapper(
-      @Qualifier("defaultBatchJob") Job defaultBatchJob,
       @Qualifier("oaiHarvestBatchJob") Job oaiHarvestBatchJob,
       @Qualifier("validationBatchJob") Job validationBatchJob,
       @Qualifier("transformationBatchJob") Job tranformationBatchJob,

@@ -19,7 +19,8 @@ public class ExecutionRecordDTOItemWriter implements ItemWriter<ExecutionRecordD
   private final ExecutionRecordExceptionLogRepository executionRecordExceptionLogRepository;
 
   @Autowired
-  public ExecutionRecordDTOItemWriter(ExecutionRecordRepository executionRecordRepository, ExecutionRecordExceptionLogRepository executionRecordExceptionLogRepository) {
+  public ExecutionRecordDTOItemWriter(ExecutionRecordRepository executionRecordRepository,
+      ExecutionRecordExceptionLogRepository executionRecordExceptionLogRepository) {
     this.executionRecordRepository = executionRecordRepository;
     this.executionRecordExceptionLogRepository = executionRecordExceptionLogRepository;
   }
@@ -27,11 +28,11 @@ public class ExecutionRecordDTOItemWriter implements ItemWriter<ExecutionRecordD
   @Override
   public void write(Chunk<? extends ExecutionRecordDTO> chunk) {
     for (ExecutionRecordDTO executionRecordDTO : chunk) {
-      if (StringUtils.isNotBlank(executionRecordDTO.getRecordData())){
-        executionRecordRepository.save(ExecutionRecordUtil.converter(executionRecordDTO));
-      }
-      else{
-        executionRecordExceptionLogRepository.save(ExecutionRecordUtil.converterExceptionLog(executionRecordDTO));
+      if (StringUtils.isNotBlank(executionRecordDTO.getRecordData())) {
+        executionRecordRepository.save(ExecutionRecordUtil.converterToExecutionRecord(executionRecordDTO));
+      } else {
+        executionRecordExceptionLogRepository.save(
+            ExecutionRecordUtil.converterToExecutionRecordExceptionLog(executionRecordDTO));
       }
     }
   }

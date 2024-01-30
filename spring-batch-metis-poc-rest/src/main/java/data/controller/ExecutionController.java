@@ -81,7 +81,6 @@ public class ExecutionController {
         .toJobParameters();
 
     final Job batchJob = switch (BatchJobType.valueOf(targetJob)) {
-      case DEFAULT -> batchJobsWrapper.defaultBatchJob();
       case OAI_HARVEST -> batchJobsWrapper.oaiHarvestBatchJob();
       case VALIDATION -> throw new IllegalStateException("Unexpected value: " + BatchJobType.valueOf(targetJob));
       case VALIDATION_EXTERNAL, VALIDATION_INTERNAL -> batchJobsWrapper.validationBatchJob();

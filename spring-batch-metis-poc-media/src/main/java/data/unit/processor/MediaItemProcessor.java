@@ -95,7 +95,7 @@ public class MediaItemProcessor implements MetisItemProcessor<ExecutionRecord, E
 
   @Override
   public ExecutionRecordDTO process(@NotNull ExecutionRecord executionRecord) {
-    final ExecutionRecordDTO executionRecordDTO = ExecutionRecordUtil.converter(executionRecord);
+    final ExecutionRecordDTO executionRecordDTO = ExecutionRecordUtil.converterToExecutionRecordDTO(executionRecord);
     return methodUtil.executeCapturing(executionRecordDTO, function, Function.identity(), batchJobType, jobInstanceId.toString());
   }
 

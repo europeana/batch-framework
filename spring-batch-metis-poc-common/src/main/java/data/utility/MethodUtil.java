@@ -11,10 +11,10 @@ public class MethodUtil<O> {
     ExecutionRecordDTO resultExecutionRecordDTO;
     try{
       final O result = function.apply(executionRecordDTO);
-      resultExecutionRecordDTO = ExecutionRecordUtil.createSuccess(executionRecordDTO, getRecordString.apply(result), batchJobType, executionId);
+      resultExecutionRecordDTO = ExecutionRecordUtil.createSuccessExecutionRecordDTO(executionRecordDTO, getRecordString.apply(result), batchJobType, executionId);
     }
     catch (Exception exception){
-      resultExecutionRecordDTO = ExecutionRecordUtil.createFailure(executionRecordDTO, exception.getMessage(), batchJobType, executionId);
+      resultExecutionRecordDTO = ExecutionRecordUtil.createFailureExecutionRecordDTO(executionRecordDTO, exception.getMessage(), batchJobType, executionId);
     }
     return resultExecutionRecordDTO;
   }

@@ -9,6 +9,7 @@ import data.utility.MethodUtil;
 import eu.europeana.normalization.NormalizerFactory;
 import eu.europeana.normalization.model.NormalizationResult;
 import lombok.Setter;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -33,8 +34,8 @@ public class NormalizationItemProcessor implements MetisItemProcessor<ExecutionR
   }
 
   @Override
-  public ExecutionRecordDTO process(ExecutionRecord executionRecord) throws Exception {
-    final ExecutionRecordDTO executionRecordDTO = ExecutionRecordUtil.converter(executionRecord);
+  public ExecutionRecordDTO process(@NotNull ExecutionRecord executionRecord) {
+    final ExecutionRecordDTO executionRecordDTO = ExecutionRecordUtil.converterToExecutionRecordDTO(executionRecord);
     return methodUtil.executeCapturing(executionRecordDTO, function, NormalizationResult::getNormalizedRecordInEdmXml, batchJobType,
         jobInstanceId.toString());
   }
