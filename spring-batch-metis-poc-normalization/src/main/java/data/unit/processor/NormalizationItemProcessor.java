@@ -5,7 +5,7 @@ import data.entity.ExecutionRecordDTO;
 import data.unit.processor.listener.MetisItemProcessor;
 import data.utility.BatchJobType;
 import data.utility.ExecutionRecordUtil;
-import data.utility.MethodUtil;
+import data.utility.ItemProcessorUtil;
 import eu.europeana.normalization.NormalizerFactory;
 import eu.europeana.normalization.model.NormalizationResult;
 import lombok.Setter;
@@ -24,9 +24,12 @@ public class NormalizationItemProcessor implements MetisItemProcessor<ExecutionR
   private Long jobInstanceId;
 
   private static final BatchJobType batchJobType = BatchJobType.NORMALIZATION;
-  private MethodUtil<NormalizationResult> methodUtil = new MethodUtil<>();
-  private final ThrowingFunction<ExecutionRecordDTO, NormalizationResult> function = getFunction();
+  private final ItemProcessorUtil<NormalizationResult> itemProcessorUtil;
   private final NormalizerFactory normalizerFactory = new NormalizerFactory();
+
+  public NormalizationItemProcessor() {
+    itemProcessorUtil = new ItemProcessorUtil<>(getFunction(), NormalizationResult::getNormalizedRecordInEdmXml);
+  }
 
   @Override
   public ThrowingFunction<ExecutionRecordDTO, NormalizationResult> getFunction() {
@@ -36,7 +39,6 @@ public class NormalizationItemProcessor implements MetisItemProcessor<ExecutionR
   @Override
   public ExecutionRecordDTO process(@NotNull ExecutionRecord executionRecord) {
     final ExecutionRecordDTO executionRecordDTO = ExecutionRecordUtil.converterToExecutionRecordDTO(executionRecord);
-    return methodUtil.executeCapturing(executionRecordDTO, function, NormalizationResult::getNormalizedRecordInEdmXml, batchJobType,
-        jobInstanceId.toString());
+    return itemProcessorUtil.processCapturingException(executionRecordDTO, batchJobType, jobInstanceId.toString());
   }
 }

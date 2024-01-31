@@ -5,7 +5,7 @@ import data.entity.ExecutionRecordDTO;
 import data.unit.processor.listener.MetisItemProcessor;
 import data.utility.BatchJobType;
 import data.utility.ExecutionRecordUtil;
-import data.utility.MethodUtil;
+import data.utility.ItemProcessorUtil;
 import eu.europeana.enrichment.rest.client.EnrichmentWorker;
 import eu.europeana.enrichment.rest.client.EnrichmentWorkerImpl;
 import eu.europeana.enrichment.rest.client.dereference.DereferencerProvider;
@@ -38,20 +38,16 @@ public class EnrichmentItemProcessor implements MetisItemProcessor<ExecutionReco
   private Long jobInstanceId;
 
   private static final BatchJobType batchJobType = BatchJobType.ENRICHMENT;
-  private MethodUtil<ProcessedResult<String>> methodUtil = new MethodUtil<>();
-  private final ThrowingFunction<ExecutionRecordDTO, ProcessedResult<String>> function = getFunction();
+  private final ItemProcessorUtil<ProcessedResult<String>> itemProcessorUtil;
   private EnrichmentWorker enrichmentWorker;
+
+  public EnrichmentItemProcessor() {
+    itemProcessorUtil = new ItemProcessorUtil<>(getFunction(), ProcessedResult::getProcessedRecord);
+  }
 
   @Override
   public ThrowingFunction<ExecutionRecordDTO, ProcessedResult<String>> getFunction() {
     return executionRecord -> enrichmentWorker.process(executionRecord.getRecordData());
-  }
-
-  @Override
-  public ExecutionRecordDTO process(@NotNull ExecutionRecord executionRecord) {
-    final ExecutionRecordDTO executionRecordDTO = ExecutionRecordUtil.converterToExecutionRecordDTO(executionRecord);
-    return methodUtil.executeCapturing(executionRecordDTO, function, ProcessedResult::getProcessedRecord, batchJobType,
-        jobInstanceId.toString());
   }
 
   @PostConstruct
@@ -63,6 +59,12 @@ public class EnrichmentItemProcessor implements MetisItemProcessor<ExecutionReco
     dereferencerProvider.setEnrichmentPropertiesValues(enrichmentEntityManagementUrl, enrichmentEntityApiUrl,
         enrichmentEntityApiKey);
     enrichmentWorker = new EnrichmentWorkerImpl(dereferencerProvider.create(), enricherProvider.create());
+  }
+
+  @Override
+  public ExecutionRecordDTO process(@NotNull ExecutionRecord executionRecord) {
+    final ExecutionRecordDTO executionRecordDTO = ExecutionRecordUtil.converterToExecutionRecordDTO(executionRecord);
+    return itemProcessorUtil.processCapturingException(executionRecordDTO, batchJobType, jobInstanceId.toString());
   }
 
 }

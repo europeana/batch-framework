@@ -5,7 +5,7 @@ import data.entity.ExecutionRecordDTO;
 import data.unit.processor.listener.MetisItemProcessor;
 import data.utility.BatchJobType;
 import data.utility.ExecutionRecordUtil;
-import data.utility.MethodUtil;
+import data.utility.ItemProcessorUtil;
 import eu.europeana.metis.transformation.service.EuropeanaGeneratedIdsMap;
 import eu.europeana.metis.transformation.service.EuropeanaIdCreator;
 import eu.europeana.metis.transformation.service.EuropeanaIdException;
@@ -46,8 +46,11 @@ public class TransformerItemProcessor implements MetisItemProcessor<ExecutionRec
   private Long jobInstanceId;
 
   private static final BatchJobType batchJobType = BatchJobType.TRANSFORMATION;
-  private MethodUtil<String> methodUtil = new MethodUtil<>();
-  private final ThrowingFunction<ExecutionRecordDTO, String> function = getFunction();
+  private final ItemProcessorUtil<String> itemProcessorUtil;
+
+  public TransformerItemProcessor() {
+    itemProcessorUtil = new ItemProcessorUtil<>(getFunction(), Function.identity());
+  }
 
   @Override
   public ThrowingFunction<ExecutionRecordDTO, String> getFunction() {
@@ -66,7 +69,7 @@ public class TransformerItemProcessor implements MetisItemProcessor<ExecutionRec
   @Override
   public ExecutionRecordDTO process(@NonNull ExecutionRecord executionRecord) {
     final ExecutionRecordDTO executionRecordDTO = ExecutionRecordUtil.converterToExecutionRecordDTO(executionRecord);
-    return methodUtil.executeCapturing(executionRecordDTO, function, Function.identity(), batchJobType, jobInstanceId.toString());
+    return itemProcessorUtil.processCapturingException(executionRecordDTO, batchJobType, jobInstanceId.toString());
   }
 
   private XsltTransformer prepareXsltTransformer()

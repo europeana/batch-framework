@@ -5,7 +5,7 @@ import data.entity.ExecutionRecordDTO;
 import data.unit.processor.listener.MetisItemProcessor;
 import data.utility.BatchJobType;
 import data.utility.ExecutionRecordUtil;
-import data.utility.MethodUtil;
+import data.utility.ItemProcessorUtil;
 import eu.europeana.metis.transformation.service.TransformationException;
 import eu.europeana.metis.transformation.service.XsltTransformer;
 import eu.europeana.validation.model.ValidationResult;
@@ -38,8 +38,8 @@ public class ValidationItemProcessor implements MetisItemProcessor<ExecutionReco
   private static final String EDM_SORTER_FILE_URL = "http://ftp.eanadev.org/schema_zips/edm_sorter_20230809.xsl";
   private ValidationExecutionService validationService;
   private final Properties properties = new Properties();
-  private MethodUtil<String> methodUtil = new MethodUtil<>();
-  private final ThrowingFunction<ExecutionRecordDTO, String> function = getFunction();
+  private final ItemProcessorUtil<String> itemProcessorUtil;
+  //TODO: 2024-01-31 - Find a better way to do this. SubType??
   private static final BatchJobType batchJobType = BatchJobType.VALIDATION;
 
   public ValidationItemProcessor() {
@@ -55,6 +55,7 @@ public class ValidationItemProcessor implements MetisItemProcessor<ExecutionReco
     properties.setProperty("predefinedSchemas.edm-external.rootLocation", "EDM.xsd");
     properties.setProperty("predefinedSchemas.edm-external.schematronLocation", "schematron/schematron.xsl");
     validationService = new ValidationExecutionService(properties);
+    itemProcessorUtil = new ItemProcessorUtil<>(getFunction(), Function.identity());
   }
 
   @Override
@@ -96,7 +97,7 @@ public class ValidationItemProcessor implements MetisItemProcessor<ExecutionReco
   public ExecutionRecordDTO process(@NonNull ExecutionRecord executionRecord) {
     LOGGER.info("ValidationItemProcessor thread: {}", Thread.currentThread());
     final ExecutionRecordDTO executionRecordDTO = ExecutionRecordUtil.converterToExecutionRecordDTO(executionRecord);
-    return methodUtil.executeCapturing(executionRecordDTO, function, Function.identity(), targetJob, jobInstanceId.toString());
+    return itemProcessorUtil.processCapturingException(executionRecordDTO, targetJob, jobInstanceId.toString());
   }
 
   private String reorderFileContent(String recordData) throws TransformationException {

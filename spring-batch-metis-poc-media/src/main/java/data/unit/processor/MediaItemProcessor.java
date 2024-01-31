@@ -7,7 +7,7 @@ import data.entity.ExecutionRecordDTO;
 import data.unit.processor.listener.MetisItemProcessor;
 import data.utility.BatchJobType;
 import data.utility.ExecutionRecordUtil;
-import data.utility.MethodUtil;
+import data.utility.ItemProcessorUtil;
 import eu.europeana.metis.mediaprocessing.MediaExtractor;
 import eu.europeana.metis.mediaprocessing.MediaProcessorFactory;
 import eu.europeana.metis.mediaprocessing.RdfConverterFactory;
@@ -45,8 +45,7 @@ public class MediaItemProcessor implements MetisItemProcessor<ExecutionRecord, E
   private Long jobInstanceId;
 
   private static final BatchJobType batchJobType = BatchJobType.MEDIA;
-  private final MethodUtil<String> methodUtil = new MethodUtil<>();
-  private final ThrowingFunction<ExecutionRecordDTO, String> function = getFunction();
+  private final ItemProcessorUtil<String> itemProcessorUtil;
   private final MediaExtractor mediaExtractor;
   private final RdfSerializer rdfSerializer;
   private final RdfDeserializer rdfDeserializer;
@@ -57,6 +56,7 @@ public class MediaItemProcessor implements MetisItemProcessor<ExecutionRecord, E
     rdfSerializer = rdfConverterFactory.createRdfSerializer();
     final MediaProcessorFactory mediaProcessorFactory = new MediaProcessorFactory();
     mediaExtractor = mediaProcessorFactory.createMediaExtractor();
+    itemProcessorUtil = new ItemProcessorUtil<>(getFunction(), Function.identity());
   }
 
   @Override
@@ -96,7 +96,7 @@ public class MediaItemProcessor implements MetisItemProcessor<ExecutionRecord, E
   @Override
   public ExecutionRecordDTO process(@NotNull ExecutionRecord executionRecord) {
     final ExecutionRecordDTO executionRecordDTO = ExecutionRecordUtil.converterToExecutionRecordDTO(executionRecord);
-    return methodUtil.executeCapturing(executionRecordDTO, function, Function.identity(), batchJobType, jobInstanceId.toString());
+    return itemProcessorUtil.processCapturingException(executionRecordDTO, batchJobType, jobInstanceId.toString());
   }
 
   private EnrichedRdf getEnrichedRdf(byte[] rdfBytes) throws RdfDeserializationException {
