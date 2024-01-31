@@ -16,6 +16,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Properties;
 import java.util.function.Function;
 import lombok.Setter;
+import lombok.experimental.StandardException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.configuration.annotation.StepScope;
@@ -80,14 +81,16 @@ public class ValidationItemProcessor implements MetisItemProcessor<ExecutionReco
         default -> throw new IllegalStateException("Unexpected value: " + targetJob);
       }
 
+
       ValidationResult result =
           validationService.singleValidation(schema, rootFileLocation, schematronFileLocation, reorderedFileContent);
       if (result.isSuccess()) {
-        LOGGER.info("Validation Success for datasetId {}, recordId {}", executionRecord.getDatasetId(),
+        LOGGER.debug("Validation Success for datasetId {}, recordId {}", executionRecord.getDatasetId(),
             executionRecord.getRecordId());
       } else {
         LOGGER.info("Validation Failure for datasetId {}, recordId {}", executionRecord.getDatasetId(),
             executionRecord.getRecordId());
+        throw new ValidationFailureException(result.getMessage());
       }
       return executionRecord.getRecordData();
     };
@@ -108,5 +111,9 @@ public class ValidationItemProcessor implements MetisItemProcessor<ExecutionReco
 
   private XsltTransformer prepareXsltTransformer() throws TransformationException {
     return new XsltTransformer(EDM_SORTER_FILE_URL);
+  }
+
+  @StandardException
+  private static class ValidationFailureException extends Exception {
   }
 }

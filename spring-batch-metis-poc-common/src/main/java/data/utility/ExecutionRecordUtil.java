@@ -3,7 +3,6 @@ package data.utility;
 import data.entity.ExecutionRecord;
 import data.entity.ExecutionRecordDTO;
 import data.entity.ExecutionRecordExceptionLog;
-import data.entity.ExecutionRecordExceptionLogKey;
 import data.entity.ExecutionRecordKey;
 
 public class ExecutionRecordUtil {
@@ -35,13 +34,13 @@ public class ExecutionRecordUtil {
 
   public static ExecutionRecordExceptionLog converterToExecutionRecordExceptionLog(ExecutionRecordDTO executionRecordDTO){
     final ExecutionRecordExceptionLog executionRecordExceptionLog = new ExecutionRecordExceptionLog();
-    final ExecutionRecordExceptionLogKey executionRecordExceptionLogKey = new ExecutionRecordExceptionLogKey();
-    executionRecordExceptionLogKey.setDatasetId(executionRecordDTO.getDatasetId());
-    executionRecordExceptionLogKey.setExecutionId(executionRecordDTO.getExecutionId());
-    executionRecordExceptionLogKey.setRecordId(executionRecordDTO.getRecordId());
-    executionRecordExceptionLog.setExecutionRecordKey(executionRecordExceptionLogKey);
+    final ExecutionRecordKey executionRecordKey = new ExecutionRecordKey();
+    executionRecordKey.setDatasetId(executionRecordDTO.getDatasetId());
+    executionRecordKey.setExecutionId(executionRecordDTO.getExecutionId());
+    executionRecordKey.setRecordId(executionRecordDTO.getRecordId());
+    executionRecordExceptionLog.setExecutionRecordKey(executionRecordKey);
     executionRecordExceptionLog.setExecutionName(executionRecordDTO.getExecutionName());
-    executionRecordExceptionLog.setException(executionRecordExceptionLog.getException());
+    executionRecordExceptionLog.setException(executionRecordDTO.getException());
     return executionRecordExceptionLog;
   }
 
@@ -60,12 +59,12 @@ public class ExecutionRecordUtil {
   public static ExecutionRecordDTO createFailureExecutionRecordDTO(ExecutionRecordDTO executionRecordDTO, String errorMessage,
       BatchJobType batchJobType, String executionId){
     final ExecutionRecordDTO resultExecutionRecordDTO = new ExecutionRecordDTO();
-    executionRecordDTO.setDatasetId(executionRecordDTO.getDatasetId());
-    executionRecordDTO.setExecutionId(executionRecordDTO.getExecutionId());
-    executionRecordDTO.setRecordId(executionId);
-    executionRecordDTO.setExecutionName(batchJobType.name());
-    executionRecordDTO.setRecordData("");
-    executionRecordDTO.setException(errorMessage);
+    resultExecutionRecordDTO.setDatasetId(executionRecordDTO.getDatasetId());
+    resultExecutionRecordDTO.setExecutionId(executionId);
+    resultExecutionRecordDTO.setRecordId(executionRecordDTO.getRecordId());
+    resultExecutionRecordDTO.setExecutionName(batchJobType.name());
+    resultExecutionRecordDTO.setRecordData("");
+    resultExecutionRecordDTO.setException(errorMessage);
     return resultExecutionRecordDTO;
   }
 }
