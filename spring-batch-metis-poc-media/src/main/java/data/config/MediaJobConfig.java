@@ -8,6 +8,7 @@ import data.unit.processor.listener.DelayLoggingItemProcessListener;
 import data.unit.reader.DefaultRepositoryItemReader;
 import data.utility.BatchJobType;
 import java.lang.invoke.MethodHandles;
+import java.util.concurrent.Future;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.Job;
@@ -16,6 +17,7 @@ import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.core.job.builder.JobBuilder;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.step.builder.StepBuilder;
+import org.springframework.batch.integration.async.AsyncItemProcessor;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.batch.item.data.RepositoryItemReader;
@@ -49,18 +51,15 @@ public class MediaJobConfig {
   @Bean
   public Step mediaStep(JobRepository jobRepository, PlatformTransactionManager transactionManager,
       RepositoryItemReader<ExecutionRecord> mediaRepositoryItemReader,
-      ItemProcessor<ExecutionRecord, ExecutionRecordDTO> mediaItemProcessor,
-      ItemWriter<ExecutionRecordDTO> executionRecordDTOItemWriter,
-      DelayLoggingItemProcessListener<ExecutionRecord> delayLoggingItemProcessListener,
-      TaskExecutor mediaStepAsyncTaskExecutor) {
+      ItemProcessor<ExecutionRecord, Future<ExecutionRecordDTO>> mediaAsyncItemProcessor,
+      ItemWriter<Future<ExecutionRecordDTO>> executionRecordDTOAsyncItemWriter,
+      DelayLoggingItemProcessListener<ExecutionRecord> delayLoggingItemProcessListener) {
     return new StepBuilder(STEP_NAME, jobRepository)
-        .<ExecutionRecord, ExecutionRecordDTO>chunk(chunkSize, transactionManager)
+        .<ExecutionRecord, Future<ExecutionRecordDTO>>chunk(chunkSize, transactionManager)
         .reader(mediaRepositoryItemReader)
-        .processor(mediaItemProcessor)
+        .processor(mediaAsyncItemProcessor)
         .listener(delayLoggingItemProcessListener)
-        .writer(executionRecordDTOItemWriter)
-        .taskExecutor(mediaStepAsyncTaskExecutor)
-        .throttleLimit(parallelization)
+        .writer(executionRecordDTOAsyncItemWriter)
         .build();
   }
 
@@ -80,6 +79,16 @@ public class MediaJobConfig {
     executor.setMaxPoolSize(parallelization);
     executor.initialize();
     return executor;
+  }
+
+  @Bean
+  public ItemProcessor<ExecutionRecord, Future<ExecutionRecordDTO>> mediaAsyncItemProcessor(
+      ItemProcessor<ExecutionRecord, ExecutionRecordDTO> mediaItemProcessor,
+      TaskExecutor mediaStepAsyncTaskExecutor) {
+    AsyncItemProcessor<ExecutionRecord, ExecutionRecordDTO> asyncItemProcessor = new AsyncItemProcessor<>();
+    asyncItemProcessor.setDelegate(mediaItemProcessor);
+    asyncItemProcessor.setTaskExecutor(mediaStepAsyncTaskExecutor);
+    return asyncItemProcessor;
   }
 
 }

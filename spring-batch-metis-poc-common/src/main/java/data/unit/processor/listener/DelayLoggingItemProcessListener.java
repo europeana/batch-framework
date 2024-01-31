@@ -29,6 +29,7 @@ public class DelayLoggingItemProcessListener<T> implements ItemProcessListener<T
 
   @Override
   public void afterProcess(@NotNull T item, ExecutionRecordDTO executionRecordDTO) {
+    LOGGER.info("DelayLoggingItemProcessListener thread: {}", Thread.currentThread());
     if (StringUtils.isNotBlank(executionRecordDTO.getRecordData())){
       LOGGER.info("AfterProcess LOG_DELAY success jobId {}, datasetId, executionId, recordId: {}, {}, {}",
           jobInstanceId,

@@ -8,6 +8,7 @@ import data.unit.processor.listener.DelayLoggingItemProcessListener;
 import data.unit.reader.DefaultRepositoryItemReader;
 import data.utility.BatchJobType;
 import java.lang.invoke.MethodHandles;
+import java.util.concurrent.Future;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.Job;
@@ -16,6 +17,7 @@ import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.core.job.builder.JobBuilder;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.step.builder.StepBuilder;
+import org.springframework.batch.integration.async.AsyncItemProcessor;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.batch.item.data.RepositoryItemReader;
@@ -49,18 +51,15 @@ public class ValidationJobConfig {
   @Bean
   public Step validationStep(JobRepository jobRepository, PlatformTransactionManager transactionManager,
       RepositoryItemReader<ExecutionRecord> validationRepositoryItemReader,
-      ItemProcessor<ExecutionRecord, ExecutionRecordDTO> validationItemProcessor,
-      ItemWriter<ExecutionRecordDTO> executionRecordDTOItemWriter,
-      DelayLoggingItemProcessListener<ExecutionRecord> delayLoggingItemProcessListener,
-      TaskExecutor validationStepAsyncTaskExecutor) {
+      ItemProcessor<ExecutionRecord, Future<ExecutionRecordDTO>> validationAsyncItemProcessor,
+      ItemWriter<Future<ExecutionRecordDTO>> executionRecordDTOAsyncItemWriter,
+      DelayLoggingItemProcessListener<ExecutionRecord> delayLoggingItemProcessListener) {
     return new StepBuilder(STEP_NAME, jobRepository)
-        .<ExecutionRecord, ExecutionRecordDTO>chunk(chunkSize, transactionManager)
+        .<ExecutionRecord, Future<ExecutionRecordDTO>>chunk(chunkSize, transactionManager)
         .reader(validationRepositoryItemReader)
-        .processor(validationItemProcessor)
+        .processor(validationAsyncItemProcessor)
         .listener(delayLoggingItemProcessListener)
-        .writer(executionRecordDTOItemWriter)
-        .taskExecutor(validationStepAsyncTaskExecutor)
-        .throttleLimit(parallelization)
+        .writer(executionRecordDTOAsyncItemWriter)
         .build();
   }
 
@@ -82,4 +81,13 @@ public class ValidationJobConfig {
     return executor;
   }
 
+  @Bean
+  public ItemProcessor<ExecutionRecord, Future<ExecutionRecordDTO>> validationAsyncItemProcessor(
+      ItemProcessor<ExecutionRecord, ExecutionRecordDTO> validationItemProcessor,
+      TaskExecutor validationStepAsyncTaskExecutor) {
+    AsyncItemProcessor<ExecutionRecord, ExecutionRecordDTO> asyncItemProcessor = new AsyncItemProcessor<>();
+    asyncItemProcessor.setDelegate(validationItemProcessor);
+    asyncItemProcessor.setTaskExecutor(validationStepAsyncTaskExecutor);
+    return asyncItemProcessor;
+  }
 }

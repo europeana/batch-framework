@@ -94,6 +94,7 @@ public class ValidationItemProcessor implements MetisItemProcessor<ExecutionReco
 
   @Override
   public ExecutionRecordDTO process(@NonNull ExecutionRecord executionRecord) {
+    LOGGER.info("ValidationItemProcessor thread: {}", Thread.currentThread());
     final ExecutionRecordDTO executionRecordDTO = ExecutionRecordUtil.converterToExecutionRecordDTO(executionRecord);
     return methodUtil.executeCapturing(executionRecordDTO, function, Function.identity(), targetJob, jobInstanceId.toString());
   }

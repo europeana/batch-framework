@@ -8,6 +8,7 @@ import data.unit.processor.listener.DelayLoggingItemProcessListener;
 import data.unit.reader.DefaultRepositoryItemReader;
 import data.utility.BatchJobType;
 import java.lang.invoke.MethodHandles;
+import java.util.concurrent.Future;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.Job;
@@ -16,6 +17,7 @@ import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.core.job.builder.JobBuilder;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.step.builder.StepBuilder;
+import org.springframework.batch.integration.async.AsyncItemProcessor;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.batch.item.data.RepositoryItemReader;
@@ -49,18 +51,15 @@ public class EnrichmentJobConfig {
   @Bean
   public Step enrichmentStep(JobRepository jobRepository, PlatformTransactionManager transactionManager,
       RepositoryItemReader<ExecutionRecord> enrichmentRepositoryItemReader,
-      ItemProcessor<ExecutionRecord, ExecutionRecordDTO> enrichmentItemProcessor,
-      ItemWriter<ExecutionRecordDTO> executionRecordDTOItemWriter,
-      DelayLoggingItemProcessListener<ExecutionRecord> delayLoggingItemProcessListener,
-      TaskExecutor enrichmentStepAsyncTaskExecutor) {
+      ItemProcessor<ExecutionRecord, Future<ExecutionRecordDTO>> enrichmentAsyncItemProcessor,
+      ItemWriter<Future<ExecutionRecordDTO>> executionRecordDTOAsyncItemWriter,
+      DelayLoggingItemProcessListener<ExecutionRecord> delayLoggingItemProcessListener) {
     return new StepBuilder(STEP_NAME, jobRepository)
-        .<ExecutionRecord, ExecutionRecordDTO>chunk(chunkSize, transactionManager)
+        .<ExecutionRecord, Future<ExecutionRecordDTO>>chunk(chunkSize, transactionManager)
         .reader(enrichmentRepositoryItemReader)
-        .processor(enrichmentItemProcessor)
+        .processor(enrichmentAsyncItemProcessor)
         .listener(delayLoggingItemProcessListener)
-        .writer(executionRecordDTOItemWriter)
-        .taskExecutor(enrichmentStepAsyncTaskExecutor)
-        .throttleLimit(parallelization)
+        .writer(executionRecordDTOAsyncItemWriter)
         .build();
   }
 
@@ -80,6 +79,16 @@ public class EnrichmentJobConfig {
     executor.setMaxPoolSize(parallelization);
     executor.initialize();
     return executor;
+  }
+
+  @Bean
+  public ItemProcessor<ExecutionRecord, Future<ExecutionRecordDTO>> enrichmentAsyncItemProcessor(
+      ItemProcessor<ExecutionRecord, ExecutionRecordDTO> enrichmentItemProcessor,
+      TaskExecutor enrichmentStepAsyncTaskExecutor) {
+    AsyncItemProcessor<ExecutionRecord, ExecutionRecordDTO> asyncItemProcessor = new AsyncItemProcessor<>();
+    asyncItemProcessor.setDelegate(enrichmentItemProcessor);
+    asyncItemProcessor.setTaskExecutor(enrichmentStepAsyncTaskExecutor);
+    return asyncItemProcessor;
   }
 
 }

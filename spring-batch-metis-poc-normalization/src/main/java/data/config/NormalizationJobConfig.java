@@ -8,6 +8,7 @@ import data.unit.processor.listener.DelayLoggingItemProcessListener;
 import data.unit.reader.DefaultRepositoryItemReader;
 import data.utility.BatchJobType;
 import java.lang.invoke.MethodHandles;
+import java.util.concurrent.Future;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.Job;
@@ -16,6 +17,7 @@ import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.core.job.builder.JobBuilder;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.step.builder.StepBuilder;
+import org.springframework.batch.integration.async.AsyncItemProcessor;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.batch.item.data.RepositoryItemReader;
@@ -48,18 +50,15 @@ public class NormalizationJobConfig {
   @Bean
   public Step normalizationStep(JobRepository jobRepository, PlatformTransactionManager transactionManager,
       RepositoryItemReader<ExecutionRecord> normalizationRepositoryItemReader,
-      ItemProcessor<ExecutionRecord, ExecutionRecordDTO> normalizationItemProcessor,
-      ItemWriter<ExecutionRecordDTO> executionRecordDTOItemWriter,
-      DelayLoggingItemProcessListener<ExecutionRecord> delayLoggingItemProcessListener,
-      TaskExecutor normalizationStepAsyncTaskExecutor) {
+      ItemProcessor<ExecutionRecord, Future<ExecutionRecordDTO>> normalizationAsyncItemProcessor,
+      ItemWriter<Future<ExecutionRecordDTO>> executionRecordDTOAsyncItemWriter,
+      DelayLoggingItemProcessListener<ExecutionRecord> delayLoggingItemProcessListener) {
     return new StepBuilder(STEP_NAME, jobRepository)
-        .<ExecutionRecord, ExecutionRecordDTO>chunk(chunkSize, transactionManager)
+        .<ExecutionRecord, Future<ExecutionRecordDTO>>chunk(chunkSize, transactionManager)
         .reader(normalizationRepositoryItemReader)
-        .processor(normalizationItemProcessor)
+        .processor(normalizationAsyncItemProcessor)
         .listener(delayLoggingItemProcessListener)
-        .writer(executionRecordDTOItemWriter)
-        .taskExecutor(normalizationStepAsyncTaskExecutor)
-        .throttleLimit(parallelization)
+        .writer(executionRecordDTOAsyncItemWriter)
         .build();
   }
 
@@ -81,4 +80,13 @@ public class NormalizationJobConfig {
     return executor;
   }
 
+  @Bean
+  public ItemProcessor<ExecutionRecord, Future<ExecutionRecordDTO>> normalizationAsyncItemProcessor(
+      ItemProcessor<ExecutionRecord, ExecutionRecordDTO> normalizationItemProcessor,
+      TaskExecutor normalizationStepAsyncTaskExecutor) {
+    AsyncItemProcessor<ExecutionRecord, ExecutionRecordDTO> asyncItemProcessor = new AsyncItemProcessor<>();
+    asyncItemProcessor.setDelegate(normalizationItemProcessor);
+    asyncItemProcessor.setTaskExecutor(normalizationStepAsyncTaskExecutor);
+    return asyncItemProcessor;
+  }
 }

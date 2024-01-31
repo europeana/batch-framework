@@ -49,6 +49,7 @@ public class OaiHarvestJobConfig {
         .<ExecutionRecordDTO, ExecutionRecordDTO>chunk(chunkSize, transactionManager)
         .reader(oaiHarvestItemReader)
         .writer(writer)
+        //TODO: 2024-01-31 - Update with a better parallelization reader and remove Step parallization.
         .taskExecutor(oaiHarvestStepAsyncTaskExecutor)
         .throttleLimit(parallelization)
         .build();
