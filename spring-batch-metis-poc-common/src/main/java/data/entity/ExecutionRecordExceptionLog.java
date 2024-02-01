@@ -12,7 +12,8 @@ import lombok.Setter;
 public class ExecutionRecordExceptionLog {
   @EmbeddedId
   private ExecutionRecordKey executionRecordKey;
+  @Column(length = 50)
   private String executionName;
-  @Column(name = "exception", length = 100000)
+  @Column(columnDefinition = "TEXT")
   private String exception;
 }
