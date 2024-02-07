@@ -19,6 +19,7 @@
     <version.postgresql>42.6.0</version.postgresql>
     <version.netty>4.1.100.Final</version.netty>
     <version.reactor>3.4.24</version.reactor>
+    <spring-cloud-task-dependencies.version>3.1.0</spring-cloud-task-dependencies.version>
   </properties>
   <dependencies>
     <dependency>
@@ -26,10 +27,17 @@
       <artifactId>spring-boot-starter-batch</artifactId>
     </dependency>
     <dependency>
+      <groupId>org.springframework.cloud</groupId>
+      <artifactId>spring-cloud-starter-task</artifactId>
+    </dependency>
+    <dependency>
       <groupId>org.springframework.batch</groupId>
       <artifactId>spring-batch-core</artifactId>
     </dependency>
-
+    <dependency>
+      <groupId>org.springframework.cloud</groupId>
+      <artifactId>spring-cloud-task-batch</artifactId>
+    </dependency>
     <dependency>
       <groupId>io.spring.cloud</groupId>
       <artifactId>spring-batch-metis-poc-common</artifactId>
@@ -152,6 +160,18 @@
       <scope>test</scope>
     </dependency>
   </dependencies>
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>org.springframework.cloud</groupId>
+        <artifactId>spring-cloud-task-dependencies</artifactId>
+        <version>${spring-cloud-task-dependencies.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
 
   <build>
     <plugins>

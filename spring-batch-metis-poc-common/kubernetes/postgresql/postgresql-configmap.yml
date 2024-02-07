@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-config
+data:
+  postgresql.conf: |
+    # - Connection Settings -
+    listen_addresses = '*'           # Listen on all interfaces
+    port = 5432                      # Default port
+    max_connections = 1000

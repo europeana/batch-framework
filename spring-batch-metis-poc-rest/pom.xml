@@ -16,6 +16,7 @@
   <properties>
     <java.version>21</java.version>
     <version.postgresql>42.6.0</version.postgresql>
+    <spring-cloud-task-dependencies.version>3.1.0</spring-cloud-task-dependencies.version>
   </properties>
   <dependencies>
     <dependency>
