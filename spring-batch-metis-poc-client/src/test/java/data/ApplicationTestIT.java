@@ -53,7 +53,7 @@ import org.springframework.test.context.ContextConfiguration;
 
 @SpringBootTest
 @ContextConfiguration(classes = {MetisDataflowClientConfig.class})
-class ApplicationTest {
+class ApplicationTestIT {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   @Autowired

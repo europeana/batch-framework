@@ -20,10 +20,6 @@
   </properties>
   <dependencies>
     <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter</artifactId>
-    </dependency>
-    <dependency>
       <groupId>org.springframework.cloud</groupId>
       <artifactId>spring-cloud-dataflow-rest-client</artifactId>
     </dependency>
@@ -67,7 +63,6 @@
 
   <dependencyManagement>
     <dependencies>
-
       <dependency>
         <groupId>org.springframework.cloud</groupId>
         <artifactId>spring-cloud-dataflow-dependencies</artifactId>
@@ -77,14 +72,5 @@
       </dependency>
     </dependencies>
   </dependencyManagement>
-
-  <build>
-    <plugins>
-      <plugin>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-maven-plugin</artifactId>
-      </plugin>
-    </plugins>
-  </build>
 
 </project>
