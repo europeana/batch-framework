@@ -48,11 +48,11 @@
       <version>3.14.0</version>
     </dependency>
 
-    <dependency>
-      <groupId>org.postgresql</groupId>
-      <artifactId>postgresql</artifactId>
-      <version>${version.postgresql}</version>
-    </dependency>
+<!--    <dependency>-->
+<!--      <groupId>org.postgresql</groupId>-->
+<!--      <artifactId>postgresql</artifactId>-->
+<!--      <version>${version.postgresql}</version>-->
+<!--    </dependency>-->
 
     <dependency>
       <groupId>org.projectlombok</groupId>
