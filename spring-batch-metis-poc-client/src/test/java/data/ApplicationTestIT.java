@@ -238,7 +238,7 @@ class ApplicationTestIT {
     deploymentProperties.put(MEDIA_PARALLELIZATION_SIZE, jobProperties.getMedia().getParallelizationSize());
     final ArrayList<String> arguments = new ArrayList<>();
     arguments.add("datasetId=1");
-    arguments.add("executionId=39");
+    arguments.add("executionId=47");
     arguments.add("targetJob=MEDIA");
 
     polingStatus(launchTask(taskName, deploymentProperties, arguments));

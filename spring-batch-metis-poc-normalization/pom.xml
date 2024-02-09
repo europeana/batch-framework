@@ -3,22 +3,12 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>org.springframework.boot</groupId>
-    <artifactId>spring-boot-starter-parent</artifactId>
-    <version>3.2.2</version>
-    <relativePath/> <!-- lookup parent from repository -->
+    <groupId>io.spring.cloud</groupId>
+    <artifactId>spring-batch-metis-poc</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
   </parent>
-  <groupId>io.spring.cloud</groupId>
   <artifactId>spring-batch-metis-poc-normalization</artifactId>
-  <version>0.0.1-SNAPSHOT</version>
-  <name>spring-batch-metis-poc-normalization</name>
-  <description>spring-batch-metis-poc-normalization</description>
-  <properties>
-    <java.version>21</java.version>
-    <version.metis>12-SNAPSHOT</version.metis>
-    <version.postgresql>42.6.0</version.postgresql>
-    <spring-cloud-task-dependencies.version>3.1.0</spring-cloud-task-dependencies.version>
-  </properties>
+
   <dependencies>
     <dependency>
       <groupId>org.springframework.boot</groupId>
@@ -40,7 +30,7 @@
     <dependency>
       <groupId>org.postgresql</groupId>
       <artifactId>postgresql</artifactId>
-      <version>${version.postgresql}</version>
+      <version>${postgresql.version}</version>
     </dependency>
 
     <dependency>
@@ -67,18 +57,6 @@
       <scope>test</scope>
     </dependency>
   </dependencies>
-
-  <dependencyManagement>
-    <dependencies>
-      <dependency>
-        <groupId>org.springframework.cloud</groupId>
-        <artifactId>spring-cloud-task-dependencies</artifactId>
-        <version>${spring-cloud-task-dependencies.version}</version>
-        <type>pom</type>
-        <scope>import</scope>
-      </dependency>
-    </dependencies>
-  </dependencyManagement>
 
   <build>
     <plugins>

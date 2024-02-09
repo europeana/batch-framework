@@ -1,8 +1,5 @@
 package data.config;
 
-import static data.constants.JobParameterConstants.OAIHARVEST_CHUNK_SIZE;
-import static data.constants.JobParameterConstants.OAIHARVEST_PARALLELIZATION_SIZE;
-
 import data.entity.ExecutionRecordDTO;
 import data.incrementer.TimestampJobParametersIncrementer;
 import data.unit.reader.OaiHarvestItemReader;
@@ -31,9 +28,9 @@ public class OaiHarvestJobConfig {
   private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   public static final String BATCH_JOB = BatchJobType.OAI_HARVEST.name();
   public static final String STEP_NAME = "oaiHarvestStep";
-  @Value("${" + OAIHARVEST_CHUNK_SIZE + "}")
+  @Value("${oaiharvest.chunk.size}")
   public int chunkSize;
-  @Value("${" + OAIHARVEST_PARALLELIZATION_SIZE + "}")
+  @Value("${oaiharvest.parallelization.size}")
   public int parallelization;
 
   @Bean
