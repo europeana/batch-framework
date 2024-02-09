@@ -21,10 +21,14 @@ import eu.europeana.metis.mediaprocessing.model.EnrichedRdf;
 import eu.europeana.metis.mediaprocessing.model.RdfResourceEntry;
 import eu.europeana.metis.mediaprocessing.model.ResourceExtractionResult;
 import eu.europeana.metis.mediaprocessing.model.Thumbnail;
+
+import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.function.Function;
+
+import jakarta.annotation.PreDestroy;
 import lombok.Setter;
 import org.apache.commons.collections.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
@@ -57,6 +61,12 @@ public class MediaItemProcessor implements MetisItemProcessor<ExecutionRecord, E
     final MediaProcessorFactory mediaProcessorFactory = new MediaProcessorFactory();
     mediaExtractor = mediaProcessorFactory.createMediaExtractor();
     itemProcessorUtil = new ItemProcessorUtil<>(getFunction(), Function.identity());
+  }
+
+  @PreDestroy
+  public void destroy() throws IOException {
+    LOGGER.debug("Closing MediaExtractor");
+    mediaExtractor.close();
   }
 
   @Override
