@@ -21,6 +21,7 @@ import org.springframework.batch.integration.async.AsyncItemProcessor;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.batch.item.data.RepositoryItemReader;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.task.configuration.EnableTask;
 import org.springframework.context.annotation.Bean;
@@ -51,7 +52,8 @@ public class TransformationJobConfig {
   }
 
   @Bean
-  public Step tranformationStep(JobRepository jobRepository, PlatformTransactionManager transactionManager,
+  public Step tranformationStep(JobRepository jobRepository,
+      @Qualifier("transactionManager") PlatformTransactionManager transactionManager,
       RepositoryItemReader<ExecutionRecord> trasnformationRepositoryItemReader,
       ItemProcessor<ExecutionRecord, Future<ExecutionRecordDTO>> transformationAsyncItemProcessor,
       ItemWriter<Future<ExecutionRecordDTO>> executionRecordDTOAsyncItemWriter,
@@ -86,7 +88,7 @@ public class TransformationJobConfig {
   @Bean
   public ItemProcessor<ExecutionRecord, Future<ExecutionRecordDTO>> transformationAsyncItemProcessor(
       ItemProcessor<ExecutionRecord, ExecutionRecordDTO> transformationItemProcessor,
-      TaskExecutor transformationStepAsyncTaskExecutor) {
+      @Qualifier("transformationStepAsyncTaskExecutor") TaskExecutor transformationStepAsyncTaskExecutor) {
     AsyncItemProcessor<ExecutionRecord, ExecutionRecordDTO> asyncItemProcessor = new AsyncItemProcessor<>();
     asyncItemProcessor.setDelegate(transformationItemProcessor);
     asyncItemProcessor.setTaskExecutor(transformationStepAsyncTaskExecutor);

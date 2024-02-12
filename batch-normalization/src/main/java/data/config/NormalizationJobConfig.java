@@ -21,6 +21,7 @@ import org.springframework.batch.integration.async.AsyncItemProcessor;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.batch.item.data.RepositoryItemReader;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.task.configuration.EnableTask;
 import org.springframework.context.annotation.Bean;
@@ -32,6 +33,7 @@ import org.springframework.transaction.PlatformTransactionManager;
 @Configuration
 @EnableTask
 public class NormalizationJobConfig {
+
   private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   public static final String BATCH_JOB = BatchJobType.NORMALIZATION.name();
   public static final String STEP_NAME = "normalizationStep";
@@ -50,7 +52,8 @@ public class NormalizationJobConfig {
   }
 
   @Bean
-  public Step normalizationStep(JobRepository jobRepository, PlatformTransactionManager transactionManager,
+  public Step normalizationStep(JobRepository jobRepository,
+      @Qualifier("transactionManager") PlatformTransactionManager transactionManager,
       RepositoryItemReader<ExecutionRecord> normalizationRepositoryItemReader,
       ItemProcessor<ExecutionRecord, Future<ExecutionRecordDTO>> normalizationAsyncItemProcessor,
       ItemWriter<Future<ExecutionRecordDTO>> executionRecordDTOAsyncItemWriter,
@@ -85,7 +88,7 @@ public class NormalizationJobConfig {
   @Bean
   public ItemProcessor<ExecutionRecord, Future<ExecutionRecordDTO>> normalizationAsyncItemProcessor(
       ItemProcessor<ExecutionRecord, ExecutionRecordDTO> normalizationItemProcessor,
-      TaskExecutor normalizationStepAsyncTaskExecutor) {
+      @Qualifier("normalizationStepAsyncTaskExecutor") TaskExecutor normalizationStepAsyncTaskExecutor) {
     AsyncItemProcessor<ExecutionRecord, ExecutionRecordDTO> asyncItemProcessor = new AsyncItemProcessor<>();
     asyncItemProcessor.setDelegate(normalizationItemProcessor);
     asyncItemProcessor.setTaskExecutor(normalizationStepAsyncTaskExecutor);

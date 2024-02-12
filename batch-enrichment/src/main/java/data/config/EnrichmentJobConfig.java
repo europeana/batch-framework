@@ -21,6 +21,7 @@ import org.springframework.batch.integration.async.AsyncItemProcessor;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.batch.item.data.RepositoryItemReader;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.task.configuration.EnableTask;
 import org.springframework.context.annotation.Bean;
@@ -51,7 +52,8 @@ public class EnrichmentJobConfig {
   }
 
   @Bean
-  public Step enrichmentStep(JobRepository jobRepository, PlatformTransactionManager transactionManager,
+  public Step enrichmentStep(JobRepository jobRepository,
+      @Qualifier("transactionManager") PlatformTransactionManager transactionManager,
       RepositoryItemReader<ExecutionRecord> enrichmentRepositoryItemReader,
       ItemProcessor<ExecutionRecord, Future<ExecutionRecordDTO>> enrichmentAsyncItemProcessor,
       ItemWriter<Future<ExecutionRecordDTO>> executionRecordDTOAsyncItemWriter,
@@ -86,7 +88,7 @@ public class EnrichmentJobConfig {
   @Bean
   public ItemProcessor<ExecutionRecord, Future<ExecutionRecordDTO>> enrichmentAsyncItemProcessor(
       ItemProcessor<ExecutionRecord, ExecutionRecordDTO> enrichmentItemProcessor,
-      TaskExecutor enrichmentStepAsyncTaskExecutor) {
+      @Qualifier("enrichmentStepAsyncTaskExecutor") TaskExecutor enrichmentStepAsyncTaskExecutor) {
     AsyncItemProcessor<ExecutionRecord, ExecutionRecordDTO> asyncItemProcessor = new AsyncItemProcessor<>();
     asyncItemProcessor.setDelegate(enrichmentItemProcessor);
     asyncItemProcessor.setTaskExecutor(enrichmentStepAsyncTaskExecutor);

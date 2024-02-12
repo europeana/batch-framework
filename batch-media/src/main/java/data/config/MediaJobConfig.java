@@ -21,6 +21,7 @@ import org.springframework.batch.integration.async.AsyncItemProcessor;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.batch.item.data.RepositoryItemReader;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.task.configuration.EnableTask;
 import org.springframework.context.annotation.Bean;
@@ -51,7 +52,8 @@ public class MediaJobConfig {
   }
 
   @Bean
-  public Step mediaStep(JobRepository jobRepository, PlatformTransactionManager transactionManager,
+  public Step mediaStep(JobRepository jobRepository,
+      @Qualifier("transactionManager") PlatformTransactionManager transactionManager,
       RepositoryItemReader<ExecutionRecord> mediaRepositoryItemReader,
       ItemProcessor<ExecutionRecord, Future<ExecutionRecordDTO>> mediaAsyncItemProcessor,
       ItemWriter<Future<ExecutionRecordDTO>> executionRecordDTOAsyncItemWriter,
@@ -86,7 +88,7 @@ public class MediaJobConfig {
   @Bean
   public ItemProcessor<ExecutionRecord, Future<ExecutionRecordDTO>> mediaAsyncItemProcessor(
       ItemProcessor<ExecutionRecord, ExecutionRecordDTO> mediaItemProcessor,
-      TaskExecutor mediaStepAsyncTaskExecutor) {
+      @Qualifier("mediaStepAsyncTaskExecutor") TaskExecutor mediaStepAsyncTaskExecutor) {
     AsyncItemProcessor<ExecutionRecord, ExecutionRecordDTO> asyncItemProcessor = new AsyncItemProcessor<>();
     asyncItemProcessor.setDelegate(mediaItemProcessor);
     asyncItemProcessor.setTaskExecutor(mediaStepAsyncTaskExecutor);

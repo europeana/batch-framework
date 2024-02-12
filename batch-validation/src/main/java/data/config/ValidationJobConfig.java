@@ -21,6 +21,7 @@ import org.springframework.batch.integration.async.AsyncItemProcessor;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.batch.item.data.RepositoryItemReader;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.task.configuration.EnableTask;
 import org.springframework.context.annotation.Bean;
@@ -51,7 +52,8 @@ public class ValidationJobConfig {
   }
 
   @Bean
-  public Step validationStep(JobRepository jobRepository, PlatformTransactionManager transactionManager,
+  public Step validationStep(JobRepository jobRepository,
+      @Qualifier("transactionManager") PlatformTransactionManager transactionManager,
       RepositoryItemReader<ExecutionRecord> validationRepositoryItemReader,
       ItemProcessor<ExecutionRecord, Future<ExecutionRecordDTO>> validationAsyncItemProcessor,
       ItemWriter<Future<ExecutionRecordDTO>> executionRecordDTOAsyncItemWriter,
@@ -86,7 +88,7 @@ public class ValidationJobConfig {
   @Bean
   public ItemProcessor<ExecutionRecord, Future<ExecutionRecordDTO>> validationAsyncItemProcessor(
       ItemProcessor<ExecutionRecord, ExecutionRecordDTO> validationItemProcessor,
-      TaskExecutor validationStepAsyncTaskExecutor) {
+      @Qualifier("validationStepAsyncTaskExecutor") TaskExecutor validationStepAsyncTaskExecutor) {
     AsyncItemProcessor<ExecutionRecord, ExecutionRecordDTO> asyncItemProcessor = new AsyncItemProcessor<>();
     asyncItemProcessor.setDelegate(validationItemProcessor);
     asyncItemProcessor.setTaskExecutor(validationStepAsyncTaskExecutor);

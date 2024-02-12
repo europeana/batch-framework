@@ -13,6 +13,7 @@ import org.springframework.batch.core.Step;
 import org.springframework.batch.core.job.builder.JobBuilder;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.step.builder.StepBuilder;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.task.configuration.EnableTask;
 import org.springframework.context.annotation.Bean;
@@ -43,10 +44,11 @@ public class OaiHarvestJobConfig {
   }
 
   @Bean
-  public Step oaiHarvestStep(JobRepository jobRepository, PlatformTransactionManager transactionManager,
+  public Step oaiHarvestStep(JobRepository jobRepository,
+      @Qualifier("transactionManager") PlatformTransactionManager transactionManager,
       OaiHarvestItemReader oaiHarvestItemReader,
       ExecutionRecordDTOItemWriter writer,
-      TaskExecutor oaiHarvestStepAsyncTaskExecutor) {
+      @Qualifier("oaiHarvestStepAsyncTaskExecutor") TaskExecutor oaiHarvestStepAsyncTaskExecutor) {
     return new StepBuilder(STEP_NAME, jobRepository)
         .<ExecutionRecordDTO, ExecutionRecordDTO>chunk(chunkSize, transactionManager)
         .reader(oaiHarvestItemReader)
