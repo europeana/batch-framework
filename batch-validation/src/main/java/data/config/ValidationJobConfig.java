@@ -1,12 +1,14 @@
 package data.config;
 
+import static data.job.BatchJobType.VALIDATION;
+
 import data.entity.ExecutionRecord;
 import data.entity.ExecutionRecordDTO;
-import data.incrementer.TimestampJobParametersIncrementer;
+import data.job.incrementer.TimestampJobParametersIncrementer;
 import data.repositories.ExecutionRecordRepository;
 import data.unit.processor.listener.DelayLoggingItemProcessListener;
 import data.unit.reader.DefaultRepositoryItemReader;
-import data.utility.BatchJobType;
+import data.job.BatchJobType;
 import java.lang.invoke.MethodHandles;
 import java.util.concurrent.Future;
 import org.slf4j.Logger;
@@ -35,8 +37,9 @@ import org.springframework.transaction.PlatformTransactionManager;
 public class ValidationJobConfig {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-  public static final String BATCH_JOB = BatchJobType.VALIDATION.name();
+  public static final BatchJobType BATCH_JOB = VALIDATION;
   public static final String STEP_NAME = "validationStep";
+
   @Value("${validation.chunk.size}")
   public int chunkSize;
   @Value("${validation.parallelization.size}")
@@ -45,7 +48,7 @@ public class ValidationJobConfig {
   @Bean
   public Job validationBatchJob(JobRepository jobRepository, Step validationStep) {
     LOGGER.info("Chunk size: {}, Parallelization size: {}", chunkSize, parallelization);
-    return new JobBuilder(BATCH_JOB, jobRepository)
+    return new JobBuilder(BATCH_JOB.name(), jobRepository)
         .incrementer(new TimestampJobParametersIncrementer())
         .start(validationStep)
         .build();

@@ -1,11 +1,9 @@
-package data.utility;
+package data.job;
 
 public enum BatchJobType {
   OAI_HARVEST,
   VALIDATION,
-  VALIDATION_EXTERNAL,
   TRANSFORMATION,
-  VALIDATION_INTERNAL,
   NORMALIZATION,
   ENRICHMENT,
   MEDIA

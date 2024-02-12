@@ -1,15 +1,17 @@
 package data.config;
 
+import static data.job.BatchJobType.OAI_HARVEST;
+
 import data.entity.ExecutionRecordDTO;
-import data.incrementer.TimestampJobParametersIncrementer;
+import data.job.incrementer.TimestampJobParametersIncrementer;
 import data.unit.reader.OaiHarvestItemReader;
 import data.unit.writer.ExecutionRecordDTOItemWriter;
-import data.utility.BatchJobType;
 import java.lang.invoke.MethodHandles;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
+import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.core.job.builder.JobBuilder;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.step.builder.StepBuilder;
@@ -27,8 +29,9 @@ import org.springframework.transaction.PlatformTransactionManager;
 public class OaiHarvestJobConfig {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-  public static final String BATCH_JOB = BatchJobType.OAI_HARVEST.name();
+  public static final String BATCH_JOB = OAI_HARVEST.name();
   public static final String STEP_NAME = "oaiHarvestStep";
+
   @Value("${oaiharvest.chunk.size}")
   public int chunkSize;
   @Value("${oaiharvest.parallelization.size}")
@@ -66,5 +69,11 @@ public class OaiHarvestJobConfig {
     executor.setMaxPoolSize(parallelization);
     executor.initialize();
     return executor;
+  }
+
+  @Bean
+  @StepScope
+  public OaiHarvestItemReader oaiHarvestItemReader(){
+    return new OaiHarvestItemReader();
   }
 }

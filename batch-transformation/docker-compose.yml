@@ -12,7 +12,6 @@ services:
     command: ["java", "-jar", "/app.jar",
               "datasetId=1",
               "executionId=325",
-              "targetJob=TRANSFORMATION",
               "datasetName=idA_metisDatasetNameA",
               "datasetCountry=Greece",
               "datasetLanguage=el",

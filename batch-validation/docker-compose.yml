@@ -11,8 +11,8 @@ services:
     command: ["java", "-jar", "/app.jar",
               "datasetId=1",
               "executionId=271",
-#              "targetJob=VALIDATION_EXTERNAL",
-              "targetJob=VALIDATION_INTERNAL"
+#              "batchJobSubType=EXTERNAL",
+              "batchJobSubType=INTERNAL"
               ]
     # Disable memory swap by setting the same value as memory limit
     memswap_limit: 1500M

@@ -1,9 +1,11 @@
 package data.unit.processor;
 
+import static data.job.BatchJobType.TRANSFORMATION;
+
 import data.entity.ExecutionRecord;
 import data.entity.ExecutionRecordDTO;
 import data.unit.processor.listener.MetisItemProcessor;
-import data.utility.BatchJobType;
+import data.job.BatchJobType;
 import data.utility.ExecutionRecordUtil;
 import data.utility.ItemProcessorUtil;
 import eu.europeana.metis.transformation.service.EuropeanaGeneratedIdsMap;
@@ -31,6 +33,7 @@ import org.springframework.util.function.ThrowingFunction;
 public class TransformerItemProcessor implements MetisItemProcessor<ExecutionRecord, ExecutionRecordDTO, String> {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+  private static final BatchJobType batchJobType = TRANSFORMATION;
 
   @Value("#{jobParameters['datasetId']}")
   private String datasetId;
@@ -45,7 +48,6 @@ public class TransformerItemProcessor implements MetisItemProcessor<ExecutionRec
   @Value("#{stepExecution.jobExecution.jobInstance.id}")
   private Long jobInstanceId;
 
-  private static final BatchJobType batchJobType = BatchJobType.TRANSFORMATION;
   private final ItemProcessorUtil<String> itemProcessorUtil;
 
   public TransformerItemProcessor() {

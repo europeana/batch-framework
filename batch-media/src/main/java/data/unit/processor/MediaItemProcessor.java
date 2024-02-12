@@ -1,11 +1,12 @@
 package data.unit.processor;
 
+import static data.job.BatchJobType.MEDIA;
 import static java.util.Objects.nonNull;
 
 import data.entity.ExecutionRecord;
 import data.entity.ExecutionRecordDTO;
 import data.unit.processor.listener.MetisItemProcessor;
-import data.utility.BatchJobType;
+import data.job.BatchJobType;
 import data.utility.ExecutionRecordUtil;
 import data.utility.ItemProcessorUtil;
 import eu.europeana.metis.mediaprocessing.MediaExtractor;
@@ -21,14 +22,12 @@ import eu.europeana.metis.mediaprocessing.model.EnrichedRdf;
 import eu.europeana.metis.mediaprocessing.model.RdfResourceEntry;
 import eu.europeana.metis.mediaprocessing.model.ResourceExtractionResult;
 import eu.europeana.metis.mediaprocessing.model.Thumbnail;
-
+import jakarta.annotation.PreDestroy;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.function.Function;
-
-import jakarta.annotation.PreDestroy;
 import lombok.Setter;
 import org.apache.commons.collections.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
@@ -45,10 +44,11 @@ import org.springframework.util.function.ThrowingFunction;
 public class MediaItemProcessor implements MetisItemProcessor<ExecutionRecord, ExecutionRecordDTO, String> {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+  private static final BatchJobType batchJobType = MEDIA;
+
   @Value("#{stepExecution.jobExecution.jobInstance.id}")
   private Long jobInstanceId;
 
-  private static final BatchJobType batchJobType = BatchJobType.MEDIA;
   private final ItemProcessorUtil<String> itemProcessorUtil;
   private final MediaExtractor mediaExtractor;
   private final RdfSerializer rdfSerializer;

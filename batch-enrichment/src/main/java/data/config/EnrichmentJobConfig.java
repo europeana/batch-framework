@@ -1,12 +1,13 @@
 package data.config;
 
+import static data.job.BatchJobType.ENRICHMENT;
+
 import data.entity.ExecutionRecord;
 import data.entity.ExecutionRecordDTO;
-import data.incrementer.TimestampJobParametersIncrementer;
+import data.job.incrementer.TimestampJobParametersIncrementer;
 import data.repositories.ExecutionRecordRepository;
 import data.unit.processor.listener.DelayLoggingItemProcessListener;
 import data.unit.reader.DefaultRepositoryItemReader;
-import data.utility.BatchJobType;
 import java.lang.invoke.MethodHandles;
 import java.util.concurrent.Future;
 import org.slf4j.Logger;
@@ -35,8 +36,9 @@ import org.springframework.transaction.PlatformTransactionManager;
 public class EnrichmentJobConfig {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-  public static final String BATCH_JOB = BatchJobType.ENRICHMENT.name();
+  public static final String BATCH_JOB = ENRICHMENT.name();
   public static final String STEP_NAME = "enrichmentStep";
+
   @Value("${enrichment.chunk.size}")
   public int chunkSize;
   @Value("${enrichment.parallelization.size}")

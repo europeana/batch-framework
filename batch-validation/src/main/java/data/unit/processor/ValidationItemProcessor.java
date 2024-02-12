@@ -1,15 +1,19 @@
 package data.unit.processor;
 
+import static data.job.BatchJobType.VALIDATION;
+
 import data.entity.ExecutionRecord;
 import data.entity.ExecutionRecordDTO;
 import data.unit.processor.listener.MetisItemProcessor;
-import data.utility.BatchJobType;
+import data.job.BatchJobType;
 import data.utility.ExecutionRecordUtil;
 import data.utility.ItemProcessorUtil;
+import data.job.ValidationBatchBatchJobSubType;
 import eu.europeana.metis.transformation.service.TransformationException;
 import eu.europeana.metis.transformation.service.XsltTransformer;
 import eu.europeana.validation.model.ValidationResult;
 import eu.europeana.validation.service.ValidationExecutionService;
+import jakarta.annotation.PostConstruct;
 import java.io.StringWriter;
 import java.lang.invoke.MethodHandles;
 import java.nio.charset.StandardCharsets;
@@ -17,6 +21,7 @@ import java.util.Properties;
 import java.util.function.Function;
 import lombok.Setter;
 import lombok.experimental.StandardException;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.configuration.annotation.StepScope;
@@ -30,20 +35,47 @@ import org.springframework.util.function.ThrowingFunction;
 @Setter
 public class ValidationItemProcessor implements MetisItemProcessor<ExecutionRecord, ExecutionRecordDTO, String> {
 
-  @Value("#{jobParameters['targetJob']}")
-  private BatchJobType targetJob;
+  private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+  private static final BatchJobType batchJobType = VALIDATION;
+
+  @Value("#{jobParameters['batchJobSubType']}")
+  private ValidationBatchBatchJobSubType batchJobSubType;
   @Value("#{stepExecution.jobExecution.jobInstance.id}")
   private Long jobInstanceId;
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static final String EDM_SORTER_FILE_URL = "http://ftp.eanadev.org/schema_zips/edm_sorter_20230809.xsl";
+  private static final Properties properties = new Properties();
+  private String schema;
+  private String rootFileLocation;
+  private String schematronFileLocation;
   private ValidationExecutionService validationService;
-  private final Properties properties = new Properties();
   private final ItemProcessorUtil<String> itemProcessorUtil;
-  //TODO: 2024-01-31 - Find a better way to do this. SubType??
-  private static final BatchJobType batchJobType = BatchJobType.VALIDATION;
 
   public ValidationItemProcessor() {
+    prepareProperties();
+    validationService = new ValidationExecutionService(properties);
+    itemProcessorUtil = new ItemProcessorUtil<>(getFunction(), Function.identity());
+  }
+
+  @PostConstruct
+  private void postConstruct() {
+    switch (batchJobSubType) {
+      case EXTERNAL -> {
+        schema = properties.getProperty("predefinedSchemas.edm-external.url");
+        rootFileLocation = properties.getProperty("predefinedSchemas.edm-external.rootLocation");
+        schematronFileLocation = properties.getProperty("predefinedSchemas.edm-external.schematronLocation");
+      }
+      case INTERNAL -> {
+        schema = properties.getProperty("predefinedSchemas.edm-internal.url");
+        rootFileLocation = properties.getProperty("predefinedSchemas.edm-internal.rootLocation");
+        schematronFileLocation = properties.getProperty("predefinedSchemas.edm-internal.schematronLocation");
+      }
+      default -> throw new IllegalStateException("Unexpected value: " + batchJobSubType);
+    }
+  }
+
+  @NotNull
+  private Properties prepareProperties() {
     properties.setProperty("predefinedSchemas", "localhost");
 
     properties.setProperty("predefinedSchemas.edm-internal.url",
@@ -55,8 +87,7 @@ public class ValidationItemProcessor implements MetisItemProcessor<ExecutionReco
         "http://ftp.eanadev.org/schema_zips/europeana_schemas-20220809.zip");
     properties.setProperty("predefinedSchemas.edm-external.rootLocation", "EDM.xsd");
     properties.setProperty("predefinedSchemas.edm-external.schematronLocation", "schematron/schematron.xsl");
-    validationService = new ValidationExecutionService(properties);
-    itemProcessorUtil = new ItemProcessorUtil<>(getFunction(), Function.identity());
+    return properties;
   }
 
   @Override
@@ -64,23 +95,6 @@ public class ValidationItemProcessor implements MetisItemProcessor<ExecutionReco
     return executionRecord -> {
       final String reorderedFileContent;
       reorderedFileContent = reorderFileContent(executionRecord.getRecordData());
-      String schema;
-      String rootFileLocation;
-      String schematronFileLocation;
-      switch (targetJob) {
-        case BatchJobType.VALIDATION_EXTERNAL -> {
-          schema = properties.getProperty("predefinedSchemas.edm-external.url");
-          rootFileLocation = properties.getProperty("predefinedSchemas.edm-external.rootLocation");
-          schematronFileLocation = properties.getProperty("predefinedSchemas.edm-external.schematronLocation");
-        }
-        case BatchJobType.VALIDATION_INTERNAL -> {
-          schema = properties.getProperty("predefinedSchemas.edm-internal.url");
-          rootFileLocation = properties.getProperty("predefinedSchemas.edm-internal.rootLocation");
-          schematronFileLocation = properties.getProperty("predefinedSchemas.edm-internal.schematronLocation");
-        }
-        default -> throw new IllegalStateException("Unexpected value: " + targetJob);
-      }
-
 
       ValidationResult result =
           validationService.singleValidation(schema, rootFileLocation, schematronFileLocation, reorderedFileContent);
@@ -100,7 +114,7 @@ public class ValidationItemProcessor implements MetisItemProcessor<ExecutionReco
   public ExecutionRecordDTO process(@NonNull ExecutionRecord executionRecord) {
     LOGGER.info("ValidationItemProcessor thread: {}", Thread.currentThread());
     final ExecutionRecordDTO executionRecordDTO = ExecutionRecordUtil.converterToExecutionRecordDTO(executionRecord);
-    return itemProcessorUtil.processCapturingException(executionRecordDTO, targetJob, jobInstanceId.toString());
+    return itemProcessorUtil.processCapturingException(executionRecordDTO, batchJobType, batchJobSubType, jobInstanceId.toString());
   }
 
   private String reorderFileContent(String recordData) throws TransformationException {
@@ -115,5 +129,6 @@ public class ValidationItemProcessor implements MetisItemProcessor<ExecutionReco
 
   @StandardException
   private static class ValidationFailureException extends Exception {
+
   }
 }

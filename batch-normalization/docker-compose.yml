@@ -10,8 +10,7 @@ services:
       JDK_JAVA_OPTIONS: -Xms500m -Xmx500m
     command: ["java", "-jar", "/app.jar",
               "datasetId=1",
-              "executionId=272",
-              "targetJob=NORMALIZATION"]
+              "executionId=272"]
     # Disable memory swap by setting the same value as memory limit
     memswap_limit: 1500M
     deploy:

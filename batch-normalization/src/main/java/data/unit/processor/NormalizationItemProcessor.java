@@ -1,9 +1,11 @@
 package data.unit.processor;
 
+import static data.job.BatchJobType.NORMALIZATION;
+
 import data.entity.ExecutionRecord;
 import data.entity.ExecutionRecordDTO;
 import data.unit.processor.listener.MetisItemProcessor;
-import data.utility.BatchJobType;
+import data.job.BatchJobType;
 import data.utility.ExecutionRecordUtil;
 import data.utility.ItemProcessorUtil;
 import eu.europeana.normalization.NormalizerFactory;
@@ -20,10 +22,11 @@ import org.springframework.util.function.ThrowingFunction;
 @Setter
 public class NormalizationItemProcessor implements MetisItemProcessor<ExecutionRecord, ExecutionRecordDTO, NormalizationResult> {
 
+  private static final BatchJobType batchJobType = NORMALIZATION;
+
   @Value("#{stepExecution.jobExecution.jobInstance.id}")
   private Long jobInstanceId;
 
-  private static final BatchJobType batchJobType = BatchJobType.NORMALIZATION;
   private final ItemProcessorUtil<NormalizationResult> itemProcessorUtil;
   private final NormalizerFactory normalizerFactory = new NormalizerFactory();
 

@@ -24,7 +24,7 @@ import static org.springframework.cloud.dataflow.schema.AppBootSchemaVersion.BOO
 
 import data.config.MetisDataflowClientConfig;
 import data.config.properties.JobConfigurationProperties;
-import data.config.properties.MetisBatchConfigurationProperties;
+import data.config.properties.BatchConfigurationProperties;
 import data.config.properties.RegisterConfigurationProperties;
 import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
@@ -59,11 +59,11 @@ class ApplicationTestIT {
   @Autowired
   DataFlowOperations dataFlowOperations;
   @Autowired
-  MetisBatchConfigurationProperties metisBatchConfigurationProperties;
+  BatchConfigurationProperties batchConfigurationProperties;
 
   @Test
   void registerApplications() {
-    final RegisterConfigurationProperties registerProperties = metisBatchConfigurationProperties.getRegisterProperties();
+    final RegisterConfigurationProperties registerProperties = batchConfigurationProperties.getRegisterProperties();
     registerApplication(registerProperties.getOaiHarvestName(), registerProperties.getOaiHarvestUri());
     registerApplication(registerProperties.getValidationName(), registerProperties.getValidationUri());
     registerApplication(registerProperties.getTransformationName(), registerProperties.getTransformationUri());
@@ -88,7 +88,7 @@ class ApplicationTestIT {
 
   @Test
   void createTasks() {
-    final RegisterConfigurationProperties registerProperties = metisBatchConfigurationProperties.getRegisterProperties();
+    final RegisterConfigurationProperties registerProperties = batchConfigurationProperties.getRegisterProperties();
     final PagedModel<TaskDefinitionResource> taskDefinitionResources = dataFlowOperations.taskOperations().list();
     createTask(taskDefinitionResources, registerProperties.getOaiHarvestName(), registerProperties.getOaiHarvestName());
     createTask(taskDefinitionResources, registerProperties.getValidationName(), registerProperties.getValidationName());
@@ -122,16 +122,15 @@ class ApplicationTestIT {
 
   @Test
   void launchOaiTask() {
-    final RegisterConfigurationProperties registerProperties = metisBatchConfigurationProperties.getRegisterProperties();
+    final RegisterConfigurationProperties registerProperties = batchConfigurationProperties.getRegisterProperties();
     final String taskName = registerProperties.getOaiHarvestName();
-    final JobConfigurationProperties jobProperties = metisBatchConfigurationProperties.getJobProperties();
+    final JobConfigurationProperties jobProperties = batchConfigurationProperties.getJobProperties();
     final Map<String, String> deploymentProperties = new HashMap<>();
     deploymentProperties.put(OAIHARVEST_CHUNK_SIZE, jobProperties.getOaiHarvest().getChunkSize());
     deploymentProperties.put(OAIHARVEST_PARALLELIZATION_SIZE, jobProperties.getOaiHarvest().getParallelizationSize());
     final ArrayList<String> arguments = new ArrayList<>();
     arguments.add("datasetId=1");
     arguments.add("executionId=1");
-    arguments.add("targetJob=OAI_HARVEST");
     arguments.add("oaiEndpoint=https://metis-repository-rest.test.eanadev.org/repository/oai");
     arguments.add("oaiSet=spring_poc_dataset_with_validation_error");
     arguments.add("oaiMetadataPrefix=edm");
@@ -141,32 +140,31 @@ class ApplicationTestIT {
 
   @Test
   void launchValidationExternalTask() {
-    final RegisterConfigurationProperties registerProperties = metisBatchConfigurationProperties.getRegisterProperties();
+    final RegisterConfigurationProperties registerProperties = batchConfigurationProperties.getRegisterProperties();
     final String taskName = registerProperties.getValidationName();
-    final JobConfigurationProperties jobProperties = metisBatchConfigurationProperties.getJobProperties();
+    final JobConfigurationProperties jobProperties = batchConfigurationProperties.getJobProperties();
     final Map<String, String> deploymentProperties = new HashMap<>();
     deploymentProperties.put(VALIDATION_CHUNK_SIZE, jobProperties.getValidation().getChunkSize());
     deploymentProperties.put(VALIDATION_PARALLELIZATION_SIZE, jobProperties.getValidation().getParallelizationSize());
     final ArrayList<String> arguments = new ArrayList<>();
     arguments.add("datasetId=1");
-    arguments.add("executionId=2");
-    arguments.add("targetJob=VALIDATION_EXTERNAL");
+    arguments.add("executionId=11");
+    arguments.add("batchJobSubType=EXTERNAL");
 
     polingStatus(launchTask(taskName, deploymentProperties, arguments));
   }
 
   @Test
   void launchTransformationTask() {
-    final RegisterConfigurationProperties registerProperties = metisBatchConfigurationProperties.getRegisterProperties();
+    final RegisterConfigurationProperties registerProperties = batchConfigurationProperties.getRegisterProperties();
     final String taskName = registerProperties.getTransformationName();
-    final JobConfigurationProperties jobProperties = metisBatchConfigurationProperties.getJobProperties();
+    final JobConfigurationProperties jobProperties = batchConfigurationProperties.getJobProperties();
     final Map<String, String> deploymentProperties = new HashMap<>();
     deploymentProperties.put(TRANSFORMATION_CHUNK_SIZE, jobProperties.getTransformation().getChunkSize());
     deploymentProperties.put(TRANSFORMATION_PARALLELIZATION_SIZE, jobProperties.getTransformation().getParallelizationSize());
     final ArrayList<String> arguments = new ArrayList<>();
     arguments.add("datasetId=1");
-    arguments.add("executionId=25");
-    arguments.add("targetJob=TRANSFORMATION");
+    arguments.add("executionId=12");
     arguments.add("datasetName=idA_metisDatasetNameA");
     arguments.add("datasetCountry=Greece");
     arguments.add("datasetLanguage=el");
@@ -177,41 +175,40 @@ class ApplicationTestIT {
 
   @Test
   void launchValidationInternalTask() {
-    final RegisterConfigurationProperties registerProperties = metisBatchConfigurationProperties.getRegisterProperties();
+    final RegisterConfigurationProperties registerProperties = batchConfigurationProperties.getRegisterProperties();
     final String taskName = registerProperties.getValidationName();
-    final JobConfigurationProperties jobProperties = metisBatchConfigurationProperties.getJobProperties();
+    final JobConfigurationProperties jobProperties = batchConfigurationProperties.getJobProperties();
     final Map<String, String> deploymentProperties = new HashMap<>();
     deploymentProperties.put(VALIDATION_CHUNK_SIZE, jobProperties.getValidation().getChunkSize());
     deploymentProperties.put(VALIDATION_PARALLELIZATION_SIZE, jobProperties.getValidation().getParallelizationSize());
     final ArrayList<String> arguments = new ArrayList<>();
     arguments.add("datasetId=1");
-    arguments.add("executionId=36");
-    arguments.add("targetJob=VALIDATION_INTERNAL");
+    arguments.add("executionId=13");
+    arguments.add("batchJobSubType=INTERNAL");
 
     polingStatus(launchTask(taskName, deploymentProperties, arguments));
   }
 
   @Test
   void launchNormalizationTask() {
-    final RegisterConfigurationProperties registerProperties = metisBatchConfigurationProperties.getRegisterProperties();
+    final RegisterConfigurationProperties registerProperties = batchConfigurationProperties.getRegisterProperties();
     final String taskName = registerProperties.getNormalizationName();
-    final JobConfigurationProperties jobProperties = metisBatchConfigurationProperties.getJobProperties();
+    final JobConfigurationProperties jobProperties = batchConfigurationProperties.getJobProperties();
     final Map<String, String> deploymentProperties = new HashMap<>();
     deploymentProperties.put(NORMALIZATION_CHUNK_SIZE, jobProperties.getNormalization().getChunkSize());
     deploymentProperties.put(NORMALIZATION_PARALLELIZATION_SIZE, jobProperties.getNormalization().getParallelizationSize());
     final ArrayList<String> arguments = new ArrayList<>();
     arguments.add("datasetId=1");
-    arguments.add("executionId=37");
-    arguments.add("targetJob=NORMALIZATION");
+    arguments.add("executionId=14");
 
     polingStatus(launchTask(taskName, deploymentProperties, arguments));
   }
 
   @Test
   void launchEnrichmentTask() {
-    final RegisterConfigurationProperties registerProperties = metisBatchConfigurationProperties.getRegisterProperties();
+    final RegisterConfigurationProperties registerProperties = batchConfigurationProperties.getRegisterProperties();
     final String taskName = registerProperties.getEnrichmentName();
-    final JobConfigurationProperties jobProperties = metisBatchConfigurationProperties.getJobProperties();
+    final JobConfigurationProperties jobProperties = batchConfigurationProperties.getJobProperties();
     final Map<String, String> deploymentProperties = new HashMap<>();
     deploymentProperties.put(ENRICHMENT_CHUNK_SIZE, jobProperties.getEnrichment().getChunkSize());
     deploymentProperties.put(ENRICHMENT_PARALLELIZATION_SIZE, jobProperties.getEnrichment().getParallelizationSize());
@@ -222,24 +219,22 @@ class ApplicationTestIT {
 
     final ArrayList<String> arguments = new ArrayList<>();
     arguments.add("datasetId=1");
-    arguments.add("executionId=37");
-    arguments.add("targetJob=ENRICHMENT");
+    arguments.add("executionId=15");
 
     polingStatus(launchTask(taskName, deploymentProperties, arguments));
   }
 
   @Test
   void launchMediaTask() {
-    final RegisterConfigurationProperties registerProperties = metisBatchConfigurationProperties.getRegisterProperties();
+    final RegisterConfigurationProperties registerProperties = batchConfigurationProperties.getRegisterProperties();
     final String taskName = registerProperties.getMediaName();
-    final JobConfigurationProperties jobProperties = metisBatchConfigurationProperties.getJobProperties();
+    final JobConfigurationProperties jobProperties = batchConfigurationProperties.getJobProperties();
     final Map<String, String> deploymentProperties = new HashMap<>();
     deploymentProperties.put(MEDIA_CHUNK_SIZE, jobProperties.getMedia().getChunkSize());
     deploymentProperties.put(MEDIA_PARALLELIZATION_SIZE, jobProperties.getMedia().getParallelizationSize());
     final ArrayList<String> arguments = new ArrayList<>();
     arguments.add("datasetId=1");
-    arguments.add("executionId=47");
-    arguments.add("targetJob=MEDIA");
+    arguments.add("executionId=16");
 
     polingStatus(launchTask(taskName, deploymentProperties, arguments));
   }
@@ -280,7 +275,7 @@ class ApplicationTestIT {
   }
 
   LaunchResponseResource launchTask(String taskName, Map<String, String> additionalDeploymentProperties, List<String> arguments) {
-    final Map<String, String> deploymentProperties = metisBatchConfigurationProperties.getDeploymentProperties();
+    final Map<String, String> deploymentProperties = batchConfigurationProperties.getDeploymentProperties();
     deploymentProperties.putAll(additionalDeploymentProperties);
     final Map<String, String> appPrefixedDeploymentProperties = prefixMap(taskName, deploymentProperties);
     return dataFlowOperations.taskOperations().launch(taskName, appPrefixedDeploymentProperties, arguments);

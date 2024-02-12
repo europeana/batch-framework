@@ -1,4 +1,4 @@
-package data.incrementer;
+package data.job.incrementer;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.batch.core.JobParameters;

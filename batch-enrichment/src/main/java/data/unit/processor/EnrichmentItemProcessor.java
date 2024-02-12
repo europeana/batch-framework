@@ -1,9 +1,11 @@
 package data.unit.processor;
 
+import static data.job.BatchJobType.ENRICHMENT;
+
 import data.entity.ExecutionRecord;
 import data.entity.ExecutionRecordDTO;
 import data.unit.processor.listener.MetisItemProcessor;
-import data.utility.BatchJobType;
+import data.job.BatchJobType;
 import data.utility.ExecutionRecordUtil;
 import data.utility.ItemProcessorUtil;
 import eu.europeana.enrichment.rest.client.EnrichmentWorker;
@@ -26,6 +28,8 @@ import org.springframework.util.function.ThrowingFunction;
 @Setter
 public class EnrichmentItemProcessor implements MetisItemProcessor<ExecutionRecord, ExecutionRecordDTO, ProcessedResult<String>> {
 
+  private static final BatchJobType batchJobType = ENRICHMENT;
+
   @Value("${enrichment.dereference-url}")
   private String dereferenceURL;
   @Value("${enrichment.entity-management-url}")
@@ -37,7 +41,6 @@ public class EnrichmentItemProcessor implements MetisItemProcessor<ExecutionReco
   @Value("#{stepExecution.jobExecution.jobInstance.id}")
   private Long jobInstanceId;
 
-  private static final BatchJobType batchJobType = BatchJobType.ENRICHMENT;
   private final ItemProcessorUtil<ProcessedResult<String>> itemProcessorUtil;
   private EnrichmentWorker enrichmentWorker;
 

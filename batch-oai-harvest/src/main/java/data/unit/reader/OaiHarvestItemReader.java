@@ -1,7 +1,9 @@
 package data.unit.reader;
 
+import static data.job.BatchJobType.OAI_HARVEST;
+
 import data.entity.ExecutionRecordDTO;
-import data.utility.BatchJobType;
+import data.job.BatchJobType;
 import eu.europeana.metis.harvesting.HarvesterException;
 import eu.europeana.metis.harvesting.HarvesterFactory;
 import eu.europeana.metis.harvesting.ReportingIteration.IterationResult;
@@ -22,17 +24,16 @@ import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.item.ItemReader;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
 
-@Component
-@StepScope
+//@Component
+//@StepScope
 @Setter
 public class OaiHarvestItemReader implements ItemReader<ExecutionRecordDTO> {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+  private static final BatchJobType batchJobType = OAI_HARVEST;
 
   @Value("#{jobParameters['oaiEndpoint']}")
   private String oaiEndpoint;
@@ -44,7 +45,6 @@ public class OaiHarvestItemReader implements ItemReader<ExecutionRecordDTO> {
   private String datasetId;
   @Value("#{stepExecution.jobExecution.jobInstance.id}")
   private Long jobInstanceId;
-  private static final BatchJobType batchJobType = BatchJobType.OAI_HARVEST;
 
   final OaiHarvester oaiHarvester = HarvesterFactory.createOaiHarvester();
   private OaiHarvest oaiHarvest;

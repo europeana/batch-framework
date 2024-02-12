@@ -42,28 +42,10 @@ task launch --name batch-oai-harvest --properties "\
     app.batch-oai-harvest.spring.datasource.username=username,\
     app.batch-oai-harvest.spring.datasource.password=password,\
     app.batch-oai-harvest.spring.datasource.hikari.maximumPoolSize=500,\
-    app.batch-oai-harvest.oaiharvest.chunk.size=10,\
-    app.batch-oai-harvest.oaiharvest.parallelization.size=10,\
-    app.batch-oai-harvest.spring.sql.init.mode=always,\
-    app.batch-oai-harvest.spring.batch.jdbc.initialize-schema=always" \
-    --arguments "\
-    --datasetId=1 \
-    --executionId=1 \
-    --targetJob=OAI_HARVEST \
-    --oaiEndpoint=https://metis-repository-rest.test.eanadev.org/repository/oai \
-    --oaiSet=spring_poc_dataset_with_validation_error \
-    --oaiMetadataPrefix=edm"
-
-task launch --name batch-oai-harvest --properties "\
-    app.batch-oai-harvest.spring.datasource.url=jdbc:postgresql://192.168.49.2:30432/dataflow?useSSL=false,\
-    app.batch-oai-harvest.spring.datasource.driver-class-name=org.postgresql.Driver,\
-    app.batch-oai-harvest.spring.datasource.username=username,\
-    app.batch-oai-harvest.spring.datasource.password=password,\
-    app.batch-oai-harvest.spring.datasource.hikari.maximumPoolSize=500,\
     app.batch-oai-harvest.spring.jpa.generate-ddl=true,\
     app.batch-oai-harvest.oaiharvest.chunk.size=10,\
     app.batch-oai-harvest.oaiharvest.parallelization.size=10,\
-    app.batch-oai-harvest.spring.batch.jdbc.initialize-schema=always" --arguments "datasetId=1 executionId=1 targetJob=OAI_HARVEST oaiEndpoint=https://metis-repository-rest.test.eanadev.org/repository/oai oaiSet=spring_poc_dataset_with_validation_error oaiMetadataPrefix=edm"
+    app.batch-oai-harvest.spring.batch.jdbc.initialize-schema=always" --arguments "datasetId=1 executionId=1 oaiEndpoint=https://metis-repository-rest.test.eanadev.org/repository/oai oaiSet=spring_poc_dataset_with_validation_error oaiMetadataPrefix=edm"
     
 task execution list --name batch-oai-harvest
 task execution status --id 2 --schemaTarget boot3

@@ -45,24 +45,24 @@ public class ExecutionRecordUtil {
   }
 
   public static ExecutionRecordDTO createSuccessExecutionRecordDTO(ExecutionRecordDTO executionRecordDTO, String updatedRecordString,
-      BatchJobType batchJobType, String executionId){
+      String executionName, String executionId){
     final ExecutionRecordDTO resultExecutionRecordDTO = new ExecutionRecordDTO();
     resultExecutionRecordDTO.setDatasetId(executionRecordDTO.getDatasetId());
     resultExecutionRecordDTO.setExecutionId(executionId);
     resultExecutionRecordDTO.setRecordId(executionRecordDTO.getRecordId());
-    resultExecutionRecordDTO.setExecutionName(batchJobType.name());
+    resultExecutionRecordDTO.setExecutionName(executionName);
     resultExecutionRecordDTO.setRecordData(updatedRecordString);
     resultExecutionRecordDTO.setException("");
     return resultExecutionRecordDTO;
   }
 
   public static ExecutionRecordDTO createFailureExecutionRecordDTO(ExecutionRecordDTO executionRecordDTO, String errorMessage,
-      BatchJobType batchJobType, String executionId){
+      String executionName, String executionId){
     final ExecutionRecordDTO resultExecutionRecordDTO = new ExecutionRecordDTO();
     resultExecutionRecordDTO.setDatasetId(executionRecordDTO.getDatasetId());
     resultExecutionRecordDTO.setExecutionId(executionId);
     resultExecutionRecordDTO.setRecordId(executionRecordDTO.getRecordId());
-    resultExecutionRecordDTO.setExecutionName(batchJobType.name());
+    resultExecutionRecordDTO.setExecutionName(executionName);
     resultExecutionRecordDTO.setRecordData("");
     resultExecutionRecordDTO.setException(errorMessage);
     return resultExecutionRecordDTO;
