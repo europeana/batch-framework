@@ -23,16 +23,19 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.cloud.dataflow.schema.AppBootSchemaVersion.BOOT3;
 
 import data.config.MetisDataflowClientConfig;
-import data.config.properties.JobConfigurationProperties;
 import data.config.properties.BatchConfigurationProperties;
+import data.config.properties.JobConfigurationProperties;
 import data.config.properties.RegisterConfigurationProperties;
 import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.apache.commons.collections4.map.TransformedMap;
 import org.awaitility.core.ConditionTimeoutException;
 import org.junit.jupiter.api.Test;
@@ -56,6 +59,12 @@ import org.springframework.test.context.ContextConfiguration;
 class ApplicationTestIT {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+  public static final String KUBERNETES_LIMITS_CPU = "kubernetes.limits.cpu";
+  public static final String KUBERNETES_LIMITS_MEMORY = "kubernetes.limits.memory";
+  public static final String KUBERNETES_REQUESTS_CPU = "kubernetes.requests.cpu";
+  public static final String KUBERNETES_REQUESTS_MEMORY = "kubernetes.requests.memory";
+  private final String APP_PREFIX = "app";
+  private final String DEPLOYER_PREFIX = "deployer";
   @Autowired
   DataFlowOperations dataFlowOperations;
   @Autowired
@@ -125,9 +134,16 @@ class ApplicationTestIT {
     final RegisterConfigurationProperties registerProperties = batchConfigurationProperties.getRegisterProperties();
     final String taskName = registerProperties.getOaiHarvestName();
     final JobConfigurationProperties jobProperties = batchConfigurationProperties.getJobProperties();
-    final Map<String, String> deploymentProperties = new HashMap<>();
-    deploymentProperties.put(OAIHARVEST_CHUNK_SIZE, jobProperties.getOaiHarvest().getChunkSize());
-    deploymentProperties.put(OAIHARVEST_PARALLELIZATION_SIZE, jobProperties.getOaiHarvest().getParallelizationSize());
+    final Map<String, String> additionalAppProperties = new HashMap<>();
+    additionalAppProperties.put(OAIHARVEST_CHUNK_SIZE, jobProperties.getOaiHarvest().getChunkSize());
+    additionalAppProperties.put(OAIHARVEST_PARALLELIZATION_SIZE, jobProperties.getOaiHarvest().getParallelizationSize());
+
+    final Map<String, String> deployerProperties = new HashMap<>();
+    deployerProperties.put(KUBERNETES_LIMITS_CPU, "2000m");
+    deployerProperties.put(KUBERNETES_LIMITS_MEMORY, "800M");
+    deployerProperties.put(KUBERNETES_REQUESTS_CPU, "2000m");
+    deployerProperties.put(KUBERNETES_REQUESTS_MEMORY, "800M");
+
     final ArrayList<String> arguments = new ArrayList<>();
     arguments.add("datasetId=1");
     arguments.add("executionId=1");
@@ -135,7 +151,7 @@ class ApplicationTestIT {
     arguments.add("oaiSet=spring_poc_dataset_with_validation_error");
     arguments.add("oaiMetadataPrefix=edm");
 
-    polingStatus(launchTask(taskName, deploymentProperties, arguments));
+    pollingStatus(launchTask(taskName, deployerProperties, additionalAppProperties, arguments));
   }
 
   @Test
@@ -143,15 +159,22 @@ class ApplicationTestIT {
     final RegisterConfigurationProperties registerProperties = batchConfigurationProperties.getRegisterProperties();
     final String taskName = registerProperties.getValidationName();
     final JobConfigurationProperties jobProperties = batchConfigurationProperties.getJobProperties();
-    final Map<String, String> deploymentProperties = new HashMap<>();
-    deploymentProperties.put(VALIDATION_CHUNK_SIZE, jobProperties.getValidation().getChunkSize());
-    deploymentProperties.put(VALIDATION_PARALLELIZATION_SIZE, jobProperties.getValidation().getParallelizationSize());
+    final Map<String, String> additionalAppProperties = new HashMap<>();
+    additionalAppProperties.put(VALIDATION_CHUNK_SIZE, jobProperties.getValidation().getChunkSize());
+    additionalAppProperties.put(VALIDATION_PARALLELIZATION_SIZE, jobProperties.getValidation().getParallelizationSize());
+
+    final Map<String, String> deployerProperties = new HashMap<>();
+    deployerProperties.put(KUBERNETES_LIMITS_CPU, "2000m");
+    deployerProperties.put(KUBERNETES_LIMITS_MEMORY, "800M");
+    deployerProperties.put(KUBERNETES_REQUESTS_CPU, "2000m");
+    deployerProperties.put(KUBERNETES_REQUESTS_MEMORY, "800M");
+
     final ArrayList<String> arguments = new ArrayList<>();
     arguments.add("datasetId=1");
-    arguments.add("executionId=11");
+    arguments.add("executionId=8");
     arguments.add("batchJobSubType=EXTERNAL");
 
-    polingStatus(launchTask(taskName, deploymentProperties, arguments));
+    pollingStatus(launchTask(taskName, deployerProperties, additionalAppProperties, arguments));
   }
 
   @Test
@@ -159,18 +182,25 @@ class ApplicationTestIT {
     final RegisterConfigurationProperties registerProperties = batchConfigurationProperties.getRegisterProperties();
     final String taskName = registerProperties.getTransformationName();
     final JobConfigurationProperties jobProperties = batchConfigurationProperties.getJobProperties();
-    final Map<String, String> deploymentProperties = new HashMap<>();
-    deploymentProperties.put(TRANSFORMATION_CHUNK_SIZE, jobProperties.getTransformation().getChunkSize());
-    deploymentProperties.put(TRANSFORMATION_PARALLELIZATION_SIZE, jobProperties.getTransformation().getParallelizationSize());
+    final Map<String, String> additionalAppProperties = new HashMap<>();
+    additionalAppProperties.put(TRANSFORMATION_CHUNK_SIZE, jobProperties.getTransformation().getChunkSize());
+    additionalAppProperties.put(TRANSFORMATION_PARALLELIZATION_SIZE, jobProperties.getTransformation().getParallelizationSize());
+
+    final Map<String, String> deployerProperties = new HashMap<>();
+    deployerProperties.put(KUBERNETES_LIMITS_CPU, "2000m");
+    deployerProperties.put(KUBERNETES_LIMITS_MEMORY, "800M");
+    deployerProperties.put(KUBERNETES_REQUESTS_CPU, "2000m");
+    deployerProperties.put(KUBERNETES_REQUESTS_MEMORY, "800M");
+
     final ArrayList<String> arguments = new ArrayList<>();
     arguments.add("datasetId=1");
-    arguments.add("executionId=12");
+    arguments.add("executionId=9");
     arguments.add("datasetName=idA_metisDatasetNameA");
     arguments.add("datasetCountry=Greece");
     arguments.add("datasetLanguage=el");
     arguments.add("xsltUrl=https://metis-core-rest.test.eanadev.org/datasets/xslt/6204e5e2514e773e6745f7e9");
 
-    polingStatus(launchTask(taskName, deploymentProperties, arguments));
+    pollingStatus(launchTask(taskName, deployerProperties, additionalAppProperties, arguments));
   }
 
   @Test
@@ -178,15 +208,22 @@ class ApplicationTestIT {
     final RegisterConfigurationProperties registerProperties = batchConfigurationProperties.getRegisterProperties();
     final String taskName = registerProperties.getValidationName();
     final JobConfigurationProperties jobProperties = batchConfigurationProperties.getJobProperties();
-    final Map<String, String> deploymentProperties = new HashMap<>();
-    deploymentProperties.put(VALIDATION_CHUNK_SIZE, jobProperties.getValidation().getChunkSize());
-    deploymentProperties.put(VALIDATION_PARALLELIZATION_SIZE, jobProperties.getValidation().getParallelizationSize());
+    final Map<String, String> additionalAppProperties = new HashMap<>();
+    additionalAppProperties.put(VALIDATION_CHUNK_SIZE, jobProperties.getValidation().getChunkSize());
+    additionalAppProperties.put(VALIDATION_PARALLELIZATION_SIZE, jobProperties.getValidation().getParallelizationSize());
+
+    final Map<String, String> deployerProperties = new HashMap<>();
+    deployerProperties.put(KUBERNETES_LIMITS_CPU, "2000m");
+    deployerProperties.put(KUBERNETES_LIMITS_MEMORY, "800M");
+    deployerProperties.put(KUBERNETES_REQUESTS_CPU, "2000m");
+    deployerProperties.put(KUBERNETES_REQUESTS_MEMORY, "800M");
+
     final ArrayList<String> arguments = new ArrayList<>();
     arguments.add("datasetId=1");
-    arguments.add("executionId=13");
+    arguments.add("executionId=10");
     arguments.add("batchJobSubType=INTERNAL");
 
-    polingStatus(launchTask(taskName, deploymentProperties, arguments));
+    pollingStatus(launchTask(taskName, deployerProperties, additionalAppProperties, arguments));
   }
 
   @Test
@@ -194,14 +231,21 @@ class ApplicationTestIT {
     final RegisterConfigurationProperties registerProperties = batchConfigurationProperties.getRegisterProperties();
     final String taskName = registerProperties.getNormalizationName();
     final JobConfigurationProperties jobProperties = batchConfigurationProperties.getJobProperties();
-    final Map<String, String> deploymentProperties = new HashMap<>();
-    deploymentProperties.put(NORMALIZATION_CHUNK_SIZE, jobProperties.getNormalization().getChunkSize());
-    deploymentProperties.put(NORMALIZATION_PARALLELIZATION_SIZE, jobProperties.getNormalization().getParallelizationSize());
+    final Map<String, String> additionalAppProperties = new HashMap<>();
+    additionalAppProperties.put(NORMALIZATION_CHUNK_SIZE, jobProperties.getNormalization().getChunkSize());
+    additionalAppProperties.put(NORMALIZATION_PARALLELIZATION_SIZE, jobProperties.getNormalization().getParallelizationSize());
+
+    final Map<String, String> deployerProperties = new HashMap<>();
+    deployerProperties.put(KUBERNETES_LIMITS_CPU, "2000m");
+    deployerProperties.put(KUBERNETES_LIMITS_MEMORY, "800M");
+    deployerProperties.put(KUBERNETES_REQUESTS_CPU, "2000m");
+    deployerProperties.put(KUBERNETES_REQUESTS_MEMORY, "800M");
+
     final ArrayList<String> arguments = new ArrayList<>();
     arguments.add("datasetId=1");
-    arguments.add("executionId=14");
+    arguments.add("executionId=11");
 
-    polingStatus(launchTask(taskName, deploymentProperties, arguments));
+    pollingStatus(launchTask(taskName, deployerProperties, additionalAppProperties, arguments));
   }
 
   @Test
@@ -209,19 +253,25 @@ class ApplicationTestIT {
     final RegisterConfigurationProperties registerProperties = batchConfigurationProperties.getRegisterProperties();
     final String taskName = registerProperties.getEnrichmentName();
     final JobConfigurationProperties jobProperties = batchConfigurationProperties.getJobProperties();
-    final Map<String, String> deploymentProperties = new HashMap<>();
-    deploymentProperties.put(ENRICHMENT_CHUNK_SIZE, jobProperties.getEnrichment().getChunkSize());
-    deploymentProperties.put(ENRICHMENT_PARALLELIZATION_SIZE, jobProperties.getEnrichment().getParallelizationSize());
-    deploymentProperties.put(ENRICHMENT_DEREFERENCE_URL, jobProperties.getEnrichment().getDereferenceUrl());
-    deploymentProperties.put(ENRICHMENT_ENTITY_MANAGEMENT_URL, jobProperties.getEnrichment().getEntityManagementUrl());
-    deploymentProperties.put(ENRICHMENT_ENTITY_API_URL, jobProperties.getEnrichment().getEntityApiUrl());
-    deploymentProperties.put(ENRICHMENT_ENTITY_API_KEY, jobProperties.getEnrichment().getEntityApiKey());
+    final Map<String, String> additionalAppProperties = new HashMap<>();
+    additionalAppProperties.put(ENRICHMENT_CHUNK_SIZE, jobProperties.getEnrichment().getChunkSize());
+    additionalAppProperties.put(ENRICHMENT_PARALLELIZATION_SIZE, jobProperties.getEnrichment().getParallelizationSize());
+    additionalAppProperties.put(ENRICHMENT_DEREFERENCE_URL, jobProperties.getEnrichment().getDereferenceUrl());
+    additionalAppProperties.put(ENRICHMENT_ENTITY_MANAGEMENT_URL, jobProperties.getEnrichment().getEntityManagementUrl());
+    additionalAppProperties.put(ENRICHMENT_ENTITY_API_URL, jobProperties.getEnrichment().getEntityApiUrl());
+    additionalAppProperties.put(ENRICHMENT_ENTITY_API_KEY, jobProperties.getEnrichment().getEntityApiKey());
+
+    final Map<String, String> deployerProperties = new HashMap<>();
+    deployerProperties.put(KUBERNETES_LIMITS_CPU, "2000m");
+    deployerProperties.put(KUBERNETES_LIMITS_MEMORY, "800M");
+    deployerProperties.put(KUBERNETES_REQUESTS_CPU, "2000m");
+    deployerProperties.put(KUBERNETES_REQUESTS_MEMORY, "800M");
 
     final ArrayList<String> arguments = new ArrayList<>();
     arguments.add("datasetId=1");
-    arguments.add("executionId=15");
+    arguments.add("executionId=12");
 
-    polingStatus(launchTask(taskName, deploymentProperties, arguments));
+    pollingStatus(launchTask(taskName, deployerProperties, additionalAppProperties, arguments));
   }
 
   @Test
@@ -229,18 +279,25 @@ class ApplicationTestIT {
     final RegisterConfigurationProperties registerProperties = batchConfigurationProperties.getRegisterProperties();
     final String taskName = registerProperties.getMediaName();
     final JobConfigurationProperties jobProperties = batchConfigurationProperties.getJobProperties();
-    final Map<String, String> deploymentProperties = new HashMap<>();
-    deploymentProperties.put(MEDIA_CHUNK_SIZE, jobProperties.getMedia().getChunkSize());
-    deploymentProperties.put(MEDIA_PARALLELIZATION_SIZE, jobProperties.getMedia().getParallelizationSize());
+
+    final Map<String, String> additionalAppProperties = new HashMap<>();
+    additionalAppProperties.put(MEDIA_CHUNK_SIZE, jobProperties.getMedia().getChunkSize());
+    additionalAppProperties.put(MEDIA_PARALLELIZATION_SIZE, jobProperties.getMedia().getParallelizationSize());
+
+    final Map<String, String> deployerProperties = new HashMap<>();
+    deployerProperties.put(KUBERNETES_LIMITS_CPU, "2000m");
+    deployerProperties.put(KUBERNETES_LIMITS_MEMORY, "800M");
+    deployerProperties.put(KUBERNETES_REQUESTS_CPU, "2000m");
+    deployerProperties.put(KUBERNETES_REQUESTS_MEMORY, "800M");
+
     final ArrayList<String> arguments = new ArrayList<>();
     arguments.add("datasetId=1");
-    arguments.add("executionId=16");
+    arguments.add("executionId=13");
 
-    polingStatus(launchTask(taskName, deploymentProperties, arguments));
+    pollingStatus(launchTask(taskName, deployerProperties, additionalAppProperties, arguments));
   }
 
-  private void polingStatus(LaunchResponseResource launchResponseResource) {
-
+  private void pollingStatus(LaunchResponseResource launchResponseResource) {
     final Supplier<TaskExecutionResource> getTaskExecutionResource = () ->
         dataFlowOperations.taskOperations().taskExecutionStatus(launchResponseResource.getExecutionId(), "boot3");
     TaskExecutionResource taskExecutionResource = getTaskExecutionResource.get();
@@ -264,7 +321,7 @@ class ApplicationTestIT {
   private static void pollingUnkown(Supplier<TaskExecutionResource> getTaskExecutionResource) {
     //Await for potential UNKNOWN status in case of pod deployment failure.
     try {
-      await().atMost(30, TimeUnit.SECONDS).until(() -> {
+      await().atMost(1, TimeUnit.MINUTES).until(() -> {
         TaskExecutionStatus taskExecutionStatus = getTaskExecutionResource.get().getTaskExecutionStatus();
         return taskExecutionStatus != TaskExecutionStatus.UNKNOWN;
       });
@@ -274,15 +331,24 @@ class ApplicationTestIT {
     }
   }
 
-  LaunchResponseResource launchTask(String taskName, Map<String, String> additionalDeploymentProperties, List<String> arguments) {
+  LaunchResponseResource launchTask(String taskName, Map<String, String> deployerProperties,
+      Map<String, String> additionalDeploymentProperties, List<String> arguments) {
     final Map<String, String> deploymentProperties = batchConfigurationProperties.getDeploymentProperties();
     deploymentProperties.putAll(additionalDeploymentProperties);
-    final Map<String, String> appPrefixedDeploymentProperties = prefixMap(taskName, deploymentProperties);
-    return dataFlowOperations.taskOperations().launch(taskName, appPrefixedDeploymentProperties, arguments);
+    final Map<String, String> appPrefixedDeploymentProperties = prefixMap(APP_PREFIX, taskName, deploymentProperties);
+
+    final Map<String, String> deployerPrefixedDeploymentProperties = prefixMap(DEPLOYER_PREFIX, taskName,
+        deployerProperties);
+
+    final Stream<Entry<String, String>> concat = Stream.concat(deployerPrefixedDeploymentProperties.entrySet().stream(),
+        appPrefixedDeploymentProperties.entrySet().stream());
+    Map<String, String> properties = concat.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
+    return dataFlowOperations.taskOperations().launch(taskName, properties, arguments);
   }
 
-  private Map<String, String> prefixMap(String prefix, Map<String, String> map) {
-    return TransformedMap.transformedMap(map, key -> format("app.%s.%s", prefix, key), value -> value);
+  private Map<String, String> prefixMap(String prefix, String suffix, Map<String, String> map) {
+    return TransformedMap.transformedMap(map, key -> format("%s.%s.%s", prefix, suffix, key), value -> value);
   }
 
   @Test

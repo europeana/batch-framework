@@ -10,6 +10,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class ExecutionRecord {
+
   @EmbeddedId
   private ExecutionRecordKey executionRecordKey;
   @Column(length = 50)
