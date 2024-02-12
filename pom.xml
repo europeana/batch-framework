@@ -2,10 +2,10 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
-  <groupId>io.spring.cloud</groupId>
-  <artifactId>spring-batch-metis-poc</artifactId>
+  <groupId>eu.europeana.batch</groupId>
+  <artifactId>batch-framework</artifactId>
   <version>0.0.1-SNAPSHOT</version>
-  <name>spring-batch-metis-poc</name>
+  <name>batch-framework</name>
   <packaging>pom</packaging>
 
   <properties>
@@ -21,14 +21,14 @@
   </properties>
 
   <modules>
-    <module>spring-batch-metis-poc-common</module>
-    <module>spring-batch-metis-poc-oai-harvest</module>
-    <module>spring-batch-metis-poc-validation</module>
-    <module>spring-batch-metis-poc-transformation</module>
-    <module>spring-batch-metis-poc-normalization</module>
-    <module>spring-batch-metis-poc-enrichment</module>
-    <module>spring-batch-metis-poc-media</module>
-    <module>spring-batch-metis-poc-client</module>
+    <module>batch-common</module>
+    <module>batch-oai-harvest</module>
+    <module>batch-validation</module>
+    <module>batch-transformation</module>
+    <module>batch-normalization</module>
+    <module>batch-enrichment</module>
+    <module>batch-media</module>
+    <module>batch-client</module>
   </modules>
 
   <dependencyManagement>

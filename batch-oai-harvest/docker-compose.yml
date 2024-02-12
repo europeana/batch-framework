@@ -2,16 +2,19 @@ version: '3.8'
 
 services:
   container:
-    image: spring-batch/spring-batch-metis-poc-enrichment:latest
+    image: europeana/batch-oai-harvest:latest
     build:
       context: ./
       dockerfile: Dockerfile
     environment:
-      JDK_JAVA_OPTIONS: -Xms1000m -Xmx1000m
+      JDK_JAVA_OPTIONS: -Xms500m -Xmx500m
     command: ["java", "-jar", "/app.jar",
               "datasetId=1",
-              "executionId=273",
-              "targetJob=ENRICHMENT"]
+              "executionId=1",
+              "targetJob=OAI_HARVEST",
+              "oaiEndpoint=https://aggregator.ekt.gr/aggregator-oai/request",
+              "oaiSet=mantamado",
+              "oaiMetadataPrefix=edm"]
     # Disable memory swap by setting the same value as memory limit
     memswap_limit: 1500M
     deploy:

@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   container:
-    image: spring-batch/spring-batch-metis-poc-transformation:latest
+    image: europeana/batch-transformation:latest
     build:
       context: ./
       dockerfile: Dockerfile

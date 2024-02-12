@@ -1,5 +1,5 @@
 # In memory DB datasource
-spring.datasource.url=jdbc:postgresql://localhost:5432/spring-batch-metis-poc?useSSL=false
+spring.datasource.url=jdbc:postgresql://localhost:5432/batch?useSSL=false
 spring.datasource.driver-class-name=org.postgresql.Driver
 spring.datasource.username=root
 spring.datasource.password=rootpw

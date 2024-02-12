@@ -3,11 +3,11 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>io.spring.cloud</groupId>
-    <artifactId>spring-batch-metis-poc</artifactId>
+    <groupId>eu.europeana.batch</groupId>
+    <artifactId>batch-framework</artifactId>
     <version>0.0.1-SNAPSHOT</version>
   </parent>
-  <artifactId>spring-batch-metis-poc-media</artifactId>
+  <artifactId>batch-normalization</artifactId>
 
   <dependencies>
     <dependency>
@@ -34,31 +34,15 @@
     </dependency>
 
     <dependency>
-      <groupId>io.spring.cloud</groupId>
-      <artifactId>spring-batch-metis-poc-common</artifactId>
+      <groupId>eu.europeana.batch</groupId>
+      <artifactId>batch-common</artifactId>
       <version>${project.version}</version>
     </dependency>
 
     <dependency>
       <groupId>eu.europeana.metis</groupId>
-      <artifactId>metis-media-service</artifactId>
+      <artifactId>metis-normalization</artifactId>
       <version>${version.metis}</version>
-      <exclusions>
-        <exclusion>
-          <artifactId>org.springframework</artifactId>
-          <groupId>*</groupId>
-        </exclusion>
-        <exclusion>
-          <artifactId>org.springframework.security</artifactId>
-          <groupId>*</groupId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-
-    <dependency>
-      <groupId>commons-collections</groupId>
-      <artifactId>commons-collections</artifactId>
-      <version>3.2.2</version>
     </dependency>
 
     <dependency>
