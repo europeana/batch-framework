@@ -24,11 +24,13 @@ import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.item.ItemReader;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
-//@Component
-//@StepScope
+@Component
+@StepScope
 @Setter
 public class OaiHarvestItemReader implements ItemReader<ExecutionRecordDTO> {
 

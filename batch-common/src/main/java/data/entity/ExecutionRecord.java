@@ -3,12 +3,15 @@ package data.entity;
 import jakarta.persistence.Column;
 import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
+import jakarta.persistence.Index;
+import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
 
-@Entity
 @Getter
 @Setter
+@Entity
+@Table(indexes = {@Index(name = "execution_record_dataset_id_execution_id_idx", columnList = "datasetId, executionId")})
 public class ExecutionRecord {
 
   @EmbeddedId
@@ -18,3 +21,4 @@ public class ExecutionRecord {
   @Column(columnDefinition = "TEXT")
   private String recordData;
 }
+

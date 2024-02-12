@@ -11,8 +11,10 @@ services:
     command: ["java", "-jar", "/app.jar",
               "datasetId=1",
               "executionId=1",
-              "oaiEndpoint=https://aggregator.ekt.gr/aggregator-oai/request",
-              "oaiSet=mantamado",
+#              "oaiEndpoint=https://aggregator.ekt.gr/aggregator-oai/request",
+#              "oaiSet=mantamado",
+              "oaiEndpoint=https://metis-repository-rest.test.eanadev.org/repository/oai",
+              "oaiSet=spring_poc_dataset_with_validation_error",
               "oaiMetadataPrefix=edm"]
     # Disable memory swap by setting the same value as memory limit
     memswap_limit: 1500M

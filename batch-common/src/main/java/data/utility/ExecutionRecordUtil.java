@@ -3,6 +3,7 @@ package data.utility;
 import data.entity.ExecutionRecord;
 import data.entity.ExecutionRecordDTO;
 import data.entity.ExecutionRecordExceptionLog;
+import data.entity.ExecutionRecordExceptionLogKey;
 import data.entity.ExecutionRecordKey;
 
 public class ExecutionRecordUtil {
@@ -34,11 +35,11 @@ public class ExecutionRecordUtil {
 
   public static ExecutionRecordExceptionLog converterToExecutionRecordExceptionLog(ExecutionRecordDTO executionRecordDTO){
     final ExecutionRecordExceptionLog executionRecordExceptionLog = new ExecutionRecordExceptionLog();
-    final ExecutionRecordKey executionRecordKey = new ExecutionRecordKey();
-    executionRecordKey.setDatasetId(executionRecordDTO.getDatasetId());
-    executionRecordKey.setExecutionId(executionRecordDTO.getExecutionId());
-    executionRecordKey.setRecordId(executionRecordDTO.getRecordId());
-    executionRecordExceptionLog.setExecutionRecordKey(executionRecordKey);
+    final ExecutionRecordExceptionLogKey executionRecordExceptionLogKey = new ExecutionRecordExceptionLogKey();
+    executionRecordExceptionLogKey.setDatasetId(executionRecordDTO.getDatasetId());
+    executionRecordExceptionLogKey.setExecutionId(executionRecordDTO.getExecutionId());
+    executionRecordExceptionLogKey.setRecordId(executionRecordDTO.getRecordId());
+    executionRecordExceptionLog.setExecutionRecordKey(executionRecordExceptionLogKey);
     executionRecordExceptionLog.setExecutionName(executionRecordDTO.getExecutionName());
     executionRecordExceptionLog.setException(executionRecordDTO.getException());
     return executionRecordExceptionLog;

@@ -11,7 +11,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
-import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.core.job.builder.JobBuilder;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.step.builder.StepBuilder;
@@ -69,11 +68,5 @@ public class OaiHarvestJobConfig {
     executor.setMaxPoolSize(parallelization);
     executor.initialize();
     return executor;
-  }
-
-  @Bean
-  @StepScope
-  public OaiHarvestItemReader oaiHarvestItemReader(){
-    return new OaiHarvestItemReader();
   }
 }

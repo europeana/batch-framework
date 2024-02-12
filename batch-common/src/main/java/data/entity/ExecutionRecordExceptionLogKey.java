@@ -9,7 +9,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @Embeddable
-public class ExecutionRecordKey implements Serializable {
+public class ExecutionRecordExceptionLogKey implements Serializable {
   @Column(length = 20)
   private String datasetId;
   @Column(length = 50)
