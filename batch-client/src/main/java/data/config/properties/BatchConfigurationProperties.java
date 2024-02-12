@@ -8,8 +8,8 @@ import org.springframework.boot.context.properties.NestedConfigurationProperty;
 
 @Setter
 @Getter
-@ConfigurationProperties(prefix = "metis-batch")
-public class MetisBatchConfigurationProperties {
+@ConfigurationProperties(prefix = "batch")
+public class BatchConfigurationProperties {
 
   @NestedConfigurationProperty
   private RegisterConfigurationProperties registerProperties;

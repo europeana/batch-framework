@@ -47,7 +47,7 @@
     <dependency>
       <groupId>eu.europeana.metis</groupId>
       <artifactId>metis-enrichment-client</artifactId>
-      <version>${version.metis}</version>
+      <version>${metis.version}</version>
       <exclusions>
         <exclusion>
           <groupId>eu.europeana.corelib</groupId>
@@ -152,5 +152,14 @@
       <scope>test</scope>
     </dependency>
   </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-maven-plugin</artifactId>
+      </plugin>
+    </plugins>
+  </build>
 
 </project>

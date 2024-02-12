@@ -1,7 +1,7 @@
 package data.config;//package data.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import data.config.properties.MetisBatchConfigurationProperties;
+import data.config.properties.BatchConfigurationProperties;
 import java.net.URI;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.dataflow.rest.client.DataFlowOperations;
@@ -12,8 +12,8 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 @EnableConfigurationProperties({
-    DataFlowClientProperties.class, MetisBatchConfigurationProperties.class,
-    MetisBatchConfigurationProperties.class})
+    DataFlowClientProperties.class, BatchConfigurationProperties.class,
+    BatchConfigurationProperties.class})
 public class MetisDataflowClientConfig {
 
   @Bean
