@@ -11,13 +11,26 @@ services:
 #      JAVA_TOOL_OPTIONS: -agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=*:5005
     command: ["java", "-jar", "/app.jar",
               "datasetId=1",
-              "executionId=325",
+              "executionId=156",
               "datasetName=idA_metisDatasetNameA",
               "datasetCountry=Greece",
               "datasetLanguage=el",
-              "xsltUrl=https://metis-core-rest.test.eanadev.org/datasets/xslt/6204e5e2514e773e6745f7e9"]
+              "xsltUrl=https://metis-core-rest.test.eanadev.org/datasets/xslt/6204e5e2514e773e6745f7e9",
+              "--spring.datasource.url=jdbc:postgresql://localhost:5432/spring-batch-metis-poc",
+              "--spring.datasource.username=admin",
+              "--spring.datasource.password=admin",
+              "--spring.jpa.hibernate.ddl-auto=none",
+              "--spring.datasource.hikari.maximumPoolSize=500",
+              "--spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect",
+              "--spring.batch.jdbc.initialize-schema=always",
+              "--validation.chunk.size=10",
+              "--validation.parallelization.size=1",
+              "--transformation.chunk.size=10",
+              "--transformation.parallelization.size=1"
+    ]
     # Disable memory swap by setting the same value as memory limit
     memswap_limit: 1500M
+    network_mode: host
     deploy:
       resources:
         limits:

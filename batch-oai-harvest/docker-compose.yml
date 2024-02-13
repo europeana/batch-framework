@@ -15,9 +15,22 @@ services:
 #              "oaiSet=mantamado",
               "oaiEndpoint=https://metis-repository-rest.test.eanadev.org/repository/oai",
               "oaiSet=spring_poc_dataset_with_validation_error",
-              "oaiMetadataPrefix=edm"]
+              "oaiMetadataPrefix=edm",
+              "--spring.datasource.url=jdbc:postgresql://localhost:5432/spring-batch-metis-poc",
+              "--spring.datasource.username=admin",
+              "--spring.datasource.password=admin",
+              "--spring.jpa.hibernate.ddl-auto=none",
+              "--spring.datasource.hikari.maximumPoolSize=500",
+              "--spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect",
+              "--spring.batch.jdbc.initialize-schema=always",
+              "--transformation.chunk.size=10",
+              "--transformation.parallelization.size=1",
+              "--oaiharvest.chunk.size=10",
+              "--oaiharvest.parallelization.size=1"
+    ]
     # Disable memory swap by setting the same value as memory limit
     memswap_limit: 1500M
+    network_mode: host
     deploy:
       resources:
         limits:

@@ -17,6 +17,9 @@ import java.io.StringWriter;
 import java.lang.invoke.MethodHandles;
 import java.nio.charset.StandardCharsets;
 import java.util.function.Function;
+
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -50,15 +53,20 @@ public class TransformerItemProcessor implements MetisItemProcessor<ExecutionRec
 
   private final ItemProcessorUtil<String> itemProcessorUtil;
 
+  private XsltTransformer xsltTransformer;
+
   public TransformerItemProcessor() {
     itemProcessorUtil = new ItemProcessorUtil<>(getFunction(), Function.identity());
+  }
+
+  @PostConstruct
+  public void construct() throws TransformationException {
+    xsltTransformer = prepareXsltTransformer();
   }
 
   @Override
   public ThrowingFunction<ExecutionRecordDTO, String> getFunction() {
     return executionRecordDTO -> {
-      final XsltTransformer xsltTransformer;
-      xsltTransformer = prepareXsltTransformer();
       final byte[] contentBytes = executionRecordDTO.getRecordData().getBytes(StandardCharsets.UTF_8);
       final String resultString;
       try (StringWriter writer = xsltTransformer.transform(contentBytes, prepareEuropeanaGeneratedIdsMap(contentBytes))) {
@@ -88,6 +96,12 @@ public class TransformerItemProcessor implements MetisItemProcessor<ExecutionRec
       europeanaGeneratedIdsMap = europeanIdCreator.constructEuropeanaId(fileDataString, datasetId);
     }
     return europeanaGeneratedIdsMap;
+  }
+
+  @PreDestroy
+  public void destroy() {
+    LOGGER.debug("Closing TransformerItemProcessor");
+    xsltTransformer.close();
   }
 
 }
