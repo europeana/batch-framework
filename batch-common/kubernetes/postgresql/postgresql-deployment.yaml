@@ -15,7 +15,7 @@ spec:
         app: postgresql
     spec:
       containers:
-      - image: postgres:14
+      - image: registry.paas.psnc.pl/base/postgres:14
         name: postgresql
         imagePullPolicy: IfNotPresent
         env:
@@ -59,6 +59,9 @@ spec:
           failureThreshold: 4
         resources:
           requests:
+            cpu: 2000m
+            memory: 2Gi
+          limits:
             cpu: 2000m
             memory: 2Gi
         volumeMounts:

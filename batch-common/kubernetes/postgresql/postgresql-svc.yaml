@@ -5,7 +5,6 @@ metadata:
   labels:
     app: postgresql
 spec:
-  type: NodePort
   ports:
     - name: postgresql
       protocol: TCP

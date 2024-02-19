@@ -1,0 +1,22 @@
+kind: Route
+apiVersion: route.openshift.io/v1
+metadata:
+  name: scdf-server
+  labels:
+    app: scdf-server
+  annotations:
+    haproxy.router.openshift.io/ip_whitelist: >-
+      150.254.169.100/32
+    haproxy.router.openshift.io/rewrite-target: /
+spec:
+  host: pwozniak-test.apps.dcw1.paas.psnc.pl
+  path: /
+  to:
+    kind: Service
+    name: scdf-server
+    weight: 100
+  port:
+    targetPort: 9393
+  tls:
+    termination: edge
+  wildcardPolicy: None

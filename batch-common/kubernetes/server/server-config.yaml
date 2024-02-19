@@ -18,7 +18,7 @@ data:
                       memory: 1024Mi
       datasource:
         # Get minikube ip and update
-        url: jdbc:postgresql://192.168.49.2:30432/dataflow
+        url: jdbc:postgresql://postgresql.pwozniak-test.svc.cluster.local:5432/dataflow
         username: username
         password: password
         driverClassName: org.postgresql.Driver
