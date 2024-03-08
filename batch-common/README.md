@@ -11,6 +11,13 @@ kubectl delete -f kubernetes/postgresql
 kubectl delete -f kubernetes/server
 ```
 
+# Deploying Spring Cloud Data Flow in k8s with PSQL in another location(e.g. IBM)
+The postgres service has to already contain the required database for dataflow.
+Modify the following:
+- The server/server-config.yaml file needs to be updated with credentials
+- The server/server-deployment.yaml file needs to be updated to remove the “database” volume and volumeMount
+- The client application.properties needs to updated with new values on spring.datasource.x and batch.deploymentProperties.spring.datasource.x
+
 # Build docker images in the minikube registry
 When building the docker images from a terminal first run:  
 ```console
