@@ -28,8 +28,9 @@ java -jar spring-cloud-dataflow-shell-2.11.2.jar --dataflow.uri=http://scdf-serv
 
 Some example commands:  
 ```console
-app list    
-app register --name batch-oai-harvest --type task --bootVersion 3 --uri docker:europeana/batch-oai-harvest:latest --metadata-uri file:///data/spring-batch-metis-poc/batch-application.properties  
+app list  
+app register --name batch-oai-harvest --type task --bootVersion 3 --uri docker:europeana/batch-oai-harvest:latest --metadata-uri file:///data/spring-batch-metis-poc/batch-application.properties
+app register --name batch-oai-harvest --type task --bootVersion 3 --uri docker:registry.paas.psnc.pl/europeana-cloud/batch-oai-harvest:latest
 app info --name batch-oai-harvest --type task
 app unregister --name batch-oai-harvest --type task
 task create --name batch-oai-harvest --definition batch-oai-harvest
@@ -37,7 +38,7 @@ task destroy --name batch-oai-harvest --cleanup true
 task execution stop --ids 8
  
 task launch --name batch-oai-harvest --properties "\
-    app.batch-oai-harvest.spring.datasource.url=jdbc:postgresql://192.168.49.2:30432/dataflow?useSSL=false,\
+    app.batch-oai-harvest.spring.datasource.url=jdbc:postgresql://postgresql.ecloud-spring-cdf-poc.svc.cluster.local:5432/dataflow?useSSL=false,\
     app.batch-oai-harvest.spring.datasource.driver-class-name=org.postgresql.Driver,\
     app.batch-oai-harvest.spring.datasource.username=username,\
     app.batch-oai-harvest.spring.datasource.password=password,\

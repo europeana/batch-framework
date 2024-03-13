@@ -101,7 +101,7 @@ public class TransformerItemProcessor implements MetisItemProcessor<ExecutionRec
   @PreDestroy
   public void destroy() {
     LOGGER.debug("Closing TransformerItemProcessor");
-    xsltTransformer.close();
+//    xsltTransformer.close();
   }
 
 }

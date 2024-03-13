@@ -5,11 +5,10 @@ metadata:
   labels:
     app: scdf-server
   annotations:
-    haproxy.router.openshift.io/ip_whitelist: >-
-      150.254.169.100/32
+    haproxy.router.openshift.io/ip_whitelist: 150.254.169.100/32 178.62.250.193/32
     haproxy.router.openshift.io/rewrite-target: /
 spec:
-  host: pwozniak-test.apps.dcw1.paas.psnc.pl
+  host: ecloud-spring-cdf-poc.apps.dcw1.paas.psnc.pl
   path: /
   to:
     kind: Service
