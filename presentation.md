@@ -75,11 +75,41 @@
     - Liveness, Readiness and Startup Probes;
   - Application Properties: These are application-specific properties;
 
-<br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>
+<br/><br/><br/><br/><br/><br/><br/>
 <hr style="height: 40px"/>
 
-## QUESTIONS
+## <p style="text-align: center;">Typical development process</p>
 
+- modify source code
+- build application
+- run/test locally
+- prepare docker image and push it to repo
+- register application in SCDF:
+
+```console
+app register --name batch-oai-harvest --type task --bootVersion 3 --uri docker:registry.paas.psnc.pl/europeana-cloud/batch-oai-harvest:latest
+```
+- run the task using SCDF infrastructure:
+
+```console
+task launch --name batch-oai-harvest --properties "\
+    app.batch-oai-harvest.spring.datasource.url=jdbc:postgresql://postgresql.ecloud-spring-cdf-poc.svc.cluster.local:5432/dataflow?useSSL=false,\
+    app.batch-oai-harvest.spring.datasource.driver-class-name=org.postgresql.Driver,\
+    app.batch-oai-harvest.spring.datasource.username=username,\
+    app.batch-oai-harvest.spring.datasource.password=password,\
+    app.batch-oai-harvest.spring.datasource.hikari.maximumPoolSize=500,\
+    app.batch-oai-harvest.spring.jpa.generate-ddl=true,\
+    app.batch-oai-harvest.oaiharvest.chunk.size=10,\
+    app.batch-oai-harvest.oaiharvest.parallelization.size=10,\
+    app.batch-oai-harvest.spring.batch.jdbc.initialize-schema=always" --arguments "datasetId=1 executionId=1 oaiEndpoint=https://metis-repository-rest.test.eanadev.org/repository/oai oaiSet=spring_poc_dataset_with_validation_error oaiMetadataPrefix=edm"
+```
+<br/><br/>
+<hr style="height: 40px"/>
+
+## <p style="text-align: center;">QUESTIONS</p>
+<br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>
+
+---
 
 ## References
 
