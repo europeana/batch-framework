@@ -3,10 +3,15 @@ package data.config;
 import static data.job.BatchJobType.OAI_HARVEST;
 
 import data.entity.ExecutionRecordDTO;
+import data.entity.ExecutionRecordExternalIdentifier;
 import data.job.incrementer.TimestampJobParametersIncrementer;
-import data.unit.reader.OaiHarvestItemReader;
+import data.unit.processor.OaiRecordHarvester;
+import data.unit.reader.*;
 import data.unit.writer.ExecutionRecordDTOItemWriter;
+
 import java.lang.invoke.MethodHandles;
+
+import data.unit.writer.OaiIdentifiersWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.Job;
@@ -27,46 +32,71 @@ import org.springframework.transaction.PlatformTransactionManager;
 @EnableTask
 public class OaiHarvestJobConfig {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-  public static final String BATCH_JOB = OAI_HARVEST.name();
-  public static final String STEP_NAME = "oaiHarvestStep";
+    private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+    public static final String BATCH_JOB = OAI_HARVEST.name();
+    public static final String IDENTIFIERS_HARVEST_STEP_NAME = "identifiersHarvest";
+    public static final String RECORDS_HARVEST_STEP_NAME = "recordsHarvest";
 
-  @Value("${oaiharvest.chunk.size}")
-  public int chunkSize;
-  @Value("${oaiharvest.parallelization.size}")
-  public int parallelization;
+    @Value("${oaiharvest.chunk.size}")
+    public int chunkSize;
+    @Value("${oaiharvest.parallelization.size}")
+    public int parallelization;
 
-  @Bean
-  public Job oaiHarvestBatchJob(JobRepository jobRepository, Step oaiHarvestStep) {
-    LOGGER.info("Chunk size: {}, Parallelization size: {}", chunkSize, parallelization);
-    return new JobBuilder(BATCH_JOB, jobRepository)
-        .incrementer(new TimestampJobParametersIncrementer())
-        .start(oaiHarvestStep)
-        .build();
-  }
+    @Bean
+    public Job oaiHarvestJob(
+            JobRepository jobRepository,
+            @Qualifier("oaiIdentifiersHarvestStep") Step oaiIdentifiersHarvestStep,
+            @Qualifier("oaiRecordsHarvestStep") Step oaiRecordsHarvestStep) {
 
-  @Bean
-  public Step oaiHarvestStep(JobRepository jobRepository,
-      @Qualifier("transactionManager") PlatformTransactionManager transactionManager,
-      OaiHarvestItemReader oaiHarvestItemReader,
-      ExecutionRecordDTOItemWriter writer,
-      @Qualifier("oaiHarvestStepAsyncTaskExecutor") TaskExecutor oaiHarvestStepAsyncTaskExecutor) {
-    return new StepBuilder(STEP_NAME, jobRepository)
-        .<ExecutionRecordDTO, ExecutionRecordDTO>chunk(chunkSize, transactionManager)
-        .reader(oaiHarvestItemReader)
-        .writer(writer)
-        //TODO: 2024-01-31 - Update with a better parallelization reader and remove Step parallization.
-        .taskExecutor(oaiHarvestStepAsyncTaskExecutor)
-        .throttleLimit(parallelization)
-        .build();
-  }
+        LOGGER.info("Chunk size: {}, Parallelization size: {}", chunkSize, parallelization);
+        return new JobBuilder(BATCH_JOB, jobRepository)
+                .incrementer(new TimestampJobParametersIncrementer())
+                .start(oaiIdentifiersHarvestStep)
+                .next(oaiRecordsHarvestStep)
+                .build();
+    }
 
-  @Bean
-  public TaskExecutor oaiHarvestStepAsyncTaskExecutor() {
-    ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-    executor.setCorePoolSize(parallelization);
-    executor.setMaxPoolSize(parallelization);
-    executor.initialize();
-    return executor;
-  }
+    @Bean("oaiIdentifiersHarvestStep")
+    public Step oaiRepositoryIdentifiersHarvestStep(
+            OaiRepositoryIdentifiersHarvester oaiRepositoryIdentifiersHarvester,
+            OaiIdentifiersWriter oaiIdentifiersWriter,
+            JobRepository jobRepository,
+            @Qualifier("transactionManager") PlatformTransactionManager transactionManager,
+            @Qualifier("oaiHarvestStepAsyncTaskExecutor") TaskExecutor oaiHarvestStepAsyncTaskExecutor) {
+
+        return new StepBuilder(IDENTIFIERS_HARVEST_STEP_NAME, jobRepository)
+                .<ExecutionRecordExternalIdentifier, ExecutionRecordExternalIdentifier>chunk(chunkSize, transactionManager)
+                .reader(oaiRepositoryIdentifiersHarvester)
+                .writer(oaiIdentifiersWriter)
+                .taskExecutor(oaiHarvestStepAsyncTaskExecutor)
+                .build();
+    }
+
+    @Bean("oaiRecordsHarvestStep")
+    public Step oaiRecordsHarvestStep(
+            JobRepository jobRepository,
+            OaiIdentifiersReader oaiIdentifiersReader,
+            @Qualifier("transactionManager") PlatformTransactionManager transactionManager,
+            OaiRecordHarvester oaiRecordHarvester,
+            ExecutionRecordDTOItemWriter writer,
+            @Qualifier("oaiHarvestStepAsyncTaskExecutor") TaskExecutor oaiHarvestStepAsyncTaskExecutor) {
+
+        return new StepBuilder(RECORDS_HARVEST_STEP_NAME, jobRepository)
+                .<ExecutionRecordExternalIdentifier, ExecutionRecordDTO>chunk(chunkSize, transactionManager)
+                .reader(oaiIdentifiersReader)
+                .processor(oaiRecordHarvester)
+                .writer(writer)
+                .taskExecutor(oaiHarvestStepAsyncTaskExecutor)
+                .build();
+    }
+
+    @Bean
+    public TaskExecutor oaiHarvestStepAsyncTaskExecutor() {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setThreadNamePrefix("oaiThread-");
+        executor.setCorePoolSize(parallelization);
+        executor.setMaxPoolSize(parallelization);
+        executor.initialize();
+        return executor;
+    }
 }
