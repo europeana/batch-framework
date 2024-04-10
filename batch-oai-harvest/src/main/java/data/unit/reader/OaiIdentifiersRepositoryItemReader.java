@@ -12,23 +12,23 @@ import java.util.List;
 
 @Component
 @StepScope
-public class OaiIdentifiersReader extends RepositoryItemReader<ExecutionRecordExternalIdentifier> {
+public class OaiIdentifiersRepositoryItemReader extends RepositoryItemReader<ExecutionRecordExternalIdentifier> {
 
     @Value("#{stepExecution.jobExecution.jobInstance.id}")
     private Long jobInstanceId;
 
     private final ExecutionRecordExternalIdentifierRepository executionRecordExternalIdentifierRepository;
 
-    public OaiIdentifiersReader(ExecutionRecordExternalIdentifierRepository executionRecordExternalIdentifierRepository) {
+    public OaiIdentifiersRepositoryItemReader(ExecutionRecordExternalIdentifierRepository executionRecordExternalIdentifierRepository) {
         this.executionRecordExternalIdentifierRepository = executionRecordExternalIdentifierRepository;
     }
 
     @Override
     public void afterPropertiesSet() throws Exception {
-        this.setRepository(executionRecordExternalIdentifierRepository);
-        this.setSort(Collections.emptyMap());
-        this.setMethodName("findAllByExecutionRecordKey_ExecutionId");
-        this.setArguments(List.of(jobInstanceId+""));
+        setRepository(executionRecordExternalIdentifierRepository);
+        setSort(Collections.emptyMap());
+        setMethodName("findAllByExecutionRecordKey_ExecutionId");
+        setArguments(List.of(jobInstanceId+""));
 
         super.afterPropertiesSet();
     }

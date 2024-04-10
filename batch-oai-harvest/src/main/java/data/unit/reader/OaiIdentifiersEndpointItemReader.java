@@ -24,7 +24,7 @@ import java.util.List;
 
 @Component
 @StepScope
-public class OaiRepositoryIdentifiersHarvester implements ItemReader<ExecutionRecordExternalIdentifier> {
+public class OaiIdentifiersEndpointItemReader implements ItemReader<ExecutionRecordExternalIdentifier> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 

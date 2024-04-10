@@ -50,7 +50,7 @@ public class OaiHarvestJobConfig {
 
         LOGGER.info("Chunk size: {}, Parallelization size: {}", chunkSize, parallelization);
         return new JobBuilder(BATCH_JOB, jobRepository)
-                .incrementer(new TimestampJobParametersIncrementer())
+//                .incrementer(new TimestampJobParametersIncrementer())
                 .start(oaiIdentifiersHarvestStep)
                 .next(oaiRecordsHarvestStep)
                 .build();
@@ -58,7 +58,7 @@ public class OaiHarvestJobConfig {
 
     @Bean("oaiIdentifiersHarvestStep")
     public Step oaiRepositoryIdentifiersHarvestStep(
-            OaiRepositoryIdentifiersHarvester oaiRepositoryIdentifiersHarvester,
+            OaiIdentifiersEndpointItemReader oaiIdentifiersEndpointItemReader,
             OaiIdentifiersWriter oaiIdentifiersWriter,
             JobRepository jobRepository,
             @Qualifier("transactionManager") PlatformTransactionManager transactionManager,
@@ -66,16 +66,16 @@ public class OaiHarvestJobConfig {
 
         return new StepBuilder(IDENTIFIERS_HARVEST_STEP_NAME, jobRepository)
                 .<ExecutionRecordExternalIdentifier, ExecutionRecordExternalIdentifier>chunk(chunkSize, transactionManager)
-                .reader(oaiRepositoryIdentifiersHarvester)
+                .reader(oaiIdentifiersEndpointItemReader)
                 .writer(oaiIdentifiersWriter)
-                .taskExecutor(oaiHarvestStepAsyncTaskExecutor)
+//                .taskExecutor(oaiHarvestStepAsyncTaskExecutor)
                 .build();
     }
 
     @Bean("oaiRecordsHarvestStep")
     public Step oaiRecordsHarvestStep(
             JobRepository jobRepository,
-            OaiIdentifiersReader oaiIdentifiersReader,
+            OaiIdentifiersRepositoryItemReader oaiIdentifiersReader,
             @Qualifier("transactionManager") PlatformTransactionManager transactionManager,
             OaiRecordHarvester oaiRecordHarvester,
             ExecutionRecordDTOItemWriter writer,
@@ -93,7 +93,7 @@ public class OaiHarvestJobConfig {
     @Bean
     public TaskExecutor oaiHarvestStepAsyncTaskExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setThreadNamePrefix("oaiThread-");
+        executor.setThreadNamePrefix(OAI_HARVEST.name() + "Thread-");
         executor.setCorePoolSize(parallelization);
         executor.setMaxPoolSize(parallelization);
         executor.initialize();
