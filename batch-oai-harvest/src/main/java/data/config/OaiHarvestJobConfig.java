@@ -5,12 +5,12 @@ import static data.job.BatchJobType.OAI_HARVEST;
 import data.entity.ExecutionRecordDTO;
 import data.entity.ExecutionRecordExternalIdentifier;
 import data.job.incrementer.TimestampJobParametersIncrementer;
-import data.unit.processor.OaiRecordHarvester;
-import data.unit.reader.*;
-import data.unit.writer.ExecutionRecordDTOItemWriter;
 
 import java.lang.invoke.MethodHandles;
+import java.util.concurrent.Future;
 
+import data.unit.reader.OaiIdentifiersEndpointItemReader;
+import data.unit.reader.OaiIdentifiersRepositoryItemReader;
 import data.unit.writer.OaiIdentifiersWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,6 +19,9 @@ import org.springframework.batch.core.Step;
 import org.springframework.batch.core.job.builder.JobBuilder;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.step.builder.StepBuilder;
+import org.springframework.batch.integration.async.AsyncItemProcessor;
+import org.springframework.batch.item.ItemProcessor;
+import org.springframework.batch.item.ItemWriter;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.task.configuration.EnableTask;
@@ -50,7 +53,7 @@ public class OaiHarvestJobConfig {
 
         LOGGER.info("Chunk size: {}, Parallelization size: {}", chunkSize, parallelization);
         return new JobBuilder(BATCH_JOB, jobRepository)
-//                .incrementer(new TimestampJobParametersIncrementer())
+                .incrementer(new TimestampJobParametersIncrementer())
                 .start(oaiIdentifiersHarvestStep)
                 .next(oaiRecordsHarvestStep)
                 .build();
@@ -77,17 +80,25 @@ public class OaiHarvestJobConfig {
             JobRepository jobRepository,
             OaiIdentifiersRepositoryItemReader oaiIdentifiersReader,
             @Qualifier("transactionManager") PlatformTransactionManager transactionManager,
-            OaiRecordHarvester oaiRecordHarvester,
-            ExecutionRecordDTOItemWriter writer,
-            @Qualifier("oaiHarvestStepAsyncTaskExecutor") TaskExecutor oaiHarvestStepAsyncTaskExecutor) {
+            ItemProcessor<ExecutionRecordExternalIdentifier, Future<ExecutionRecordDTO>> itemProcessor,
+            ItemWriter<Future<ExecutionRecordDTO>> executionRecordDTOAsyncItemWriter) {
 
         return new StepBuilder(RECORDS_HARVEST_STEP_NAME, jobRepository)
-                .<ExecutionRecordExternalIdentifier, ExecutionRecordDTO>chunk(chunkSize, transactionManager)
+                .<ExecutionRecordExternalIdentifier, Future<ExecutionRecordDTO>>chunk(chunkSize, transactionManager)
                 .reader(oaiIdentifiersReader)
-                .processor(oaiRecordHarvester)
-                .writer(writer)
-                .taskExecutor(oaiHarvestStepAsyncTaskExecutor)
+                .processor(itemProcessor)
+                .writer(executionRecordDTOAsyncItemWriter)
                 .build();
+    }
+
+    @Bean
+    public ItemProcessor<ExecutionRecordExternalIdentifier, Future<ExecutionRecordDTO>> asyncOaiRecordItemProcessor(
+            ItemProcessor<ExecutionRecordExternalIdentifier, ExecutionRecordDTO> oaiRecordItemProcessor,
+            @Qualifier("oaiHarvestStepAsyncTaskExecutor") TaskExecutor taskExecutor) {
+        AsyncItemProcessor<ExecutionRecordExternalIdentifier, ExecutionRecordDTO> asyncItemProcessor = new AsyncItemProcessor<>();
+        asyncItemProcessor.setDelegate(oaiRecordItemProcessor);
+        asyncItemProcessor.setTaskExecutor(taskExecutor);
+        return asyncItemProcessor;
     }
 
     @Bean
