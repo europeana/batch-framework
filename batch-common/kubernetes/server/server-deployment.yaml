@@ -22,9 +22,6 @@ spec:
           - name: config
             mountPath: /workspace/config
             readOnly: true
-          - name: database
-            mountPath: /etc/secrets/database
-            readOnly: true
         ports:
         - containerPort: 9393
         livenessProbe:
@@ -79,11 +76,7 @@ spec:
           value: 'false'
         - name: SPRING_CLOUD_KUBERNETES_SECRETS_PATHS
           value: /etc/secrets
-        - name: SPRING_CLOUD_DATAFLOW_SERVER_URI
-          value: 'http://scdf-server-192.168.49.2.nip.io'
           # Provide the Skipper service location
-#        - name: SPRING_CLOUD_SKIPPER_CLIENT_SERVER_URI
-#          value: 'http://${SKIPPER_SERVICE_HOST}:${SKIPPER_SERVICE_PORT}/api'
       serviceAccountName: scdf-sa
       volumes:
         - name: config
@@ -92,6 +85,3 @@ spec:
             items:
             - key: application.yaml
               path: application.yaml
-        - name: database
-          secret:
-            secretName: postgresql

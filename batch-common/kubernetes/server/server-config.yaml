@@ -17,8 +17,8 @@ data:
                     limits:
                       memory: 1024Mi
       datasource:
-        # Get minikube ip and update
-        url: jdbc:postgresql://192.168.49.2:30432/dataflow
+        # Update accordingly
+        url: jdbc:postgresql://localhost:5432/dataflow
         username: username
         password: password
         driverClassName: org.postgresql.Driver
