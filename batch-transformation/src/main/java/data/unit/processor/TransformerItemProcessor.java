@@ -4,22 +4,18 @@ import static data.job.BatchJobType.TRANSFORMATION;
 
 import data.entity.ExecutionRecord;
 import data.entity.ExecutionRecordDTO;
-import data.unit.processor.listener.MetisItemProcessor;
 import data.job.BatchJobType;
+import data.unit.processor.listener.MetisItemProcessor;
 import data.utility.ExecutionRecordUtil;
 import data.utility.ItemProcessorUtil;
 import eu.europeana.metis.transformation.service.EuropeanaGeneratedIdsMap;
 import eu.europeana.metis.transformation.service.EuropeanaIdCreator;
 import eu.europeana.metis.transformation.service.EuropeanaIdException;
-import eu.europeana.metis.transformation.service.TransformationException;
 import eu.europeana.metis.transformation.service.XsltTransformer;
 import java.io.StringWriter;
 import java.lang.invoke.MethodHandles;
 import java.nio.charset.StandardCharsets;
 import java.util.function.Function;
-
-import jakarta.annotation.PostConstruct;
-import jakarta.annotation.PreDestroy;
 import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -53,15 +49,8 @@ public class TransformerItemProcessor implements MetisItemProcessor<ExecutionRec
 
   private final ItemProcessorUtil<String> itemProcessorUtil;
 
-  private XsltTransformer xsltTransformer;
-
   public TransformerItemProcessor() {
     itemProcessorUtil = new ItemProcessorUtil<>(getFunction(), Function.identity());
-  }
-
-  @PostConstruct
-  public void construct() throws TransformationException {
-    xsltTransformer = prepareXsltTransformer();
   }
 
   @Override
@@ -69,7 +58,8 @@ public class TransformerItemProcessor implements MetisItemProcessor<ExecutionRec
     return executionRecordDTO -> {
       final byte[] contentBytes = executionRecordDTO.getRecordData().getBytes(StandardCharsets.UTF_8);
       final String resultString;
-      try (StringWriter writer = xsltTransformer.transform(contentBytes, prepareEuropeanaGeneratedIdsMap(contentBytes))) {
+      try (XsltTransformer xsltTransformer = new XsltTransformer(xsltUrl, datasetName, datasetCountry, datasetLanguage);
+          StringWriter writer = xsltTransformer.transform(contentBytes, prepareEuropeanaGeneratedIdsMap(contentBytes))) {
         resultString = writer.toString();
       }
       return resultString;
@@ -82,11 +72,6 @@ public class TransformerItemProcessor implements MetisItemProcessor<ExecutionRec
     return itemProcessorUtil.processCapturingException(executionRecordDTO, batchJobType, jobInstanceId.toString());
   }
 
-  private XsltTransformer prepareXsltTransformer()
-      throws TransformationException {
-    return new XsltTransformer(xsltUrl, datasetName, datasetCountry, datasetLanguage);
-  }
-
   private EuropeanaGeneratedIdsMap prepareEuropeanaGeneratedIdsMap(byte[] content)
       throws EuropeanaIdException {
     EuropeanaGeneratedIdsMap europeanaGeneratedIdsMap = null;
@@ -97,11 +82,4 @@ public class TransformerItemProcessor implements MetisItemProcessor<ExecutionRec
     }
     return europeanaGeneratedIdsMap;
   }
-
-  @PreDestroy
-  public void destroy() {
-    LOGGER.debug("Closing TransformerItemProcessor");
-    xsltTransformer.close();
-  }
-
 }
