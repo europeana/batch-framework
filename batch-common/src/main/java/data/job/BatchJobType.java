@@ -6,5 +6,6 @@ public enum BatchJobType {
   TRANSFORMATION,
   NORMALIZATION,
   ENRICHMENT,
-  MEDIA
+  MEDIA,
+  INDEXING
 }
