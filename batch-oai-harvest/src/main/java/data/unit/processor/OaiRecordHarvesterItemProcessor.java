@@ -1,5 +1,7 @@
 package data.unit.processor;
 
+import static data.job.BatchJobType.OAI_HARVEST;
+
 import data.entity.ExecutionRecordDTO;
 import data.entity.ExecutionRecordExternalIdentifier;
 import data.job.BatchJobType;
@@ -10,6 +12,8 @@ import eu.europeana.metis.harvesting.oaipmh.OaiRecord;
 import eu.europeana.metis.transformation.service.EuropeanaGeneratedIdsMap;
 import eu.europeana.metis.transformation.service.EuropeanaIdCreator;
 import eu.europeana.metis.transformation.service.EuropeanaIdException;
+import java.lang.invoke.MethodHandles;
+import java.nio.charset.StandardCharsets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.configuration.annotation.StepScope;
@@ -17,14 +21,9 @@ import org.springframework.batch.item.ItemProcessor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import java.lang.invoke.MethodHandles;
-import java.nio.charset.StandardCharsets;
-
-import static data.job.BatchJobType.OAI_HARVEST;
-
 @Component
 @StepScope
-public class OaiRecordHarvester implements ItemProcessor<ExecutionRecordExternalIdentifier, ExecutionRecordDTO> {
+public class OaiRecordHarvesterItemProcessor implements ItemProcessor<ExecutionRecordExternalIdentifier, ExecutionRecordDTO> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
     private static final BatchJobType batchJobType = OAI_HARVEST;

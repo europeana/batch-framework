@@ -59,6 +59,7 @@ public class OaiHarvestJobConfig {
                 .build();
     }
 
+    //TODO: 2024-04-18 - Potentially update this step in a parallelized way
     @Bean("oaiIdentifiersHarvestStep")
     public Step oaiRepositoryIdentifiersHarvestStep(
             OaiIdentifiersEndpointItemReader oaiIdentifiersEndpointItemReader,
@@ -78,21 +79,21 @@ public class OaiHarvestJobConfig {
     @Bean("oaiRecordsHarvestStep")
     public Step oaiRecordsHarvestStep(
             JobRepository jobRepository,
-            OaiIdentifiersRepositoryItemReader oaiIdentifiersReader,
+            OaiIdentifiersRepositoryItemReader oaiIdentifiersRepositoryItemReader,
             @Qualifier("transactionManager") PlatformTransactionManager transactionManager,
-            ItemProcessor<ExecutionRecordExternalIdentifier, Future<ExecutionRecordDTO>> itemProcessor,
+            ItemProcessor<ExecutionRecordExternalIdentifier, Future<ExecutionRecordDTO>> oaiRecordAsyncItemProcessor,
             ItemWriter<Future<ExecutionRecordDTO>> executionRecordDTOAsyncItemWriter) {
 
         return new StepBuilder(RECORDS_HARVEST_STEP_NAME, jobRepository)
                 .<ExecutionRecordExternalIdentifier, Future<ExecutionRecordDTO>>chunk(chunkSize, transactionManager)
-                .reader(oaiIdentifiersReader)
-                .processor(itemProcessor)
+                .reader(oaiIdentifiersRepositoryItemReader)
+                .processor(oaiRecordAsyncItemProcessor)
                 .writer(executionRecordDTOAsyncItemWriter)
                 .build();
     }
 
     @Bean
-    public ItemProcessor<ExecutionRecordExternalIdentifier, Future<ExecutionRecordDTO>> asyncOaiRecordItemProcessor(
+    public ItemProcessor<ExecutionRecordExternalIdentifier, Future<ExecutionRecordDTO>> oaiRecordAsyncItemProcessor(
             ItemProcessor<ExecutionRecordExternalIdentifier, ExecutionRecordDTO> oaiRecordItemProcessor,
             @Qualifier("oaiHarvestStepAsyncTaskExecutor") TaskExecutor taskExecutor) {
         AsyncItemProcessor<ExecutionRecordExternalIdentifier, ExecutionRecordDTO> asyncItemProcessor = new AsyncItemProcessor<>();

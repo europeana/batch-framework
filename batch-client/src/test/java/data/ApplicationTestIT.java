@@ -34,15 +34,13 @@ import static data.parameter.DeploymentString.DEPLOYMENT_PARAMETER_APP_PREFIX;
 import static data.parameter.DeploymentString.DEPLOYMENT_PARAMETER_DEPLOYER_PREFIX;
 import static java.lang.String.format;
 import static org.awaitility.Awaitility.await;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.springframework.cloud.dataflow.schema.AppBootSchemaVersion.BOOT3;
 
 import data.config.MetisDataflowClientConfig;
 import data.config.properties.BatchConfigurationProperties;
 import data.config.properties.JobConfigurationProperties;
 import data.config.properties.RegisterConfigurationProperties;
 import data.repositories.ExecutionRecordExceptionLogRepository;
+import data.repositories.ExecutionRecordExternalIdentifierRepository;
 import data.repositories.ExecutionRecordRepository;
 import jakarta.annotation.Resource;
 import java.lang.invoke.MethodHandles;
@@ -64,15 +62,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.cloud.dataflow.core.ApplicationType;
 import org.springframework.cloud.dataflow.rest.client.DataFlowOperations;
-import org.springframework.cloud.dataflow.rest.resource.AppRegistrationResource;
-import org.springframework.cloud.dataflow.rest.resource.DetailedAppRegistrationResource;
 import org.springframework.cloud.dataflow.rest.resource.LaunchResponseResource;
-import org.springframework.cloud.dataflow.rest.resource.TaskDefinitionResource;
 import org.springframework.cloud.dataflow.rest.resource.TaskExecutionResource;
 import org.springframework.cloud.dataflow.rest.resource.TaskExecutionStatus;
-import org.springframework.hateoas.PagedModel;
 import org.springframework.test.context.ContextConfiguration;
 
 @SpringBootTest
@@ -81,7 +74,6 @@ import org.springframework.test.context.ContextConfiguration;
 class ApplicationTestIT {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-
   @Autowired
   DataFlowOperations dataFlowOperations;
   @Autowired
@@ -90,71 +82,8 @@ class ApplicationTestIT {
   ExecutionRecordRepository executionRecordRepository;
   @Resource
   ExecutionRecordExceptionLogRepository executionRecordExceptionLogRepository;
-
-  @Test
-  void progressCounts() {
-    System.out.println(executionRecordRepository.count());
-    System.out.println(executionRecordExceptionLogRepository.count());
-  }
-
-  @Test
-  void registerApplications() {
-    final RegisterConfigurationProperties registerProperties = batchConfigurationProperties.getRegisterProperties();
-    registerApplication(registerProperties.getOaiHarvestName(), registerProperties.getOaiHarvestUri());
-    registerApplication(registerProperties.getValidationName(), registerProperties.getValidationUri());
-    registerApplication(registerProperties.getTransformationName(), registerProperties.getTransformationUri());
-    registerApplication(registerProperties.getNormalizationName(), registerProperties.getNormalizationUri());
-    registerApplication(registerProperties.getEnrichmentName(), registerProperties.getEnrichmentUri());
-    registerApplication(registerProperties.getMediaName(), registerProperties.getMediaUri());
-  }
-
-  private void registerApplication(String name, String uri) {
-    dataFlowOperations.appRegistryOperations()
-                      .register(name, ApplicationType.task, uri, "", BOOT3, true);
-    final DetailedAppRegistrationResource detailedAppRegistrationResource =
-        dataFlowOperations.appRegistryOperations().info(name, ApplicationType.task, false);
-    assertEquals(name, detailedAppRegistrationResource.getName());
-  }
-
-  @Test
-  void unregisterApplications() {
-    dataFlowOperations.appRegistryOperations().unregisterAll();
-    assertEquals(0, dataFlowOperations.appRegistryOperations().list().getContent().size());
-  }
-
-  @Test
-  void createTasks() {
-    final RegisterConfigurationProperties registerProperties = batchConfigurationProperties.getRegisterProperties();
-    final PagedModel<TaskDefinitionResource> taskDefinitionResources = dataFlowOperations.taskOperations().list();
-    createTask(taskDefinitionResources, registerProperties.getOaiHarvestName(), registerProperties.getOaiHarvestName());
-    createTask(taskDefinitionResources, registerProperties.getValidationName(), registerProperties.getValidationName());
-    createTask(taskDefinitionResources, registerProperties.getTransformationName(), registerProperties.getTransformationName());
-    createTask(taskDefinitionResources, registerProperties.getNormalizationName(), registerProperties.getNormalizationName());
-    createTask(taskDefinitionResources, registerProperties.getEnrichmentName(), registerProperties.getEnrichmentName());
-    createTask(taskDefinitionResources, registerProperties.getMediaName(), registerProperties.getMediaName());
-  }
-
-  @Test
-  void destroyTasks() {
-    dataFlowOperations.taskOperations().destroyAll();
-    final PagedModel<TaskExecutionResource> taskExecutionResources = dataFlowOperations.taskOperations().executionList();
-    for (TaskExecutionResource taskExecutionResource : taskExecutionResources) {
-      dataFlowOperations.taskOperations().cleanupAllTaskExecutions(false, taskExecutionResource.getTaskName());
-    }
-    assertEquals(0, dataFlowOperations.taskOperations().list().getContent().size());
-  }
-
-  private void createTask(PagedModel<TaskDefinitionResource> taskDefinitionResources, String name, String definition) {
-    //Filter already existing
-    for (TaskDefinitionResource taskDefinitionResource : taskDefinitionResources) {
-      if (taskDefinitionResource.getName().equals(name)) {
-        assertEquals(name, taskDefinitionResource.getName());
-        return;
-      }
-    }
-    final TaskDefinitionResource taskDefinitionResource = dataFlowOperations.taskOperations().create(name, definition, "");
-    assertEquals(name, taskDefinitionResource.getName());
-  }
+  @Resource
+  ExecutionRecordExternalIdentifierRepository executionRecordExternalIdentifierRepository;
 
   @Test
   void launchOaiTask() {
@@ -342,24 +271,35 @@ class ApplicationTestIT {
     await().forever().until(() -> {
       final TaskExecutionResource taskExecutionResource = getTaskExecutionResource.get();
       final TaskExecutionStatus taskExecutionStatus = taskExecutionResource.getTaskExecutionStatus();
+      printProgress(taskExecutionStatus, taskExecutionResource);
+      return taskExecutionStatus == TaskExecutionStatus.COMPLETE || taskExecutionStatus == TaskExecutionStatus.ERROR;
+    });
+  }
+
+  private void printProgress(TaskExecutionStatus taskExecutionStatus, TaskExecutionResource taskExecutionResource) {
+    if (taskExecutionStatus != TaskExecutionStatus.ERROR) {
       final String executionId = Long.toString(taskExecutionResource.getJobExecutionIds().getFirst());
       final String datasetId = getArgumentValue(taskExecutionResource, ARGUMENT_DATASET_ID);
       final String sourceExecutionId = getArgumentValue(taskExecutionResource, ARGUMENT_EXECUTION_ID);
+
+      final RegisterConfigurationProperties registerProperties = batchConfigurationProperties.getRegisterProperties();
+      final long sourceTotal;
+      if (taskExecutionResource.getTaskName().equals(registerProperties.getOaiHarvestName())) {
+        sourceTotal = executionRecordExternalIdentifierRepository.countByExecutionRecordKeyDatasetIdAndExecutionRecordKeyExecutionId(
+            datasetId, executionId);
+      } else {
+        sourceTotal = executionRecordRepository.countByExecutionRecordKeyDatasetIdAndExecutionRecordKeyExecutionId(
+            datasetId, sourceExecutionId);
+      }
 
       final long successProcessed = executionRecordRepository.countByExecutionRecordKeyDatasetIdAndExecutionRecordKeyExecutionId(
           datasetId, executionId);
       final long exceptions = executionRecordExceptionLogRepository.countByExecutionRecordKeyDatasetIdAndExecutionRecordKeyExecutionId(
           datasetId, executionId);
       final long processed = successProcessed + exceptions;
-      //TODO: 2024-04-18 - Fix this for upcoming OAI changes
-      final long sourceTotal = executionRecordRepository.countByExecutionRecordKeyDatasetIdAndExecutionRecordKeyExecutionId(
-          datasetId,
-          sourceExecutionId);
 
-      LOGGER.info(
-          String.format("Task progress - Processed/SourceTotal: %s/%s, Exceptions: %s", processed, sourceTotal, exceptions));
-      return taskExecutionStatus == TaskExecutionStatus.COMPLETE || taskExecutionStatus == TaskExecutionStatus.ERROR;
-    });
+      LOGGER.info(format("Task progress - Processed/SourceTotal: %s/%s, Exceptions: %s", processed, sourceTotal, exceptions));
+    }
   }
 
   private static @NotNull String getArgumentValue(TaskExecutionResource taskExecutionResource, String argumentDatasetId) {
@@ -385,7 +325,8 @@ class ApplicationTestIT {
       Map<String, String> additionalDeploymentProperties, List<String> arguments) {
     final Map<String, String> deploymentProperties = batchConfigurationProperties.getDeploymentProperties();
     deploymentProperties.putAll(additionalDeploymentProperties);
-    final Map<String, String> appPrefixedDeploymentProperties = prefixMap(DEPLOYMENT_PARAMETER_APP_PREFIX, taskName, deploymentProperties);
+    final Map<String, String> appPrefixedDeploymentProperties = prefixMap(DEPLOYMENT_PARAMETER_APP_PREFIX, taskName,
+        deploymentProperties);
 
     final Map<String, String> deployerPrefixedDeploymentProperties = prefixMap(DEPLOYMENT_PARAMETER_DEPLOYER_PREFIX, taskName,
         deployerProperties);
@@ -399,28 +340,5 @@ class ApplicationTestIT {
 
   private Map<String, String> prefixMap(String prefix, String suffix, Map<String, String> map) {
     return TransformedMap.transformedMap(map, key -> format("%s.%s.%s", prefix, suffix, key), value -> value);
-  }
-
-  @Test
-  void logPresentObjects() {
-    final PagedModel<AppRegistrationResource> appRegistrationResources = dataFlowOperations.appRegistryOperations().list();
-
-    LOGGER.info("All Registered Applications:");
-    for (AppRegistrationResource appRegistration : appRegistrationResources) {
-      LOGGER.info("Application name: {}", appRegistration.getName());
-      LOGGER.info("Type: {}", appRegistration.getType());
-      LOGGER.info("URI: {}", appRegistration.getUri());
-      LOGGER.info("");
-    }
-
-    LOGGER.info("All Created Tasks:");
-    final PagedModel<TaskDefinitionResource> taskDefinitionResources = dataFlowOperations.taskOperations().list();
-    for (TaskDefinitionResource taskDefinitionResource : taskDefinitionResources) {
-      LOGGER.info("Task name: {}", taskDefinitionResource.getName());
-      LOGGER.info("Description: {}", taskDefinitionResource.getDescription());
-      LOGGER.info("DSL: {}", taskDefinitionResource.getDslText());
-      LOGGER.info("");
-    }
-    assertTrue(true);
   }
 }
