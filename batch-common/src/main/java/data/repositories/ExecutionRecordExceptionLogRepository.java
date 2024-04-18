@@ -7,4 +7,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface ExecutionRecordExceptionLogRepository extends JpaRepository<ExecutionRecordExceptionLog, ExecutionRecordExceptionLogKey> {
+  long countByExecutionRecordKeyDatasetIdAndExecutionRecordKeyExecutionId(String datasetId, String executionId);
 }

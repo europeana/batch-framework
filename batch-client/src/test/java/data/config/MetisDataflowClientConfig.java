@@ -12,8 +12,7 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 @EnableConfigurationProperties({
-    DataFlowClientProperties.class, BatchConfigurationProperties.class,
-    BatchConfigurationProperties.class})
+    DataFlowClientProperties.class, BatchConfigurationProperties.class})
 public class MetisDataflowClientConfig {
 
   @Bean
