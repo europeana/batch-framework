@@ -26,13 +26,13 @@ public class IndexingItemProcessor implements ItemProcessor<ExecutionRecord, Exe
 
     private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-    @Value("#{jobParameters['PRESERVE_TIMESTAMPS']}")
+    @Value("#{jobParameters['preserveTimestamps']}")
     public boolean preserveTimestamps;
 
-    @Value("#{jobParameters['PERFORM_REDIRECTS']}")
+    @Value("#{jobParameters['performRedirects']}")
     public boolean performRedirect;
 
-    @Value("#{jobParameters['RECORD_DATE']}")
+    @Value("#{jobParameters['recordDate']}")
     private String recordDate;
 
     private final IndexingSettings indexingSettings;
