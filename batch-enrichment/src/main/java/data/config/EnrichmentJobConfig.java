@@ -59,7 +59,7 @@ public class EnrichmentJobConfig {
       RepositoryItemReader<ExecutionRecord> enrichmentRepositoryItemReader,
       ItemProcessor<ExecutionRecord, Future<ExecutionRecordDTO>> enrichmentAsyncItemProcessor,
       ItemWriter<Future<ExecutionRecordDTO>> executionRecordDTOAsyncItemWriter,
-      DelayLoggingItemProcessListener<ExecutionRecord> delayLoggingItemProcessListener) {
+      DelayLoggingItemProcessListener delayLoggingItemProcessListener) {
     return new StepBuilder(STEP_NAME, jobRepository)
         .<ExecutionRecord, Future<ExecutionRecordDTO>>chunk(chunkSize, transactionManager)
         .reader(enrichmentRepositoryItemReader)

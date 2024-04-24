@@ -59,7 +59,7 @@ public class MediaJobConfig {
       RepositoryItemReader<ExecutionRecord> mediaRepositoryItemReader,
       ItemProcessor<ExecutionRecord, Future<ExecutionRecordDTO>> mediaAsyncItemProcessor,
       ItemWriter<Future<ExecutionRecordDTO>> executionRecordDTOAsyncItemWriter,
-      DelayLoggingItemProcessListener<ExecutionRecord> delayLoggingItemProcessListener) {
+      DelayLoggingItemProcessListener delayLoggingItemProcessListener) {
     return new StepBuilder(STEP_NAME, jobRepository)
         .<ExecutionRecord, Future<ExecutionRecordDTO>>chunk(chunkSize, transactionManager)
         .reader(mediaRepositoryItemReader)
