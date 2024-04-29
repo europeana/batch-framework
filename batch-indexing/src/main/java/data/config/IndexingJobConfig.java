@@ -8,6 +8,7 @@ import data.unit.reader.DefaultRepositoryItemReader;
 import data.util.IndexingProperties;
 import data.util.IndexingSettingsGenerator;
 import eu.europeana.indexing.IndexingSettings;
+import eu.europeana.indexing.exception.IndexingException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.Job;
@@ -88,12 +89,7 @@ public class IndexingJobConfig {
             @Qualifier("indexingStepAsyncTaskExecutor") TaskExecutor indexingAsyncTaskExecutor) {
         AsyncItemProcessor<ExecutionRecord, ExecutionRecordDTO> asyncItemProcessor = new AsyncItemProcessor<>();
         asyncItemProcessor.setDelegate(indexingItemProcessor);
-        /*TODO:
-         we don't use task executor here since Mongo client, used in eu.europeana.indexing.IndexerImpl,
-         is sync client (doesn't work in case of multithreaded environment). We can consider to migrate it to reactive client;
-         https://www.mongodb.com/docs/drivers/java/sync/current/
-         */
-//        asyncItemProcessor.setTaskExecutor(indexingAsyncTaskExecutor);
+        asyncItemProcessor.setTaskExecutor(indexingAsyncTaskExecutor);
         return asyncItemProcessor;
     }
 
@@ -104,12 +100,8 @@ public class IndexingJobConfig {
     }
 
     @Bean
-    public IndexingSettings indexingSettings(IndexingProperties indexingProperties) {
-        try {
-            return new IndexingSettingsGenerator(indexingProperties).generate();
-        } catch (Exception e) {
-            throw new RuntimeException("Unable to prepare indexing settings", e);
-        }
+    public IndexingSettings indexingSettings(IndexingProperties indexingProperties) throws IndexingException {
+        return new IndexingSettingsGenerator(indexingProperties).generate();
     }
 
     @Bean

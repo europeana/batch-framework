@@ -6,6 +6,8 @@ import java.net.InetSocketAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Optional;
+
+import eu.europeana.indexing.exception.SetupRelatedIndexingException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,7 +21,7 @@ public class IndexingSettingsGenerator {
         this.properties = properties;
 
     }
-    public IndexingSettings generate() throws IndexingException, URISyntaxException {
+    public IndexingSettings generate() throws IndexingException {
         if (isNotDefinedFor(properties)) {
             return null;
         }
@@ -33,7 +35,7 @@ public class IndexingSettingsGenerator {
     }
 
     private void prepareSettingFor(IndexingProperties indexingProperties, IndexingSettings indexingSettings)
-            throws IndexingException, URISyntaxException {
+            throws IndexingException {
         prepareMongoSettings(indexingSettings, indexingProperties);
         prepareSolrSetting(indexingSettings, indexingProperties);
         prepareZookeeperSettings(indexingSettings, indexingProperties);
@@ -81,11 +83,15 @@ public class IndexingSettingsGenerator {
     }
 
     private void prepareSolrSetting(IndexingSettings indexingSettings, IndexingProperties indexingProperties)
-            throws URISyntaxException, IndexingException {
+            throws IndexingException {
         String solrInstances = indexingProperties.getSolrInstances();
         String[] instances = solrInstances.trim().split(",");
-        for (String instance : instances) {
-            indexingSettings.addSolrHost(new URI(instance));
+        try {
+            for (String instance : instances) {
+                indexingSettings.addSolrHost(new URI(instance));
+            }
+        } catch (URISyntaxException e) {
+            throw new SetupRelatedIndexingException(e.getMessage(), e);
         }
     }
 

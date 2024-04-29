@@ -45,7 +45,7 @@ public class IndexingItemProcessor implements ItemProcessor<ExecutionRecord, Exe
     public ExecutionRecordDTO process(ExecutionRecord executionRecord) {
         LOGGER.info("Indexing record: {}", executionRecord.getExecutionRecordKey().getRecordId());
 
-        try (eu.europeana.indexing.Indexer indexer = new IndexerFactory(indexingSettings).getIndexer(); indexer) {
+        try (eu.europeana.indexing.Indexer indexer = new IndexerFactory(indexingSettings).getIndexer()) {
             final var properties = new eu.europeana.indexing.IndexingProperties(
                     Optional.ofNullable(recordDate)
                             .map(Instant::parse)
