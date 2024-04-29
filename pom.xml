@@ -29,6 +29,7 @@
     <module>batch-enrichment</module>
     <module>batch-media</module>
     <module>batch-client</module>
+    <module>batch-indexing</module>
   </modules>
 
 

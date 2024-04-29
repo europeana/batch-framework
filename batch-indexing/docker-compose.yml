@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  container:
+    image: europeana/batch-indexing:latest
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    environment:
+      JDK_JAVA_OPTIONS: -Xms1000m -Xmx1000m
+    command: [ "java", "-jar", "/app.jar",
+               "datasetId=10",
+               "executionId=84",
+               "preserveTimestamps=false",
+               "performRedirects=true",
+               "--indexing.mongoInstances=<>",
+               "--indexing.mongoPortNumber=27027",
+               "--indexing.mongoDbName=<>",
+               "--indexing.mongoRedirectsDbName=<>",
+               "--indexing.mongoUsername=<>",
+               "--indexing.mongoPassword=<>",
+               "--indexing.mongoAuthDB=<>",
+               "--indexing.mongoUseSSL=false",
+               "--indexing.mongoReadPreference=PRIMARY_PREFERRED",
+               "--indexing.mongoPoolSize=32",
+               "--indexing.solrInstances=<>",
+               "--indexing.zookeeperInstances=<>",
+               "--indexing.zookeeperPortNumber=2282",
+               "--indexing.zookeeperChroot=",
+               "--indexing.zookeeperDefaultCollection=<>",
+               "--indexing.mongoApplicationName=<>",
+               "--spring.datasource.url=<>",
+               "--spring.datasource.username=<>",
+               "--spring.datasource.password=<>",
+               "--spring.jpa.hibernate.ddl-auto=none",
+               "--spring.datasource.hikari.maximumPoolSize=500",
+               "--spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect",
+               "--spring.batch.jdbc.initialize-schema=always",
+               "--spring.batch.initialize-schema=always",
+               "--transformation.chunk.size=10",
+               "--transformation.parallelization.size=1",
+               "--chunk.size=10",
+               "--parallelization.size=10",
+    ]
+    # Disable memory swap by setting the same value as memory limit
+    memswap_limit: 1500M
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 1500M
+        reservations:
+          cpus: '2'
+          memory: 1500M
