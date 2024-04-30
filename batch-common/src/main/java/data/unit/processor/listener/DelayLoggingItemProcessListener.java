@@ -1,9 +1,11 @@
 package data.unit.processor.listener;
 
+import data.entity.ExecutionRecord;
 import data.entity.ExecutionRecordDTO;
 import java.lang.invoke.MethodHandles;
+import java.util.concurrent.Future;
+
 import lombok.Setter;
-import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,7 +17,7 @@ import org.springframework.stereotype.Component;
 @Component
 @StepScope
 @Setter
-public class DelayLoggingItemProcessListener<T> implements ItemProcessListener<T, ExecutionRecordDTO> {
+public class DelayLoggingItemProcessListener implements ItemProcessListener<ExecutionRecord, Future<ExecutionRecordDTO>> {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
@@ -23,29 +25,18 @@ public class DelayLoggingItemProcessListener<T> implements ItemProcessListener<T
   private Long jobInstanceId;
 
   @Override
-  public void beforeProcess(@NotNull T item) {
+  public void beforeProcess(@NotNull ExecutionRecord item) {
     LOGGER.debug("beforeProcess");
   }
 
   @Override
-  public void afterProcess(@NotNull T item, ExecutionRecordDTO executionRecordDTO) {
-    LOGGER.info("DelayLoggingItemProcessListener thread: {}", Thread.currentThread());
-    if (StringUtils.isNotBlank(executionRecordDTO.getRecordData())){
-      LOGGER.info("AfterProcess LOG_DELAY success jobId {}, datasetId, executionId, recordId: {}, {}, {}",
-          jobInstanceId,
-          executionRecordDTO.getDatasetId(),
-          executionRecordDTO.getExecutionId(),
-          executionRecordDTO.getRecordId());
-    }
-    else{
-      LOGGER.info("AfterProcess LOG_DELAY failure jobId {}, datasetId: {}, executionId: {}, recordId: {}, exception: {}",
-          jobInstanceId,
-          executionRecordDTO.getDatasetId(),
-          executionRecordDTO.getExecutionId(),
-          executionRecordDTO.getRecordId(),
-          executionRecordDTO.getException()
-      );
-    }
+  public void afterProcess(@NotNull ExecutionRecord executionRecord, Future<ExecutionRecordDTO> executionRecordDTO) {
+      LOGGER.info("DelayLoggingItemProcessListener thread: {}", Thread.currentThread());
+      LOGGER.info("AfterProcess LOG_DELAY jobId {}, datasetId, executionId, recordId: {}, {}, {}",
+              jobInstanceId,
+              executionRecord.getExecutionRecordKey().getDatasetId(),
+              executionRecord.getExecutionRecordKey().getExecutionId(),
+              executionRecord.getExecutionRecordKey().getRecordId());
 //    try {
 //      Thread.sleep(1000);
 //    } catch (InterruptedException e) {
@@ -55,7 +46,7 @@ public class DelayLoggingItemProcessListener<T> implements ItemProcessListener<T
   }
 
   @Override
-  public void onProcessError(@NotNull T item, @NotNull Exception e) {
+  public void onProcessError(@NotNull ExecutionRecord executionRecord, @NotNull Exception e) {
     LOGGER.error(" onProcessError");
   }
 

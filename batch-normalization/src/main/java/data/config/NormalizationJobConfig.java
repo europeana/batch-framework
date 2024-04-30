@@ -59,7 +59,7 @@ public class NormalizationJobConfig {
       RepositoryItemReader<ExecutionRecord> normalizationRepositoryItemReader,
       ItemProcessor<ExecutionRecord, Future<ExecutionRecordDTO>> normalizationAsyncItemProcessor,
       ItemWriter<Future<ExecutionRecordDTO>> executionRecordDTOAsyncItemWriter,
-      DelayLoggingItemProcessListener<ExecutionRecord> delayLoggingItemProcessListener) {
+      DelayLoggingItemProcessListener delayLoggingItemProcessListener) {
     return new StepBuilder(STEP_NAME, jobRepository)
         .<ExecutionRecord, Future<ExecutionRecordDTO>>chunk(chunkSize, transactionManager)
         .reader(normalizationRepositoryItemReader)
