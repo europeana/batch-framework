@@ -4,11 +4,11 @@ import static data.job.BatchJobType.VALIDATION;
 
 import data.entity.ExecutionRecord;
 import data.entity.ExecutionRecordDTO;
+import data.job.BatchJobType;
 import data.job.incrementer.TimestampJobParametersIncrementer;
 import data.repositories.ExecutionRecordRepository;
 import data.unit.processor.listener.DelayLoggingItemProcessListener;
 import data.unit.reader.DefaultRepositoryItemReader;
-import data.job.BatchJobType;
 import java.lang.invoke.MethodHandles;
 import java.util.concurrent.Future;
 import org.slf4j.Logger;
@@ -82,6 +82,7 @@ public class ValidationJobConfig {
   @Bean
   public TaskExecutor validationStepAsyncTaskExecutor() {
     ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+    executor.setThreadNamePrefix(VALIDATION.name() + "Thread-");
     executor.setCorePoolSize(parallelization);
     executor.setMaxPoolSize(parallelization);
     executor.initialize();

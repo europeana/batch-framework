@@ -81,6 +81,7 @@ public class EnrichmentJobConfig {
   @Bean
   public TaskExecutor enrichmentStepAsyncTaskExecutor() {
     ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+    executor.setThreadNamePrefix(ENRICHMENT.name() + "Thread-");
     executor.setCorePoolSize(parallelization);
     executor.setMaxPoolSize(parallelization);
     executor.initialize();

@@ -81,6 +81,7 @@ public class NormalizationJobConfig {
   @Bean
   public TaskExecutor normalizationStepAsyncTaskExecutor() {
     ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+    executor.setThreadNamePrefix(NORMALIZATION.name() + "Thread-");
     executor.setCorePoolSize(parallelization);
     executor.setMaxPoolSize(parallelization);
     executor.initialize();

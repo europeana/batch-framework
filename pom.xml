@@ -15,7 +15,7 @@
     <metis.version>12-SNAPSHOT</metis.version>
     <metis-normalization.version>13-SNAPSHOT</metis-normalization.version>
     <postgresql.version>42.7.2</postgresql.version>
-    <spring-boot-dependencies.version>3.2.3</spring-boot-dependencies.version>
+    <spring-boot-dependencies.version>3.2.4</spring-boot-dependencies.version>
     <spring-cloud-task-dependencies.version>3.1.0</spring-cloud-task-dependencies.version>
     <spring-boot-maven-plugin.version>${spring-boot-dependencies.version}</spring-boot-maven-plugin.version>
   </properties>
