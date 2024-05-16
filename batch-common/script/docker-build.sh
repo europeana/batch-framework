@@ -1,8 +1,20 @@
 #!/bin/bash
 
-docker build -t europeana/batch-oai-harvest $(realpath ../../batch-oai-harvest)
-docker build -t europeana/batch-validation $(realpath ../../batch-validation)
-docker build -t europeana/batch-transformation $(realpath ../../batch-transformation)
-docker build -t europeana/batch-normalization $(realpath ../../batch-normalization)
-docker build -t europeana/batch-enrichment $(realpath ../../batch-enrichment)
-docker build -t europeana/batch-media $(realpath ../../batch-media)
+# Requires to have already been logged in to the registry we are deploying the images
+# ${1} docker_registry_and_prefix e.g. "default" or empty(for docker hub or local), "example.com/prefix/"(for an example repository with prefix)
+function main() {
+  docker_registry_and_prefix="$1"
+  echo "Docker registry and prefix \"$1\""
+  docker_build_and_tag
+}
+
+function docker_build_and_tag() {
+  docker build -t "${docker_registry_and_prefix}europeana/batch-oai-harvest" "$(realpath ../../batch-oai-harvest)"
+  docker build -t "${docker_registry_and_prefix}europeana/batch-validation" "$(realpath ../../batch-validation)"
+  docker build -t "${docker_registry_and_prefix}europeana/batch-transformation" "$(realpath ../../batch-transformation)"
+  docker build -t "${docker_registry_and_prefix}europeana/batch-normalization" "$(realpath ../../batch-normalization)"
+  docker build -t "${docker_registry_and_prefix}europeana/batch-enrichment" "$(realpath ../../batch-enrichment)"
+  docker build -t "${docker_registry_and_prefix}europeana/batch-media" "$(realpath ../../batch-media)"
+}
+
+main "$@"
