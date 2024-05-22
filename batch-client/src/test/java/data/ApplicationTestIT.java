@@ -280,7 +280,7 @@ class ApplicationTestIT {
     final JobConfigurationProperties jobProperties = batchConfigurationProperties.getJobProperties();
 
     final Map<String, String> additionalAppProperties = new HashMap<>();
-    additionalAppProperties.put(INDEXING_CHUNK_SIZE, jobProperties.getMedia().getChunkSize());
+    additionalAppProperties.put(INDEXING_CHUNK_SIZE, jobProperties.getIndexing().getChunkSize());
     additionalAppProperties.put(INDEXING_PARALLELIZATION_SIZE, jobProperties.getIndexing().getParallelizationSize());
 
     additionalAppProperties.put(INDEXING_PRESERVE_TIMESTAMPS, jobProperties.getIndexing().getPreserveTimestamps());
