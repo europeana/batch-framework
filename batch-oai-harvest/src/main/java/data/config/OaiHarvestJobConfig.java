@@ -5,13 +5,12 @@ import static data.job.BatchJobType.OAI_HARVEST;
 import data.entity.ExecutionRecordDTO;
 import data.entity.ExecutionRecordExternalIdentifier;
 import data.job.incrementer.TimestampJobParametersIncrementer;
-
-import java.lang.invoke.MethodHandles;
-import java.util.concurrent.Future;
-
+import data.unit.processor.listener.LoggingItemProcessListener;
 import data.unit.reader.OaiIdentifiersEndpointItemReader;
 import data.unit.reader.OaiIdentifiersRepositoryItemReader;
 import data.unit.writer.OaiIdentifiersWriter;
+import java.lang.invoke.MethodHandles;
+import java.util.concurrent.Future;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.Job;
@@ -82,12 +81,13 @@ public class OaiHarvestJobConfig {
             OaiIdentifiersRepositoryItemReader oaiIdentifiersRepositoryItemReader,
             @Qualifier("transactionManager") PlatformTransactionManager transactionManager,
             ItemProcessor<ExecutionRecordExternalIdentifier, Future<ExecutionRecordDTO>> oaiRecordAsyncItemProcessor,
-            ItemWriter<Future<ExecutionRecordDTO>> executionRecordDTOAsyncItemWriter) {
-
+            ItemWriter<Future<ExecutionRecordDTO>> executionRecordDTOAsyncItemWriter,
+            LoggingItemProcessListener<ExecutionRecordExternalIdentifier> loggingItemProcessListener) {
         return new StepBuilder(RECORDS_HARVEST_STEP_NAME, jobRepository)
                 .<ExecutionRecordExternalIdentifier, Future<ExecutionRecordDTO>>chunk(chunkSize, transactionManager)
                 .reader(oaiIdentifiersRepositoryItemReader)
                 .processor(oaiRecordAsyncItemProcessor)
+                .listener(loggingItemProcessListener)
                 .writer(executionRecordDTOAsyncItemWriter)
                 .build();
     }

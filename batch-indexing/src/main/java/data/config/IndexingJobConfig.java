@@ -65,7 +65,7 @@ public class IndexingJobConfig {
       RepositoryItemReader<ExecutionRecord> indexingRepositoryItemReader,
       ItemProcessor<ExecutionRecord, Future<ExecutionRecordDTO>> indexingAsyncItemProcessor,
       ItemWriter<Future<ExecutionRecordDTO>> executionRecordDTOAsyncItemWriter,
-      LoggingItemProcessListener loggingItemProcessListener) {
+      LoggingItemProcessListener<ExecutionRecord> loggingItemProcessListener) {
     return new StepBuilder(STEP_NAME, jobRepository)
         .<ExecutionRecord, Future<ExecutionRecordDTO>>chunk(chunkSize, transactionManager)
         .reader(indexingRepositoryItemReader)

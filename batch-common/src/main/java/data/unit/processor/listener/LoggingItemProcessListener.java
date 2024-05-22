@@ -1,10 +1,9 @@
 package data.unit.processor.listener;
 
-import data.entity.ExecutionRecord;
 import data.entity.ExecutionRecordDTO;
+import data.entity.ExecutionRecordIdentifier;
 import java.lang.invoke.MethodHandles;
 import java.util.concurrent.Future;
-
 import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -17,7 +16,8 @@ import org.springframework.stereotype.Component;
 @Component
 @StepScope
 @Setter
-public class LoggingItemProcessListener implements ItemProcessListener<ExecutionRecord, Future<ExecutionRecordDTO>> {
+public class LoggingItemProcessListener<T extends ExecutionRecordIdentifier> implements
+    ItemProcessListener<T, Future<ExecutionRecordDTO>> {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
@@ -25,21 +25,18 @@ public class LoggingItemProcessListener implements ItemProcessListener<Execution
   private Long jobInstanceId;
 
   @Override
-  public void beforeProcess(@NotNull ExecutionRecord item) {
+  public void beforeProcess(@NotNull T item) {
     LOGGER.debug("beforeProcess");
   }
 
   @Override
-  public void afterProcess(@NotNull ExecutionRecord executionRecord, Future<ExecutionRecordDTO> future) {
-      LOGGER.info("Processing jobId {}, datasetId, executionId, recordId: {}, {}, {}",
-              jobInstanceId,
-              executionRecord.getDatasetId(),
-              executionRecord.getExecutionId(),
-              executionRecord.getRecordId());
+  public void afterProcess(@NotNull T item, Future<ExecutionRecordDTO> future) {
+    LOGGER.info("Processing jobId {}, datasetId, executionId, recordId: {}, {}, {}",
+        jobInstanceId, item.getDatasetId(), item.getExecutionId(), item.getRecordId());
   }
 
   @Override
-  public void onProcessError(@NotNull ExecutionRecord executionRecord, @NotNull Exception e) {
+  public void onProcessError(@NotNull T executionRecord, @NotNull Exception e) {
     LOGGER.error(" onProcessError");
   }
 
