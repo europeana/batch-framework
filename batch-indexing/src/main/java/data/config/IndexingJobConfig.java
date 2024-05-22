@@ -1,5 +1,7 @@
 package data.config;
 
+import static data.job.BatchJobType.INDEXING;
+
 import data.entity.ExecutionRecord;
 import data.entity.ExecutionRecordDTO;
 import data.job.incrementer.TimestampJobParametersIncrementer;
@@ -9,6 +11,8 @@ import data.util.IndexingProperties;
 import data.util.IndexingSettingsGenerator;
 import eu.europeana.indexing.IndexingSettings;
 import eu.europeana.indexing.exception.IndexingException;
+import java.lang.invoke.MethodHandles;
+import java.util.concurrent.Future;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.Job;
@@ -31,11 +35,6 @@ import org.springframework.core.task.TaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.transaction.PlatformTransactionManager;
 
-import java.lang.invoke.MethodHandles;
-import java.util.concurrent.Future;
-
-import static data.job.BatchJobType.INDEXING;
-
 @Configuration
 @EnableTask
 public class IndexingJobConfig {
@@ -44,9 +43,9 @@ public class IndexingJobConfig {
     public static final String BATCH_JOB = INDEXING.name();
     public static final String STEP_NAME = "indexingStep";
 
-    @Value("${chunk.size}")
+    @Value("${indexing.chunk.size}")
     public int chunkSize;
-    @Value("${parallelization.size}")
+    @Value("${indexing.parallelization.size}")
     public int parallelization;
 
     @Bean
@@ -107,6 +106,7 @@ public class IndexingJobConfig {
     @Bean
     public TaskExecutor indexingStepAsyncTaskExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setThreadNamePrefix(INDEXING.name() + "Thread-");
         executor.setCorePoolSize(parallelization);
         executor.setMaxPoolSize(parallelization);
         executor.initialize();

@@ -1,6 +1,7 @@
 package data.config.properties;
 
 import data.config.properties.plugin.EnrichmentConfigurationProperties;
+import data.config.properties.plugin.IndexingConfigurationProperties;
 import data.config.properties.plugin.MediaConfigurationProperties;
 import data.config.properties.plugin.NormalizationConfigurationProperties;
 import data.config.properties.plugin.OaiHarvestConfigurationProperties;
@@ -26,5 +27,7 @@ public class JobConfigurationProperties {
   private EnrichmentConfigurationProperties enrichment;
   @NestedConfigurationProperty
   private MediaConfigurationProperties media;
+  @NestedConfigurationProperty
+  private IndexingConfigurationProperties indexing;
 
 }

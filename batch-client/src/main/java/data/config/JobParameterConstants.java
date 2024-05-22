@@ -24,5 +24,30 @@ public class JobParameterConstants {
   public static final String MEDIA_CHUNK_SIZE = "media.chunk.size";
   public static final String MEDIA_PARALLELIZATION_SIZE = "media.parallelization.size";
 
+  public static final String INDEXING_CHUNK_SIZE = "indexing.chunk.size";
+  public static final String INDEXING_PARALLELIZATION_SIZE = "indexing.parallelization.size";
+
+  public static final String INDEXING_PRESERVE_TIMESTAMPS = "indexing.preserveTimestamps";
+  public static final String INDEXING_PERFORM_REDIRECTS = "indexing.performRedirects";
+
+  public static final String INDEXING_MONGO_INSTANCES = "indexing.mongoInstances";
+  public static final String INDEXING_MONGO_PORT_NUMBER = "indexing.mongoPortNumber";
+  public static final String INDEXING_MONGO_DB_NAME = "indexing.mongoDbName";
+  public static final String INDEXING_MONGO_REDIRECTS_DB_NAME = "indexing.mongoRedirectsDbName";
+  public static final String INDEXING_MONGO_USERNAME = "indexing.mongoUsername";
+  public static final String INDEXING_MONGO_PASSWORD = "indexing.mongoPassword";
+  public static final String INDEXING_MONGO_AUTH_DB = "indexing.mongoAuthDB";
+  public static final String INDEXING_MONGO_USE_SSL = "indexing.mongoUseSSL";
+  public static final String INDEXING_MONGO_READ_PREFERENCE = "indexing.mongoReadPreference";
+  public static final String INDEXING_MONGO_POOL_SIZE = "indexing.mongoPoolSize";
+  public static final String INDEXING_MONGO_APPLICATION_NAME = "indexing.mongoApplicationName";
+
+  public static final String INDEXING_SOLR_INSTANCES = "indexing.solrInstances";
+  public static final String INDEXING_ZOOKEEPER_INSTANCES = "indexing.zookeeperInstances";
+  public static final String INDEXING_ZOOKEEPER_PORT_NUMBER = "indexing.zookeeperPortNumber";
+  public static final String INDEXING_ZOOKEEPER_CHROOT = "indexing.zookeeperChroot";
+  public static final String INDEXING_ZOOKEEPER_DEFAULT_COLLECTION = "indexing.zookeeperDefaultCollection";
+
+
 }
 

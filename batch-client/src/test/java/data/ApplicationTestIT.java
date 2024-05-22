@@ -6,6 +6,26 @@ import static data.config.JobParameterConstants.ENRICHMENT_ENTITY_API_KEY;
 import static data.config.JobParameterConstants.ENRICHMENT_ENTITY_API_URL;
 import static data.config.JobParameterConstants.ENRICHMENT_ENTITY_MANAGEMENT_URL;
 import static data.config.JobParameterConstants.ENRICHMENT_PARALLELIZATION_SIZE;
+import static data.config.JobParameterConstants.INDEXING_CHUNK_SIZE;
+import static data.config.JobParameterConstants.INDEXING_MONGO_APPLICATION_NAME;
+import static data.config.JobParameterConstants.INDEXING_MONGO_AUTH_DB;
+import static data.config.JobParameterConstants.INDEXING_MONGO_DB_NAME;
+import static data.config.JobParameterConstants.INDEXING_MONGO_INSTANCES;
+import static data.config.JobParameterConstants.INDEXING_MONGO_PASSWORD;
+import static data.config.JobParameterConstants.INDEXING_MONGO_POOL_SIZE;
+import static data.config.JobParameterConstants.INDEXING_MONGO_PORT_NUMBER;
+import static data.config.JobParameterConstants.INDEXING_MONGO_READ_PREFERENCE;
+import static data.config.JobParameterConstants.INDEXING_MONGO_REDIRECTS_DB_NAME;
+import static data.config.JobParameterConstants.INDEXING_MONGO_USERNAME;
+import static data.config.JobParameterConstants.INDEXING_MONGO_USE_SSL;
+import static data.config.JobParameterConstants.INDEXING_PARALLELIZATION_SIZE;
+import static data.config.JobParameterConstants.INDEXING_PERFORM_REDIRECTS;
+import static data.config.JobParameterConstants.INDEXING_PRESERVE_TIMESTAMPS;
+import static data.config.JobParameterConstants.INDEXING_SOLR_INSTANCES;
+import static data.config.JobParameterConstants.INDEXING_ZOOKEEPER_CHROOT;
+import static data.config.JobParameterConstants.INDEXING_ZOOKEEPER_DEFAULT_COLLECTION;
+import static data.config.JobParameterConstants.INDEXING_ZOOKEEPER_INSTANCES;
+import static data.config.JobParameterConstants.INDEXING_ZOOKEEPER_PORT_NUMBER;
 import static data.config.JobParameterConstants.MEDIA_CHUNK_SIZE;
 import static data.config.JobParameterConstants.MEDIA_PARALLELIZATION_SIZE;
 import static data.config.JobParameterConstants.NORMALIZATION_CHUNK_SIZE;
@@ -127,7 +147,7 @@ class ApplicationTestIT {
 
     final ArrayList<String> arguments = new ArrayList<>();
     arguments.add(ARGUMENT_DATASET_ID + "=1");
-    arguments.add(ARGUMENT_EXECUTION_ID + "=86");
+    arguments.add(ARGUMENT_EXECUTION_ID + "=255");
     arguments.add(ARGUMENT_BATCH_JOB_SUBTYPE + "=EXTERNAL");
 
     pollingStatus(launchTask(taskName, deployerProperties, additionalAppProperties, arguments));
@@ -150,7 +170,7 @@ class ApplicationTestIT {
 
     final ArrayList<String> arguments = new ArrayList<>();
     arguments.add(ARGUMENT_DATASET_ID + "=1");
-    arguments.add(ARGUMENT_EXECUTION_ID + "=9");
+    arguments.add(ARGUMENT_EXECUTION_ID + "=256");
     arguments.add(ARGUMENT_DATASET_NAME + "=idA_metisDatasetNameA");
     arguments.add(ARGUMENT_DATASET_COUNTRY + "=Greece");
     arguments.add(ARGUMENT_DATASET_LANGUAGE + "=el");
@@ -176,7 +196,7 @@ class ApplicationTestIT {
 
     final ArrayList<String> arguments = new ArrayList<>();
     arguments.add(ARGUMENT_DATASET_ID + "=1");
-    arguments.add(ARGUMENT_EXECUTION_ID + "=10");
+    arguments.add(ARGUMENT_EXECUTION_ID + "=257");
     arguments.add(ARGUMENT_BATCH_JOB_SUBTYPE + "=INTERNAL");
 
     pollingStatus(launchTask(taskName, deployerProperties, additionalAppProperties, arguments));
@@ -199,7 +219,7 @@ class ApplicationTestIT {
 
     final ArrayList<String> arguments = new ArrayList<>();
     arguments.add(ARGUMENT_DATASET_ID + "=1");
-    arguments.add(ARGUMENT_EXECUTION_ID + "=11");
+    arguments.add(ARGUMENT_EXECUTION_ID + "=258");
 
     pollingStatus(launchTask(taskName, deployerProperties, additionalAppProperties, arguments));
   }
@@ -225,7 +245,7 @@ class ApplicationTestIT {
 
     final ArrayList<String> arguments = new ArrayList<>();
     arguments.add(ARGUMENT_DATASET_ID + "=1");
-    arguments.add(ARGUMENT_EXECUTION_ID + "=12");
+    arguments.add(ARGUMENT_EXECUTION_ID + "=259");
 
     pollingStatus(launchTask(taskName, deployerProperties, additionalAppProperties, arguments));
   }
@@ -242,13 +262,57 @@ class ApplicationTestIT {
 
     final Map<String, String> deployerProperties = new HashMap<>();
     deployerProperties.put(DEPLOYER_KUBERNETES_LIMITS_CPU, "2000m");
+    deployerProperties.put(DEPLOYER_KUBERNETES_LIMITS_MEMORY, "1500M");
+    deployerProperties.put(DEPLOYER_KUBERNETES_REQUESTS_CPU, "2000m");
+    deployerProperties.put(DEPLOYER_KUBERNETES_REQUESTS_MEMORY, "1500M");
+
+    final ArrayList<String> arguments = new ArrayList<>();
+    arguments.add(ARGUMENT_DATASET_ID + "=1");
+    arguments.add(ARGUMENT_EXECUTION_ID + "=260");
+
+    pollingStatus(launchTask(taskName, deployerProperties, additionalAppProperties, arguments));
+  }
+
+  @Test
+  void launchIndexTask() {
+    final RegisterConfigurationProperties registerProperties = batchConfigurationProperties.getRegisterProperties();
+    final String taskName = registerProperties.getIndexingName();
+    final JobConfigurationProperties jobProperties = batchConfigurationProperties.getJobProperties();
+
+    final Map<String, String> additionalAppProperties = new HashMap<>();
+    additionalAppProperties.put(INDEXING_CHUNK_SIZE, jobProperties.getMedia().getChunkSize());
+    additionalAppProperties.put(INDEXING_PARALLELIZATION_SIZE, jobProperties.getIndexing().getParallelizationSize());
+
+    additionalAppProperties.put(INDEXING_PRESERVE_TIMESTAMPS, jobProperties.getIndexing().getPreserveTimestamps());
+    additionalAppProperties.put(INDEXING_PERFORM_REDIRECTS, jobProperties.getIndexing().getPerformRedirects());
+
+    additionalAppProperties.put(INDEXING_MONGO_INSTANCES, jobProperties.getIndexing().getMongoInstances());
+    additionalAppProperties.put(INDEXING_MONGO_PORT_NUMBER, jobProperties.getIndexing().getMongoPortNumber());
+    additionalAppProperties.put(INDEXING_MONGO_DB_NAME, jobProperties.getIndexing().getMongoDbName());
+    additionalAppProperties.put(INDEXING_MONGO_REDIRECTS_DB_NAME, jobProperties.getIndexing().getMongoRedirectsDbName());
+    additionalAppProperties.put(INDEXING_MONGO_USERNAME, jobProperties.getIndexing().getMongoUsername());
+    additionalAppProperties.put(INDEXING_MONGO_PASSWORD, jobProperties.getIndexing().getMongoPassword());
+    additionalAppProperties.put(INDEXING_MONGO_AUTH_DB, jobProperties.getIndexing().getMongoAuthDB());
+    additionalAppProperties.put(INDEXING_MONGO_USE_SSL, jobProperties.getIndexing().getMongoUseSSL());
+    additionalAppProperties.put(INDEXING_MONGO_READ_PREFERENCE, jobProperties.getIndexing().getMongoReadPreference());
+    additionalAppProperties.put(INDEXING_MONGO_POOL_SIZE, jobProperties.getIndexing().getMongoPoolSize());
+    additionalAppProperties.put(INDEXING_MONGO_APPLICATION_NAME, jobProperties.getIndexing().getMongoApplicationName());
+
+    additionalAppProperties.put(INDEXING_SOLR_INSTANCES, jobProperties.getIndexing().getSolrInstances());
+    additionalAppProperties.put(INDEXING_ZOOKEEPER_INSTANCES, jobProperties.getIndexing().getZookeeperInstances());
+    additionalAppProperties.put(INDEXING_ZOOKEEPER_PORT_NUMBER, jobProperties.getIndexing().getZookeeperPortNumber());
+    additionalAppProperties.put(INDEXING_ZOOKEEPER_CHROOT, jobProperties.getIndexing().getZookeeperChroot());
+    additionalAppProperties.put(INDEXING_ZOOKEEPER_DEFAULT_COLLECTION, jobProperties.getIndexing().getZookeeperDefaultCollection());
+
+    final Map<String, String> deployerProperties = new HashMap<>();
+    deployerProperties.put(DEPLOYER_KUBERNETES_LIMITS_CPU, "2000m");
     deployerProperties.put(DEPLOYER_KUBERNETES_LIMITS_MEMORY, "800M");
     deployerProperties.put(DEPLOYER_KUBERNETES_REQUESTS_CPU, "2000m");
     deployerProperties.put(DEPLOYER_KUBERNETES_REQUESTS_MEMORY, "800M");
 
     final ArrayList<String> arguments = new ArrayList<>();
     arguments.add(ARGUMENT_DATASET_ID + "=1");
-    arguments.add(ARGUMENT_EXECUTION_ID + "=13");
+    arguments.add(ARGUMENT_EXECUTION_ID + "=262");
 
     pollingStatus(launchTask(taskName, deployerProperties, additionalAppProperties, arguments));
   }

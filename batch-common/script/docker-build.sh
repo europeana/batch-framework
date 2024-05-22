@@ -15,6 +15,7 @@ function docker_build_and_tag() {
   docker build -t "${docker_registry_and_prefix}europeana/batch-normalization" "$(realpath ../../batch-normalization)"
   docker build -t "${docker_registry_and_prefix}europeana/batch-enrichment" "$(realpath ../../batch-enrichment)"
   docker build -t "${docker_registry_and_prefix}europeana/batch-media" "$(realpath ../../batch-media)"
+  docker build -t "${docker_registry_and_prefix}europeana/batch-indexing" "$(realpath ../../batch-indexing)"
 }
 
 main "$@"

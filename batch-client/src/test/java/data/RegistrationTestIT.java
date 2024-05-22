@@ -43,6 +43,7 @@ class RegistrationTestIT {
     registerApplication(registerProperties.getNormalizationName(), registerProperties.getNormalizationUri());
     registerApplication(registerProperties.getEnrichmentName(), registerProperties.getEnrichmentUri());
     registerApplication(registerProperties.getMediaName(), registerProperties.getMediaUri());
+    registerApplication(registerProperties.getIndexingName(), registerProperties.getIndexingUri());
   }
 
   private void registerApplication(String name, String uri) {
@@ -69,6 +70,7 @@ class RegistrationTestIT {
     createTask(taskDefinitionResources, registerProperties.getNormalizationName(), registerProperties.getNormalizationName());
     createTask(taskDefinitionResources, registerProperties.getEnrichmentName(), registerProperties.getEnrichmentName());
     createTask(taskDefinitionResources, registerProperties.getMediaName(), registerProperties.getMediaName());
+    createTask(taskDefinitionResources, registerProperties.getIndexingName(), registerProperties.getIndexingName());
   }
 
   @Test

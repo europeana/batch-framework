@@ -1,30 +1,34 @@
-package data.util;
+package data.config.properties.plugin;
 
 import lombok.Getter;
 import lombok.Setter;
-import lombok.ToString;
 
 @Setter
 @Getter
-@ToString
-public class IndexingProperties {
+public class IndexingConfigurationProperties {
+
+  private String chunkSize;
+  private String parallelizationSize;
+
+  private String preserveTimestamps;
+  private String performRedirects;
 
   private String mongoInstances;
-  private int mongoPortNumber;
+  private String mongoPortNumber;
   private String mongoDbName;
   private String mongoRedirectsDbName;
   private String mongoUsername;
   private String mongoPassword;
-  private String mongoAuthDb;
+  private String mongoAuthDB;
   private String mongoUseSSL;
   private String mongoReadPreference;
+  private String mongoPoolSize;
   private String mongoApplicationName;
-  private int mongoPoolSize;
 
   private String solrInstances;
-
   private String zookeeperInstances;
-  private int zookeeperPortNumber;
+  private String zookeeperPortNumber;
   private String zookeeperChroot;
   private String zookeeperDefaultCollection;
+
 }

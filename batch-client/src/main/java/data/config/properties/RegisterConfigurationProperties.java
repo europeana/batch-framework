@@ -19,5 +19,7 @@ public class RegisterConfigurationProperties {
   private String enrichmentUri;
   private String mediaName;
   private String mediaUri;
+  private String indexingName;
+  private String indexingUri;
 
 }

@@ -1,76 +1,78 @@
 package data.processor;
 
+import static data.job.BatchJobType.INDEXING;
+
 import data.entity.ExecutionRecord;
 import data.entity.ExecutionRecordDTO;
 import data.job.BatchJobType;
+import data.unit.processor.listener.MetisItemProcessor;
 import data.utility.ExecutionRecordUtil;
+import data.utility.ItemProcessorUtil;
+import eu.europeana.indexing.Indexer;
 import eu.europeana.indexing.IndexerFactory;
 import eu.europeana.indexing.IndexingSettings;
-import eu.europeana.indexing.tiers.model.MediaTier;
+import java.lang.invoke.MethodHandles;
+import java.util.Collections;
+import java.util.Date;
+import java.util.function.Function;
+import lombok.Setter;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.configuration.annotation.StepScope;
-import org.springframework.batch.item.ItemProcessor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-
-import java.lang.invoke.MethodHandles;
-import java.time.Instant;
-import java.util.Collections;
-import java.util.Date;
-import java.util.Optional;
+import org.springframework.util.function.ThrowingFunction;
 
 @Component
 @StepScope
-public class IndexingItemProcessor implements ItemProcessor<ExecutionRecord, ExecutionRecordDTO> {
+@Setter
+public class IndexingItemProcessor implements MetisItemProcessor<ExecutionRecord, ExecutionRecordDTO, String> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+    private static final BatchJobType batchJobType = INDEXING;
 
-    @Value("#{jobParameters['preserveTimestamps']}")
+    @Value("${indexing.preserveTimestamps}")
     public boolean preserveTimestamps;
 
-    @Value("#{jobParameters['performRedirects']}")
+    @Value("${indexing.performRedirects}")
     public boolean performRedirect;
+    @Value("#{stepExecution.jobExecution.jobInstance.id}")
+    private Long jobInstanceId;
 
-    @Value("#{jobParameters['recordDate']}")
-    private String recordDate;
-
+    private final Date recordDate;
+    private final ItemProcessorUtil<String> itemProcessorUtil;
     private final IndexingSettings indexingSettings;
 
     public IndexingItemProcessor(IndexingSettings indexingSettings) {
+        this.recordDate = new Date();
         this.indexingSettings = indexingSettings;
+        itemProcessorUtil = new ItemProcessorUtil<>(getFunction(), Function.identity());
     }
 
     @Override
-    public ExecutionRecordDTO process(ExecutionRecord executionRecord) {
-        LOGGER.info("Indexing record: {}", executionRecord.getExecutionRecordKey().getRecordId());
+    public ThrowingFunction<ExecutionRecordDTO, String> getFunction() {
+        return executionRecord -> {
+            LOGGER.info("Indexing record: {}", executionRecord.getRecordId());
 
-        try (eu.europeana.indexing.Indexer indexer = new IndexerFactory(indexingSettings).getIndexer()) {
-            final var properties = new eu.europeana.indexing.IndexingProperties(
-                    Optional.ofNullable(recordDate)
-                            .map(Instant::parse)
-                            .map(Date::from)
-                            .orElse(null),
+            Indexer indexer = new IndexerFactory(indexingSettings).getIndexer();
+                final var properties = new eu.europeana.indexing.IndexingProperties(
+                    recordDate,
                     preserveTimestamps,
                     Collections.emptyList(),
                     performRedirect,
                     true);
 
-            LOGGER.info("Indexing: {}", executionRecord.getExecutionRecordKey().getRecordId());
-            indexer.index(executionRecord.getRecordData(), properties, tier -> tier.getMediaTier() != MediaTier.T0);
-            LOGGER.info("Indexed: {}", executionRecord.getExecutionRecordKey().getRecordId());
-        } catch (Exception exception) {
-            LOGGER.error("Unable to index record {}", executionRecord.getExecutionRecordKey().getRecordId(), exception);
-            final ExecutionRecordDTO resultExecutionRecordDTO = new ExecutionRecordDTO();
-            resultExecutionRecordDTO.setDatasetId(executionRecord.getExecutionRecordKey().getDatasetId());
-            resultExecutionRecordDTO.setExecutionId(executionRecord.getExecutionRecordKey().getExecutionId());
-            resultExecutionRecordDTO.setRecordId(executionRecord.getExecutionRecordKey().getRecordId());
-            resultExecutionRecordDTO.setRecordData("");
-            resultExecutionRecordDTO.setExecutionName(BatchJobType.INDEXING.name());
-            resultExecutionRecordDTO.setException(exception.getMessage());
-            return resultExecutionRecordDTO;
-        }
+                LOGGER.info("Indexing: {}", executionRecord.getRecordId());
+                indexer.index(executionRecord.getRecordData(), properties, tier -> true);
+                LOGGER.info("Indexed: {}", executionRecord.getRecordId());
+                return executionRecord.getRecordData();
+        };
+    }
 
-        return ExecutionRecordUtil.converterToExecutionRecordDTO(executionRecord);
+    @Override
+    public ExecutionRecordDTO process(@NotNull ExecutionRecord executionRecord) {
+        final ExecutionRecordDTO executionRecordDTO = ExecutionRecordUtil.converterToExecutionRecordDTO(executionRecord);
+        return itemProcessorUtil.processCapturingException(executionRecordDTO, batchJobType, jobInstanceId.toString());
     }
 }
