@@ -72,7 +72,7 @@ public class MediaJobConfig {
   @Bean
   @StepScope
   public RepositoryItemReader<ExecutionRecord> mediaRepositoryItemReader(
-      ExecutionRecordRepository executionRecordRepository) {
+      ExecutionRecordRepository<ExecutionRecord> executionRecordRepository) {
     final DefaultRepositoryItemReader defaultRepositoryItemReader = new DefaultRepositoryItemReader(executionRecordRepository);
     defaultRepositoryItemReader.setPageSize(chunkSize);
     return defaultRepositoryItemReader;

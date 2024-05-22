@@ -46,7 +46,7 @@ public class OaiRecordHarvesterItemProcessor implements ItemProcessor<ExecutionR
 
         LOGGER.info("OaiHarvestItemReader thread: {}", Thread.currentThread());
         OaiHarvest oaiHarvest = new OaiHarvest(oaiEndpoint, oaiMetadataPrefix, oaiSet);
-        final OaiRecord oaiRecord = oaiHarvester.harvestRecord(oaiHarvest, executionRecordExternalIdentifier.getExecutionRecordKey().getRecordId());
+        final OaiRecord oaiRecord = oaiHarvester.harvestRecord(oaiHarvest, executionRecordExternalIdentifier.getRecordId());
         String resultString = new String(oaiRecord.getRecord().readAllBytes(), StandardCharsets.UTF_8);
         return getExecutionRecordDTO(resultString);
     }

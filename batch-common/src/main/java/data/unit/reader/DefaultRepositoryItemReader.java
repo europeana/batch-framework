@@ -19,9 +19,9 @@ public class DefaultRepositoryItemReader extends RepositoryItemReader<ExecutionR
   @Value("#{jobParameters['executionId']}")
   private String executionId;
 
-  private ExecutionRecordRepository executionRecordRepository;
+  private ExecutionRecordRepository<ExecutionRecord> executionRecordRepository;
 
-  public DefaultRepositoryItemReader(ExecutionRecordRepository executionRecordRepository) {
+  public DefaultRepositoryItemReader(ExecutionRecordRepository<ExecutionRecord> executionRecordRepository) {
     super();
     this.executionRecordRepository = executionRecordRepository;
   }
@@ -30,7 +30,7 @@ public class DefaultRepositoryItemReader extends RepositoryItemReader<ExecutionR
   public void afterPropertiesSet() throws Exception {
 
     setRepository(executionRecordRepository);
-    setMethodName("findByExecutionRecordKeyDatasetIdAndExecutionRecordKeyExecutionId");
+    setMethodName("findByDatasetIdAndExecutionId");
 
     List<Object> queryMethodArguments = new ArrayList<>();
     queryMethodArguments.add(datasetId);
@@ -39,7 +39,7 @@ public class DefaultRepositoryItemReader extends RepositoryItemReader<ExecutionR
     setArguments(queryMethodArguments);
     setPageSize(1);
     Map<String, Direction> sorts = new HashMap<>();
-    sorts.put("ExecutionRecordKeyRecordId", Direction.ASC);
+    sorts.put("RecordId", Direction.ASC);
     setSort(sorts);
   }
 }

@@ -1,7 +1,6 @@
 package data.entity;
 
 import jakarta.persistence.Column;
-import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Index;
 import jakarta.persistence.Table;
@@ -12,10 +11,8 @@ import lombok.Setter;
 @Setter
 @Entity
 @Table(schema = "batch-framework", indexes = {@Index(name = "execution_record_exception_log_dataset_id_execution_id_idx", columnList = "datasetId, executionId")})
-public class ExecutionRecordExceptionLog {
+public class ExecutionRecordExceptionLog extends ExecutionRecordIdentifier{
 
-  @EmbeddedId
-  private ExecutionRecordExceptionLogKey executionRecordKey;
   @Column(length = 50)
   private String executionName;
   @Column(columnDefinition = "TEXT")

@@ -33,9 +33,9 @@ public class LoggingItemProcessListener implements ItemProcessListener<Execution
   public void afterProcess(@NotNull ExecutionRecord executionRecord, Future<ExecutionRecordDTO> future) {
       LOGGER.info("Processing jobId {}, datasetId, executionId, recordId: {}, {}, {}",
               jobInstanceId,
-              executionRecord.getExecutionRecordKey().getDatasetId(),
-              executionRecord.getExecutionRecordKey().getExecutionId(),
-              executionRecord.getExecutionRecordKey().getRecordId());
+              executionRecord.getDatasetId(),
+              executionRecord.getExecutionId(),
+              executionRecord.getRecordId());
   }
 
   @Override

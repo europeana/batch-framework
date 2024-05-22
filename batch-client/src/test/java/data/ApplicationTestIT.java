@@ -59,6 +59,7 @@ import data.config.MetisDataflowClientConfig;
 import data.config.properties.BatchConfigurationProperties;
 import data.config.properties.JobConfigurationProperties;
 import data.config.properties.RegisterConfigurationProperties;
+import data.entity.ExecutionRecord;
 import data.repositories.ExecutionRecordExceptionLogRepository;
 import data.repositories.ExecutionRecordExternalIdentifierRepository;
 import data.repositories.ExecutionRecordRepository;
@@ -99,7 +100,7 @@ class ApplicationTestIT {
   @Autowired
   BatchConfigurationProperties batchConfigurationProperties;
   @Resource
-  ExecutionRecordRepository executionRecordRepository;
+  ExecutionRecordRepository<ExecutionRecord> executionRecordRepository;
   @Resource
   ExecutionRecordExceptionLogRepository executionRecordExceptionLogRepository;
   @Resource
@@ -147,7 +148,7 @@ class ApplicationTestIT {
 
     final ArrayList<String> arguments = new ArrayList<>();
     arguments.add(ARGUMENT_DATASET_ID + "=1");
-    arguments.add(ARGUMENT_EXECUTION_ID + "=276");
+    arguments.add(ARGUMENT_EXECUTION_ID + "=309");
     arguments.add(ARGUMENT_BATCH_JOB_SUBTYPE + "=EXTERNAL");
 
     pollingStatus(launchTask(taskName, deployerProperties, additionalAppProperties, arguments));
@@ -349,16 +350,16 @@ class ApplicationTestIT {
       final RegisterConfigurationProperties registerProperties = batchConfigurationProperties.getRegisterProperties();
       final long sourceTotal;
       if (taskExecutionResource.getTaskName().equals(registerProperties.getOaiHarvestName())) {
-        sourceTotal = executionRecordExternalIdentifierRepository.countByExecutionRecordKeyDatasetIdAndExecutionRecordKeyExecutionId(
+        sourceTotal = executionRecordExternalIdentifierRepository.countByDatasetIdAndExecutionId(
             datasetId, executionId);
       } else {
-        sourceTotal = executionRecordRepository.countByExecutionRecordKeyDatasetIdAndExecutionRecordKeyExecutionId(
+        sourceTotal = executionRecordRepository.countByDatasetIdAndExecutionId(
             datasetId, sourceExecutionId);
       }
 
-      final long successProcessed = executionRecordRepository.countByExecutionRecordKeyDatasetIdAndExecutionRecordKeyExecutionId(
+      final long successProcessed = executionRecordRepository.countByDatasetIdAndExecutionId(
           datasetId, executionId);
-      final long exceptions = executionRecordExceptionLogRepository.countByExecutionRecordKeyDatasetIdAndExecutionRecordKeyExecutionId(
+      final long exceptions = executionRecordExceptionLogRepository.countByDatasetIdAndExecutionId(
           datasetId, executionId);
       final long processed = successProcessed + exceptions;
 

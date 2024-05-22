@@ -1,7 +1,6 @@
 package data.unit.reader;
 
 import data.entity.ExecutionRecordExternalIdentifier;
-import data.entity.ExecutionRecordKey;
 import eu.europeana.metis.harvesting.HarvesterException;
 import eu.europeana.metis.harvesting.HarvesterFactory;
 import eu.europeana.metis.harvesting.ReportingIteration;
@@ -10,17 +9,16 @@ import eu.europeana.metis.harvesting.oaipmh.OaiHarvester;
 import eu.europeana.metis.harvesting.oaipmh.OaiRecordHeader;
 import eu.europeana.metis.harvesting.oaipmh.OaiRecordHeaderIterator;
 import jakarta.annotation.PostConstruct;
+import java.io.IOException;
+import java.lang.invoke.MethodHandles;
+import java.util.LinkedList;
+import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.item.ItemReader;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-
-import java.io.IOException;
-import java.lang.invoke.MethodHandles;
-import java.util.LinkedList;
-import java.util.List;
 
 @Component
 @StepScope
@@ -52,13 +50,10 @@ public class OaiIdentifiersEndpointItemReader implements ItemReader<ExecutionRec
 
         final OaiRecordHeader oaiRecordHeader = takeIdentifier();
         if (oaiRecordHeader != null) {
-            ExecutionRecordKey key = new ExecutionRecordKey();
-            key.setDatasetId(datasetId);
-            key.setRecordId(oaiRecordHeader.getOaiIdentifier());
-            key.setExecutionId(jobInstanceId.toString());
-
             ExecutionRecordExternalIdentifier recordIdentifier = new ExecutionRecordExternalIdentifier();
-            recordIdentifier.setExecutionRecordKey(key);
+            recordIdentifier.setDatasetId(datasetId);
+            recordIdentifier.setRecordId(oaiRecordHeader.getOaiIdentifier());
+            recordIdentifier.setExecutionId(jobInstanceId.toString());
             recordIdentifier.setDeleted(oaiRecordHeader.isDeleted());
 
             return recordIdentifier;

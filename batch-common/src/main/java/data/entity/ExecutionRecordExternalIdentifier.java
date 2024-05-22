@@ -8,10 +8,7 @@ import lombok.Setter;
 @Setter
 @Entity
 @Table(schema = "batch-framework")
-public class ExecutionRecordExternalIdentifier {
-
-    @EmbeddedId
-    private ExecutionRecordKey executionRecordKey;
+public class ExecutionRecordExternalIdentifier extends ExecutionRecordIdentifier{
 
     private boolean isDeleted;
 }

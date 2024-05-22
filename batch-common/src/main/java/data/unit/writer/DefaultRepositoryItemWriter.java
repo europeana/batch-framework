@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 public class DefaultRepositoryItemWriter extends RepositoryItemWriter<ExecutionRecord> {
 
   @Autowired
-  public DefaultRepositoryItemWriter(ExecutionRecordRepository executionRecordRepository) {
+  public DefaultRepositoryItemWriter(ExecutionRecordRepository<ExecutionRecord> executionRecordRepository) {
     super();
     setRepository(executionRecordRepository);
     setMethodName("save");

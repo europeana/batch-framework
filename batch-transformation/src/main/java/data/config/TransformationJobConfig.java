@@ -72,7 +72,7 @@ public class TransformationJobConfig {
   @Bean
   @StepScope
   public RepositoryItemReader<ExecutionRecord> trasnformationRepositoryItemReader(
-      ExecutionRecordRepository executionRecordRepository) {
+      ExecutionRecordRepository<ExecutionRecord> executionRecordRepository) {
     final DefaultRepositoryItemReader defaultRepositoryItemReader = new DefaultRepositoryItemReader(executionRecordRepository);
     defaultRepositoryItemReader.setPageSize(chunkSize);
     return defaultRepositoryItemReader;

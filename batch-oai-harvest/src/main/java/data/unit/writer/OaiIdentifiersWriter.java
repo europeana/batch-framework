@@ -15,7 +15,7 @@ public class OaiIdentifiersWriter extends RepositoryItemWriter<ExecutionRecordEx
 
     private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-    public OaiIdentifiersWriter(ExecutionRecordExternalIdentifierRepository repository) {
+    public OaiIdentifiersWriter(ExecutionRecordExternalIdentifierRepository<ExecutionRecordExternalIdentifier> repository) {
         setRepository(repository);
     }
 

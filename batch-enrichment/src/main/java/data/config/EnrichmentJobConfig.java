@@ -72,7 +72,7 @@ public class EnrichmentJobConfig {
   @Bean
   @StepScope
   public RepositoryItemReader<ExecutionRecord> enrichmentRepositoryItemReader(
-      ExecutionRecordRepository executionRecordRepository) {
+      ExecutionRecordRepository<ExecutionRecord> executionRecordRepository) {
     final DefaultRepositoryItemReader defaultRepositoryItemReader = new DefaultRepositoryItemReader(executionRecordRepository);
     defaultRepositoryItemReader.setPageSize(chunkSize);
     return defaultRepositoryItemReader;

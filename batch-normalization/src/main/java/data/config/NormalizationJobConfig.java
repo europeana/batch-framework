@@ -72,7 +72,7 @@ public class NormalizationJobConfig {
   @Bean
   @StepScope
   public RepositoryItemReader<ExecutionRecord> normalizationRepositoryItemReader(
-      ExecutionRecordRepository executionRecordRepository) {
+      ExecutionRecordRepository<ExecutionRecord> executionRecordRepository) {
     final DefaultRepositoryItemReader defaultRepositoryItemReader = new DefaultRepositoryItemReader(executionRecordRepository);
     defaultRepositoryItemReader.setPageSize(chunkSize);
     return defaultRepositoryItemReader;

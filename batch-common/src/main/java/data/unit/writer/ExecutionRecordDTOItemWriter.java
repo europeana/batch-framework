@@ -1,5 +1,6 @@
 package data.unit.writer;
 
+import data.entity.ExecutionRecord;
 import data.entity.ExecutionRecordDTO;
 import data.repositories.ExecutionRecordExceptionLogRepository;
 import data.repositories.ExecutionRecordRepository;
@@ -15,11 +16,11 @@ import org.springframework.stereotype.Component;
 @StepScope
 public class ExecutionRecordDTOItemWriter implements ItemWriter<ExecutionRecordDTO> {
 
-  private final ExecutionRecordRepository executionRecordRepository;
+  private final ExecutionRecordRepository<ExecutionRecord> executionRecordRepository;
   private final ExecutionRecordExceptionLogRepository executionRecordExceptionLogRepository;
 
   @Autowired
-  public ExecutionRecordDTOItemWriter(ExecutionRecordRepository executionRecordRepository,
+  public ExecutionRecordDTOItemWriter(ExecutionRecordRepository<ExecutionRecord> executionRecordRepository,
       ExecutionRecordExceptionLogRepository executionRecordExceptionLogRepository) {
     this.executionRecordRepository = executionRecordRepository;
     this.executionRecordExceptionLogRepository = executionRecordExceptionLogRepository;
