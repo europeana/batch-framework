@@ -54,10 +54,6 @@
           <artifactId>corelib-lookup</artifactId>
         </exclusion>
         <exclusion>
-          <groupId>org.springframework</groupId>
-          <artifactId>spring-webflux</artifactId>
-        </exclusion>
-        <exclusion>
           <groupId>io.projectreactor</groupId>
           <artifactId>reactor-core</artifactId>
         </exclusion>
@@ -75,81 +71,6 @@
         </exclusion>
       </exclusions>
     </dependency>
-    <!-- client entity api dependencies -->
-    <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-webflux</artifactId>
-      <exclusions>
-        <exclusion>
-          <groupId>org.springframework.boot</groupId>
-          <artifactId>spring-boot-starter-logging</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>io.projectreactor.netty</groupId>
-          <artifactId>reactor-netty</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-autoconfigure</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>io.netty</groupId>
-      <artifactId>netty-codec</artifactId>
-      <version>${version.netty}</version>
-    </dependency>
-    <dependency>
-      <groupId>io.netty</groupId>
-      <artifactId>netty-codec-http</artifactId>
-      <version>${version.netty}</version>
-    </dependency>
-    <dependency>
-      <groupId>io.netty</groupId>
-      <artifactId>netty-handler</artifactId>
-      <version>${version.netty}</version>
-    </dependency>
-    <dependency>
-      <groupId>io.netty</groupId>
-      <artifactId>netty-codec-http2</artifactId>
-      <version>${version.netty}</version>
-    </dependency>
-    <dependency>
-      <groupId>io.netty</groupId>
-      <artifactId>netty-resolver-dns</artifactId>
-      <version>${version.netty}</version>
-    </dependency>
-    <dependency>
-      <groupId>io.netty</groupId>
-      <artifactId>netty-codec-dns</artifactId>
-      <version>${version.netty}</version>
-    </dependency>
-    <dependency>
-      <groupId>io.netty</groupId>
-      <artifactId>netty-common</artifactId>
-      <version>${version.netty}</version>
-    </dependency>
-    <dependency>
-      <groupId>io.netty</groupId>
-      <artifactId>netty-buffer</artifactId>
-      <version>${version.netty}</version>
-    </dependency>
-    <dependency>
-      <groupId>io.netty</groupId>
-      <artifactId>netty-transport</artifactId>
-      <version>${version.netty}</version>
-    </dependency>
-    <dependency>
-      <groupId>io.netty</groupId>
-      <artifactId>netty-resolver</artifactId>
-      <version>${version.netty}</version>
-    </dependency>
-    <dependency>
-      <groupId>io.projectreactor</groupId>
-      <artifactId>reactor-core</artifactId>
-      <version>${version.reactor}</version>
-    </dependency>
-    <!-- end of client entity api entities -->
     <!--    ENRICHMENT DEPENDENCIES-->
 
     <dependency>

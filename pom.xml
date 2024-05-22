@@ -12,7 +12,7 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.compiler.plugin.version>3.8.1</maven.compiler.plugin.version>
     <java.version>21</java.version>
-    <metis.version>12-SNAPSHOT</metis.version>
+    <metis.version>13-SNAPSHOT</metis.version>
     <metis-normalization.version>13-SNAPSHOT</metis-normalization.version>
     <postgresql.version>42.7.2</postgresql.version>
     <spring-boot-dependencies.version>3.2.4</spring-boot-dependencies.version>
