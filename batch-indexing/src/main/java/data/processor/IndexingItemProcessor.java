@@ -55,18 +55,15 @@ public class IndexingItemProcessor implements MetisItemProcessor<ExecutionRecord
         return executionRecord -> {
             LOGGER.info("Indexing record: {}", executionRecord.getRecordId());
 
-            Indexer indexer = new IndexerFactory(indexingSettings).getIndexer();
+            try(Indexer indexer = new IndexerFactory(indexingSettings).getIndexer()) {
                 final var properties = new eu.europeana.indexing.IndexingProperties(
-                    recordDate,
-                    preserveTimestamps,
-                    Collections.emptyList(),
-                    performRedirect,
-                    true);
+                    recordDate, preserveTimestamps, Collections.emptyList(), performRedirect, true);
 
                 LOGGER.info("Indexing: {}", executionRecord.getRecordId());
                 indexer.index(executionRecord.getRecordData(), properties, tier -> true);
                 LOGGER.info("Indexed: {}", executionRecord.getRecordId());
                 return executionRecord.getRecordData();
+            }
         };
     }
 
