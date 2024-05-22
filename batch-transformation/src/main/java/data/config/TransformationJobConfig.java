@@ -6,7 +6,7 @@ import data.entity.ExecutionRecord;
 import data.entity.ExecutionRecordDTO;
 import data.job.incrementer.TimestampJobParametersIncrementer;
 import data.repositories.ExecutionRecordRepository;
-import data.unit.processor.listener.DelayLoggingItemProcessListener;
+import data.unit.processor.listener.LoggingItemProcessListener;
 import data.unit.reader.DefaultRepositoryItemReader;
 import java.lang.invoke.MethodHandles;
 import java.util.concurrent.Future;
@@ -59,12 +59,12 @@ public class TransformationJobConfig {
       RepositoryItemReader<ExecutionRecord> trasnformationRepositoryItemReader,
       ItemProcessor<ExecutionRecord, Future<ExecutionRecordDTO>> transformationAsyncItemProcessor,
       ItemWriter<Future<ExecutionRecordDTO>> executionRecordDTOAsyncItemWriter,
-      DelayLoggingItemProcessListener delayLoggingItemProcessListener) {
+      LoggingItemProcessListener loggingItemProcessListener) {
     return new StepBuilder(STEP_NAME, jobRepository)
         .<ExecutionRecord, Future<ExecutionRecordDTO>>chunk(chunkSize, transactionManager)
         .reader(trasnformationRepositoryItemReader)
         .processor(transformationAsyncItemProcessor)
-        .listener(delayLoggingItemProcessListener)
+        .listener(loggingItemProcessListener)
         .writer(executionRecordDTOAsyncItemWriter)
         .build();
   }

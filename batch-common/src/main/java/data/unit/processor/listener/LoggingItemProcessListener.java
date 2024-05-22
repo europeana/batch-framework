@@ -17,7 +17,7 @@ import org.springframework.stereotype.Component;
 @Component
 @StepScope
 @Setter
-public class DelayLoggingItemProcessListener implements ItemProcessListener<ExecutionRecord, Future<ExecutionRecordDTO>> {
+public class LoggingItemProcessListener implements ItemProcessListener<ExecutionRecord, Future<ExecutionRecordDTO>> {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
@@ -30,25 +30,17 @@ public class DelayLoggingItemProcessListener implements ItemProcessListener<Exec
   }
 
   @Override
-  public void afterProcess(@NotNull ExecutionRecord executionRecord, Future<ExecutionRecordDTO> executionRecordDTO) {
-      LOGGER.info("DelayLoggingItemProcessListener thread: {}", Thread.currentThread());
-      LOGGER.info("AfterProcess LOG_DELAY jobId {}, datasetId, executionId, recordId: {}, {}, {}",
+  public void afterProcess(@NotNull ExecutionRecord executionRecord, Future<ExecutionRecordDTO> future) {
+      LOGGER.info("Processing jobId {}, datasetId, executionId, recordId: {}, {}, {}",
               jobInstanceId,
               executionRecord.getExecutionRecordKey().getDatasetId(),
               executionRecord.getExecutionRecordKey().getExecutionId(),
               executionRecord.getExecutionRecordKey().getRecordId());
-//    try {
-//      Thread.sleep(1000);
-//    } catch (InterruptedException e) {
-//      Thread.currentThread().interrupt();
-//      throw new RuntimeException(e);
-//    }
   }
 
   @Override
   public void onProcessError(@NotNull ExecutionRecord executionRecord, @NotNull Exception e) {
     LOGGER.error(" onProcessError");
   }
-
 
 }
