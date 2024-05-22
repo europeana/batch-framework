@@ -81,7 +81,7 @@ public class MediaJobConfig {
   @Bean
   public TaskExecutor mediaStepAsyncTaskExecutor() {
     ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-    executor.setThreadNamePrefix(MEDIA.name() + "Thread-");
+    executor.setThreadNamePrefix(MEDIA.name() + "-");
     executor.setCorePoolSize(parallelization);
     executor.setMaxPoolSize(parallelization);
     executor.initialize();

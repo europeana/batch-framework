@@ -268,7 +268,7 @@ class ApplicationTestIT {
 
     final ArrayList<String> arguments = new ArrayList<>();
     arguments.add(ARGUMENT_DATASET_ID + "=1");
-    arguments.add(ARGUMENT_EXECUTION_ID + "=273");
+    arguments.add(ARGUMENT_EXECUTION_ID + "=288");
 
     pollingStatus(launchTask(taskName, deployerProperties, additionalAppProperties, arguments));
   }
@@ -312,7 +312,7 @@ class ApplicationTestIT {
 
     final ArrayList<String> arguments = new ArrayList<>();
     arguments.add(ARGUMENT_DATASET_ID + "=1");
-    arguments.add(ARGUMENT_EXECUTION_ID + "=262");
+    arguments.add(ARGUMENT_EXECUTION_ID + "=289");
 
     pollingStatus(launchTask(taskName, deployerProperties, additionalAppProperties, arguments));
   }

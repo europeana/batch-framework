@@ -81,7 +81,7 @@ public class TransformationJobConfig {
   @Bean
   public TaskExecutor transformationStepAsyncTaskExecutor() {
     ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-    executor.setThreadNamePrefix(TRANSFORMATION.name() + "Thread-");
+    executor.setThreadNamePrefix(TRANSFORMATION.name() + "-");
     executor.setCorePoolSize(parallelization);
     executor.setMaxPoolSize(parallelization);
     executor.initialize();

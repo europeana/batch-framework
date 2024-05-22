@@ -105,7 +105,7 @@ public class OaiHarvestJobConfig {
     @Bean
     public TaskExecutor oaiHarvestStepAsyncTaskExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setThreadNamePrefix(OAI_HARVEST.name() + "Thread-");
+        executor.setThreadNamePrefix(OAI_HARVEST.name() + "-");
         executor.setCorePoolSize(parallelization);
         executor.setMaxPoolSize(parallelization);
         executor.initialize();

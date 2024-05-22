@@ -82,7 +82,7 @@ public class ValidationJobConfig {
   @Bean
   public TaskExecutor validationStepAsyncTaskExecutor() {
     ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-    executor.setThreadNamePrefix(VALIDATION.name() + "Thread-");
+    executor.setThreadNamePrefix(VALIDATION.name() + "-");
     executor.setCorePoolSize(parallelization);
     executor.setMaxPoolSize(parallelization);
     executor.initialize();
