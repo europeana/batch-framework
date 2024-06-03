@@ -20,14 +20,16 @@ public class DefaultRepositoryItemReader extends RepositoryItemReader<ExecutionR
   private String executionId;
 
   private ExecutionRecordRepository<ExecutionRecord> executionRecordRepository;
+  private final int chunkSize;
 
-  public DefaultRepositoryItemReader(ExecutionRecordRepository<ExecutionRecord> executionRecordRepository) {
+  public DefaultRepositoryItemReader(ExecutionRecordRepository<ExecutionRecord> executionRecordRepository, int chunkSize) {
     super();
     this.executionRecordRepository = executionRecordRepository;
+    this.chunkSize = chunkSize;
   }
 
   @Override
-  public void afterPropertiesSet() throws Exception {
+  public void afterPropertiesSet() {
 
     setRepository(executionRecordRepository);
     setMethodName("findByDatasetIdAndExecutionId");
@@ -37,7 +39,8 @@ public class DefaultRepositoryItemReader extends RepositoryItemReader<ExecutionR
     queryMethodArguments.add(executionId);
 
     setArguments(queryMethodArguments);
-    setPageSize(1);
+    setPageSize(chunkSize);
+
     Map<String, Direction> sorts = new HashMap<>();
     sorts.put("RecordId", Direction.ASC);
     setSort(sorts);

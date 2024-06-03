@@ -39,9 +39,9 @@ public class OaiHarvestJobConfig {
     public static final String IDENTIFIERS_HARVEST_STEP_NAME = "identifiersHarvest";
     public static final String RECORDS_HARVEST_STEP_NAME = "recordsHarvest";
 
-    @Value("${oaiharvest.chunk.size}")
+    @Value("${oaiHarvest.chunkSize}")
     public int chunkSize;
-    @Value("${oaiharvest.parallelization.size}")
+    @Value("${oaiHarvest.parallelizationSize}")
     public int parallelization;
 
     @Bean

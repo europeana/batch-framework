@@ -39,9 +39,9 @@ public class NormalizationJobConfig {
   public static final String BATCH_JOB = NORMALIZATION.name();
   public static final String STEP_NAME = "normalizationStep";
 
-  @Value("${normalization.chunk.size}")
+  @Value("${normalization.chunkSize}")
   public int chunkSize;
-  @Value("${normalization.parallelization.size}")
+  @Value("${normalization.parallelizationSize}")
   public int parallelization;
 
   @Bean
@@ -73,9 +73,7 @@ public class NormalizationJobConfig {
   @StepScope
   public RepositoryItemReader<ExecutionRecord> normalizationRepositoryItemReader(
       ExecutionRecordRepository<ExecutionRecord> executionRecordRepository) {
-    final DefaultRepositoryItemReader defaultRepositoryItemReader = new DefaultRepositoryItemReader(executionRecordRepository);
-    defaultRepositoryItemReader.setPageSize(chunkSize);
-    return defaultRepositoryItemReader;
+    return new DefaultRepositoryItemReader(executionRecordRepository, chunkSize);
   }
 
   @Bean

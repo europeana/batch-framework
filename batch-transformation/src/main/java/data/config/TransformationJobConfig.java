@@ -39,9 +39,9 @@ public class TransformationJobConfig {
   public static final String BATCH_JOB = TRANSFORMATION.name();
   public static final String STEP_NAME = "transformationStep";
 
-  @Value("${transformation.chunk.size}")
+  @Value("${transformation.chunkSize}")
   public int chunkSize;
-  @Value("${transformation.parallelization.size}")
+  @Value("${transformation.parallelizationSize}")
   public int parallelization;
 
   @Bean
@@ -73,9 +73,7 @@ public class TransformationJobConfig {
   @StepScope
   public RepositoryItemReader<ExecutionRecord> trasnformationRepositoryItemReader(
       ExecutionRecordRepository<ExecutionRecord> executionRecordRepository) {
-    final DefaultRepositoryItemReader defaultRepositoryItemReader = new DefaultRepositoryItemReader(executionRecordRepository);
-    defaultRepositoryItemReader.setPageSize(chunkSize);
-    return defaultRepositoryItemReader;
+    return new DefaultRepositoryItemReader(executionRecordRepository, chunkSize);
   }
 
   @Bean

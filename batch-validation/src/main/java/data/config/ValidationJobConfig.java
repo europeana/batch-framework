@@ -7,7 +7,9 @@ import data.entity.ExecutionRecordDTO;
 import data.job.BatchJobType;
 import data.job.incrementer.TimestampJobParametersIncrementer;
 import data.repositories.ExecutionRecordRepository;
+import data.unit.processor.listener.LoggingChunkListener;
 import data.unit.processor.listener.LoggingItemProcessListener;
+import data.unit.processor.listener.LoggingJobExecutionListener;
 import data.unit.reader.DefaultRepositoryItemReader;
 import java.lang.invoke.MethodHandles;
 import java.util.concurrent.Future;
@@ -40,16 +42,17 @@ public class ValidationJobConfig {
   public static final BatchJobType BATCH_JOB = VALIDATION;
   public static final String STEP_NAME = "validationStep";
 
-  @Value("${validation.chunk.size}")
+  @Value("${validation.chunkSize}")
   public int chunkSize;
-  @Value("${validation.parallelization.size}")
+  @Value("${validation.parallelizationSize}")
   public int parallelization;
 
   @Bean
-  public Job validationBatchJob(JobRepository jobRepository, Step validationStep) {
+  public Job validationBatchJob(JobRepository jobRepository, Step validationStep, LoggingJobExecutionListener loggingJobExecutionListener) {
     LOGGER.info("Chunk size: {}, Parallelization size: {}", chunkSize, parallelization);
     return new JobBuilder(BATCH_JOB.name(), jobRepository)
         .incrementer(new TimestampJobParametersIncrementer())
+        .listener(loggingJobExecutionListener)
         .start(validationStep)
         .build();
   }
@@ -60,12 +63,14 @@ public class ValidationJobConfig {
       RepositoryItemReader<ExecutionRecord> validationRepositoryItemReader,
       ItemProcessor<ExecutionRecord, Future<ExecutionRecordDTO>> validationAsyncItemProcessor,
       ItemWriter<Future<ExecutionRecordDTO>> executionRecordDTOAsyncItemWriter,
-      LoggingItemProcessListener<ExecutionRecord> loggingItemProcessListener) {
+      LoggingItemProcessListener<ExecutionRecord> loggingItemProcessListener,
+      LoggingChunkListener loggingChunkListener) {
     return new StepBuilder(STEP_NAME, jobRepository)
         .<ExecutionRecord, Future<ExecutionRecordDTO>>chunk(chunkSize, transactionManager)
         .reader(validationRepositoryItemReader)
         .processor(validationAsyncItemProcessor)
         .listener(loggingItemProcessListener)
+        .listener(loggingChunkListener)
         .writer(executionRecordDTOAsyncItemWriter)
         .build();
   }
@@ -74,9 +79,7 @@ public class ValidationJobConfig {
   @StepScope
   public RepositoryItemReader<ExecutionRecord> validationRepositoryItemReader(
       ExecutionRecordRepository<ExecutionRecord> executionRecordRepository) {
-    final DefaultRepositoryItemReader defaultRepositoryItemReader = new DefaultRepositoryItemReader(executionRecordRepository);
-    defaultRepositoryItemReader.setPageSize(chunkSize);
-    return defaultRepositoryItemReader;
+    return new DefaultRepositoryItemReader(executionRecordRepository, chunkSize);
   }
 
   @Bean

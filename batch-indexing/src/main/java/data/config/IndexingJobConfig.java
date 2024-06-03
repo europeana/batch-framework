@@ -44,9 +44,9 @@ public class IndexingJobConfig {
   public static final String BATCH_JOB = INDEXING.name();
   public static final String STEP_NAME = "indexingStep";
 
-  @Value("${indexing.chunk.size}")
+  @Value("${indexing.chunkSize}")
   public int chunkSize;
-  @Value("${indexing.parallelization.size}")
+  @Value("${indexing.parallelizationSize}")
   public int parallelization;
 
   @Bean
@@ -79,9 +79,7 @@ public class IndexingJobConfig {
   @StepScope
   public RepositoryItemReader<ExecutionRecord> indexingRepositoryItemReader(
       ExecutionRecordRepository<ExecutionRecord> executionRecordRepository) {
-    final DefaultRepositoryItemReader defaultRepositoryItemReader = new DefaultRepositoryItemReader(executionRecordRepository);
-    defaultRepositoryItemReader.setPageSize(chunkSize);
-    return defaultRepositoryItemReader;
+    return new DefaultRepositoryItemReader(executionRecordRepository, chunkSize);
   }
 
   @Bean

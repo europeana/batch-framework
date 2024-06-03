@@ -39,9 +39,9 @@ public class EnrichmentJobConfig {
   public static final String BATCH_JOB = ENRICHMENT.name();
   public static final String STEP_NAME = "enrichmentStep";
 
-  @Value("${enrichment.chunk.size}")
+  @Value("${enrichment.chunkSize}")
   public int chunkSize;
-  @Value("${enrichment.parallelization.size}")
+  @Value("${enrichment.parallelizationSize}")
   public int parallelization;
 
   @Bean
@@ -73,9 +73,7 @@ public class EnrichmentJobConfig {
   @StepScope
   public RepositoryItemReader<ExecutionRecord> enrichmentRepositoryItemReader(
       ExecutionRecordRepository<ExecutionRecord> executionRecordRepository) {
-    final DefaultRepositoryItemReader defaultRepositoryItemReader = new DefaultRepositoryItemReader(executionRecordRepository);
-    defaultRepositoryItemReader.setPageSize(chunkSize);
-    return defaultRepositoryItemReader;
+    return new DefaultRepositoryItemReader(executionRecordRepository, chunkSize);
   }
 
   @Bean

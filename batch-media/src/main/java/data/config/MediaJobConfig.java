@@ -39,9 +39,9 @@ public class MediaJobConfig {
   public static final String BATCH_JOB = MEDIA.name();
   public static final String STEP_NAME = "mediaStep";
 
-  @Value("${media.chunk.size}")
+  @Value("${media.chunkSize}")
   public int chunkSize;
-  @Value("${media.parallelization.size}")
+  @Value("${media.parallelizationSize}")
   public int parallelization;
 
   @Bean
@@ -73,9 +73,7 @@ public class MediaJobConfig {
   @StepScope
   public RepositoryItemReader<ExecutionRecord> mediaRepositoryItemReader(
       ExecutionRecordRepository<ExecutionRecord> executionRecordRepository) {
-    final DefaultRepositoryItemReader defaultRepositoryItemReader = new DefaultRepositoryItemReader(executionRecordRepository);
-    defaultRepositoryItemReader.setPageSize(chunkSize);
-    return defaultRepositoryItemReader;
+    return new DefaultRepositoryItemReader(executionRecordRepository, chunkSize);
   }
 
   @Bean

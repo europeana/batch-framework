@@ -116,17 +116,17 @@ class ApplicationTestIT {
     additionalAppProperties.put(OAIHARVEST_PARALLELIZATION_SIZE, jobProperties.getOaiHarvest().getParallelizationSize());
 
     final Map<String, String> deployerProperties = new HashMap<>();
-    deployerProperties.put(DEPLOYER_KUBERNETES_LIMITS_CPU, "2000m");
-    deployerProperties.put(DEPLOYER_KUBERNETES_LIMITS_MEMORY, "800M");
-    deployerProperties.put(DEPLOYER_KUBERNETES_REQUESTS_CPU, "2000m");
-    deployerProperties.put(DEPLOYER_KUBERNETES_REQUESTS_MEMORY, "800M");
+    deployerProperties.put(DEPLOYER_KUBERNETES_LIMITS_CPU, "4000m");
+    deployerProperties.put(DEPLOYER_KUBERNETES_LIMITS_MEMORY, "8000M");
+    deployerProperties.put(DEPLOYER_KUBERNETES_REQUESTS_CPU, "4000m");
+    deployerProperties.put(DEPLOYER_KUBERNETES_REQUESTS_MEMORY, "8000M");
 
     final ArrayList<String> arguments = new ArrayList<>();
     arguments.add(ARGUMENT_DATASET_ID + "=1");
     arguments.add(ARGUMENT_EXECUTION_ID + "=1");
-    arguments.add(ARGUMENT_OAI_ENDPOINT + "=https://metis-repository-rest.test.eanadev.org/repository/oai");
-    arguments.add(ARGUMENT_OAI_SET + "=spring_poc_dataset_with_validation_error");
-    arguments.add(ARGUMENT_METADATA_PREFIX + "=edm");
+    arguments.add(ARGUMENT_OAI_ENDPOINT + "=http://panic.image.ntua.gr:9000/efg/oai");
+    arguments.add(ARGUMENT_OAI_SET + "=1076");
+    arguments.add(ARGUMENT_METADATA_PREFIX + "=rdf");
 
     pollingStatus(launchTask(taskName, deployerProperties, additionalAppProperties, arguments));
   }
@@ -141,14 +141,14 @@ class ApplicationTestIT {
     additionalAppProperties.put(VALIDATION_PARALLELIZATION_SIZE, jobProperties.getValidation().getParallelizationSize());
 
     final Map<String, String> deployerProperties = new HashMap<>();
-    deployerProperties.put(DEPLOYER_KUBERNETES_LIMITS_CPU, "2000m");
-    deployerProperties.put(DEPLOYER_KUBERNETES_LIMITS_MEMORY, "800M");
-    deployerProperties.put(DEPLOYER_KUBERNETES_REQUESTS_CPU, "2000m");
-    deployerProperties.put(DEPLOYER_KUBERNETES_REQUESTS_MEMORY, "800M");
+    deployerProperties.put(DEPLOYER_KUBERNETES_LIMITS_CPU, "4000m");
+    deployerProperties.put(DEPLOYER_KUBERNETES_LIMITS_MEMORY, "8000M");
+    deployerProperties.put(DEPLOYER_KUBERNETES_REQUESTS_CPU, "4000m");
+    deployerProperties.put(DEPLOYER_KUBERNETES_REQUESTS_MEMORY, "8000M");
 
     final ArrayList<String> arguments = new ArrayList<>();
     arguments.add(ARGUMENT_DATASET_ID + "=1");
-    arguments.add(ARGUMENT_EXECUTION_ID + "=309");
+    arguments.add(ARGUMENT_EXECUTION_ID + "=2");
     arguments.add(ARGUMENT_BATCH_JOB_SUBTYPE + "=EXTERNAL");
 
     pollingStatus(launchTask(taskName, deployerProperties, additionalAppProperties, arguments));
@@ -164,14 +164,14 @@ class ApplicationTestIT {
     additionalAppProperties.put(TRANSFORMATION_PARALLELIZATION_SIZE, jobProperties.getTransformation().getParallelizationSize());
 
     final Map<String, String> deployerProperties = new HashMap<>();
-    deployerProperties.put(DEPLOYER_KUBERNETES_LIMITS_CPU, "2000m");
-    deployerProperties.put(DEPLOYER_KUBERNETES_LIMITS_MEMORY, "800M");
-    deployerProperties.put(DEPLOYER_KUBERNETES_REQUESTS_CPU, "2000m");
-    deployerProperties.put(DEPLOYER_KUBERNETES_REQUESTS_MEMORY, "800M");
+    deployerProperties.put(DEPLOYER_KUBERNETES_LIMITS_CPU, "4000m");
+    deployerProperties.put(DEPLOYER_KUBERNETES_LIMITS_MEMORY, "8000M");
+    deployerProperties.put(DEPLOYER_KUBERNETES_REQUESTS_CPU, "4000m");
+    deployerProperties.put(DEPLOYER_KUBERNETES_REQUESTS_MEMORY, "8000M");
 
     final ArrayList<String> arguments = new ArrayList<>();
     arguments.add(ARGUMENT_DATASET_ID + "=1");
-    arguments.add(ARGUMENT_EXECUTION_ID + "=277");
+    arguments.add(ARGUMENT_EXECUTION_ID + "=322");
     arguments.add(ARGUMENT_DATASET_NAME + "=idA_metisDatasetNameA");
     arguments.add(ARGUMENT_DATASET_COUNTRY + "=Greece");
     arguments.add(ARGUMENT_DATASET_LANGUAGE + "=el");
@@ -190,14 +190,14 @@ class ApplicationTestIT {
     additionalAppProperties.put(VALIDATION_PARALLELIZATION_SIZE, jobProperties.getValidation().getParallelizationSize());
 
     final Map<String, String> deployerProperties = new HashMap<>();
-    deployerProperties.put(DEPLOYER_KUBERNETES_LIMITS_CPU, "2000m");
-    deployerProperties.put(DEPLOYER_KUBERNETES_LIMITS_MEMORY, "800M");
-    deployerProperties.put(DEPLOYER_KUBERNETES_REQUESTS_CPU, "2000m");
-    deployerProperties.put(DEPLOYER_KUBERNETES_REQUESTS_MEMORY, "800M");
+    deployerProperties.put(DEPLOYER_KUBERNETES_LIMITS_CPU, "4000m");
+    deployerProperties.put(DEPLOYER_KUBERNETES_LIMITS_MEMORY, "8000M");
+    deployerProperties.put(DEPLOYER_KUBERNETES_REQUESTS_CPU, "4000m");
+    deployerProperties.put(DEPLOYER_KUBERNETES_REQUESTS_MEMORY, "8000M");
 
     final ArrayList<String> arguments = new ArrayList<>();
     arguments.add(ARGUMENT_DATASET_ID + "=1");
-    arguments.add(ARGUMENT_EXECUTION_ID + "=278");
+    arguments.add(ARGUMENT_EXECUTION_ID + "=323");
     arguments.add(ARGUMENT_BATCH_JOB_SUBTYPE + "=INTERNAL");
 
     pollingStatus(launchTask(taskName, deployerProperties, additionalAppProperties, arguments));
