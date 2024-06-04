@@ -18,9 +18,9 @@ data:
                       memory: 1024Mi
       datasource:
         # Update accordingly
-        url: jdbc:postgresql://localhost:5432/dataflow
-        username: username
-        password: password
+        url: jdbc:postgresql://host.minikube.internal:5432/dataflow
+        username: admin
+        password: admin
         driverClassName: org.postgresql.Driver
         
         

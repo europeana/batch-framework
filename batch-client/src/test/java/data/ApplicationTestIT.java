@@ -124,9 +124,13 @@ class ApplicationTestIT {
     final ArrayList<String> arguments = new ArrayList<>();
     arguments.add(ARGUMENT_DATASET_ID + "=1");
     arguments.add(ARGUMENT_EXECUTION_ID + "=1");
-    arguments.add(ARGUMENT_OAI_ENDPOINT + "=http://panic.image.ntua.gr:9000/efg/oai");
-    arguments.add(ARGUMENT_OAI_SET + "=1076");
-    arguments.add(ARGUMENT_METADATA_PREFIX + "=rdf");
+    arguments.add(ARGUMENT_OAI_ENDPOINT + "=https://metis-repository-rest.test.eanadev.org/repository/oai");
+    arguments.add(ARGUMENT_OAI_SET + "=spring_poc_dataset_with_validation_error");
+    arguments.add(ARGUMENT_METADATA_PREFIX + "=edm");
+//    arguments.add(ARGUMENT_OAI_ENDPOINT + "=http://panic.image.ntua.gr:9000/efg/oai");
+//    arguments.add(ARGUMENT_OAI_SET + "=1076");
+//    arguments.add(ARGUMENT_METADATA_PREFIX + "=rdf");
+
 
     pollingStatus(launchTask(taskName, deployerProperties, additionalAppProperties, arguments));
   }
