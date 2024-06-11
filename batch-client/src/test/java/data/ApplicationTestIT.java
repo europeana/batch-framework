@@ -80,13 +80,19 @@ import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.batch.core.BatchStatus;
+import org.springframework.batch.core.ExitStatus;
+import org.springframework.batch.core.Job;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.dataflow.rest.client.DataFlowOperations;
+import org.springframework.cloud.dataflow.rest.client.DataFlowTemplate;
+import org.springframework.cloud.dataflow.rest.resource.JobExecutionResource;
 import org.springframework.cloud.dataflow.rest.resource.LaunchResponseResource;
 import org.springframework.cloud.dataflow.rest.resource.TaskExecutionResource;
 import org.springframework.cloud.dataflow.rest.resource.TaskExecutionStatus;
+import org.springframework.hateoas.PagedModel;
 import org.springframework.test.context.ContextConfiguration;
 
 @SpringBootTest
@@ -94,9 +100,14 @@ import org.springframework.test.context.ContextConfiguration;
 @EnableAutoConfiguration
 class ApplicationTestIT {
 
+  public static final String SCHEMA_TARGET = "boot3";
   private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+
   @Autowired
   DataFlowOperations dataFlowOperations;
+  @Autowired
+  DataFlowTemplate dataFlowTemplate;
+
   @Autowired
   BatchConfigurationProperties batchConfigurationProperties;
   @Resource
@@ -105,6 +116,178 @@ class ApplicationTestIT {
   ExecutionRecordExceptionLogRepository executionRecordExceptionLogRepository;
   @Resource
   ExecutionRecordExternalIdentifierRepository executionRecordExternalIdentifierRepository;
+
+  private static @NotNull String getArgumentValue(TaskExecutionResource taskExecutionResource, String argumentDatasetId) {
+    return taskExecutionResource.getArguments().stream().filter(value -> value.contains(argumentDatasetId))
+                                .map(value -> value.split("=")[1])
+                                .findFirst().orElseThrow();
+  }
+
+  @Test
+  public void launchValidationRestart() {
+    final RegisterConfigurationProperties registerProperties = batchConfigurationProperties.getRegisterProperties();
+    final String taskName = registerProperties.getValidationName();
+    final JobConfigurationProperties jobProperties = batchConfigurationProperties.getJobProperties();
+    final Map<String, String> additionalAppProperties = new HashMap<>();
+    additionalAppProperties.put(VALIDATION_CHUNK_SIZE, jobProperties.getValidation().getChunkSize());
+    additionalAppProperties.put(VALIDATION_PARALLELIZATION_SIZE, jobProperties.getValidation().getParallelizationSize());
+
+    final Map<String, String> deployerProperties = new HashMap<>();
+    deployerProperties.put(DEPLOYER_KUBERNETES_LIMITS_CPU, "2000m");
+    deployerProperties.put(DEPLOYER_KUBERNETES_LIMITS_MEMORY, "800M");
+    deployerProperties.put(DEPLOYER_KUBERNETES_REQUESTS_CPU, "2000m");
+    deployerProperties.put(DEPLOYER_KUBERNETES_REQUESTS_MEMORY, "800M");
+
+    final ArrayList<String> arguments = new ArrayList<>();
+    arguments.add(ARGUMENT_DATASET_ID + "=1");
+    arguments.add(ARGUMENT_EXECUTION_ID + "=4");
+    arguments.add(ARGUMENT_BATCH_JOB_SUBTYPE + "=INTERNAL");
+
+    List<TaskExecutionResource> taskExecutionResourcesSource = getTaskExecutionByNameWithUncompletedJobs(taskName);
+    taskExecutionResourcesSource.forEach(taskExecutionSource -> {
+          final Supplier<TaskExecutionResource> getTaskExecutionResource = () ->
+              dataFlowOperations.taskOperations().taskExecutionStatus(taskExecutionSource.getExecutionId(), SCHEMA_TARGET);
+          TaskExecutionResource taskExecutionResource = getTaskExecutionResource.get();
+          LOGGER.info("Analyzing taskId: {}", taskExecutionResource.getExecutionId());
+
+          if (taskExecutionResource.getTaskExecutionStatus() == TaskExecutionStatus.COMPLETE) {
+            //stop task
+            dataFlowOperations.taskOperations().stop(String.valueOf(taskExecutionResource.getExecutionId()), SCHEMA_TARGET);
+            List<JobExecutionResource> jobExecutionResources = getJobExecutionResourcesNotCompleted(taskExecutionSource);
+
+            jobExecutionResources.forEach(job -> {
+              LOGGER.info("checking job id: {}", job.getJobExecution());
+              if (job.getJobExecution().getStatus() != BatchStatus.COMPLETED &&
+                  job.getJobExecution().getEndTime() == null) {
+                LOGGER.info("status job id: {}", job.getJobExecution().getStatus());
+                //dataFlowTemplate.getRestTemplate().put("http://scdf-server-192.168.49.2.nip.io/jobs/executions/5?stop=true&schemaTarget=boot3",null);
+                                dataFlowOperations.jobOperations().jobExecution(job.getExecutionId(), SCHEMA_TARGET).getJobExecution()
+                                                  .setStatus(BatchStatus.STOPPED);
+                                dataFlowOperations.jobOperations().jobExecution(job.getExecutionId(), SCHEMA_TARGET).getJobExecution()
+                                                  .setExitStatus(ExitStatus.STOPPED);
+                                dataFlowOperations.jobOperations().jobExecution(job.getExecutionId(), SCHEMA_TARGET).getJobExecution()
+                                                  .getStepExecutions().stream().filter(p -> !p.getStatus().equals(BatchStatus.COMPLETED))
+                                                  .forEach(step -> step.setStatus(BatchStatus.STOPPED));
+                                dataFlowOperations.jobOperations().executionRestart(job.getExecutionId(), SCHEMA_TARGET);
+              }
+              pollingJobRunning(job);
+            });
+
+          }
+        }
+    );
+  }
+
+  public List<Long> getJobExecutionIdsByTaskExecutionId(long taskExecutionId) {
+    TaskExecutionResource taskExecutionResource = dataFlowOperations.taskOperations()
+                                                                    .taskExecutionStatus(taskExecutionId, SCHEMA_TARGET);
+    return taskExecutionResource.getJobExecutionIds();
+  }
+
+  public JobExecutionResource getJobExecution(long jobExecutionId) {
+    return dataFlowOperations.jobOperations().jobExecution(jobExecutionId, SCHEMA_TARGET);
+  }
+
+  public TaskExecutionResource getLastTaskExecution(String taskName) {
+    return dataFlowOperations.taskOperations().executionListByTaskName(taskName).getContent().stream()
+                             .max((e1, e2) -> Long.compare(e1.getExecutionId(), e2.getExecutionId()))
+                             .orElse(null);
+  }
+
+  public List<TaskExecutionResource> getTaskExecutionByNameWithUncompletedJobs(String taskName) {
+    return dataFlowOperations.taskOperations()
+                             .executionListByTaskName(taskName)
+                             .getContent()
+                             .stream()
+                             .filter(
+                                 taskExecutionResource -> !getJobExecutionResourcesNotCompleted(taskExecutionResource).isEmpty()
+                             ).toList();
+  }
+
+  private @NotNull List<JobExecutionResource> getJobExecutionResourcesNotCompleted(
+      TaskExecutionResource taskExecutionResourceSource) {
+    List<Long> jobs = getJobExecutionIdsByTaskExecutionId(taskExecutionResourceSource.getExecutionId());
+    List<JobExecutionResource> jobExecutionResources = jobs.stream()
+                                                           .map(job -> getJobExecution(job))
+                                                           .filter(f -> !f.getJobExecution().getStatus().equals("COMPLETED"))
+                                                           .toList();
+    return jobExecutionResources;
+  }
+
+  private void pollingJobRunning(JobExecutionResource jobExecutionResource) {
+    await().forever().until(() -> {
+      final BatchStatus batchJobStatus = jobExecutionResource.getJobExecution().getStatus();
+      LOGGER.info("processing...{}", jobExecutionResource.getJobId());
+      return batchJobStatus == BatchStatus.COMPLETED || batchJobStatus == BatchStatus.FAILED
+          || batchJobStatus == BatchStatus.ABANDONED;
+    });
+  }
+
+  private void pollingStatus(LaunchResponseResource launchResponseResource) {
+    final Supplier<TaskExecutionResource> getTaskExecutionResource = () ->
+        dataFlowOperations.taskOperations().taskExecutionStatus(launchResponseResource.getExecutionId(), SCHEMA_TARGET);
+    TaskExecutionResource taskExecutionResource = getTaskExecutionResource.get();
+    LOGGER.info("Task launched with taskId: {}", taskExecutionResource.getExecutionId());
+    pollingUnknownDuringPodDeployment(getTaskExecutionResource);
+    pollingRunning(getTaskExecutionResource);
+    taskExecutionResource = getTaskExecutionResource.get();
+    LOGGER.info("Task finished with details:");
+    LOGGER.info("Task finished with jobIds: {}, taskId: {}, status: {}, startTime: {}, endTime: {}",
+        taskExecutionResource.getJobExecutionIds(), taskExecutionResource.getExecutionId(),
+        taskExecutionResource.getTaskExecutionStatus(), taskExecutionResource.getStartTime(), taskExecutionResource.getEndTime());
+  }
+
+  private void pollingRunning(Supplier<TaskExecutionResource> getTaskExecutionResource) {
+    await().forever().until(() -> {
+      final TaskExecutionResource taskExecutionResource = getTaskExecutionResource.get();
+      final TaskExecutionStatus taskExecutionStatus = taskExecutionResource.getTaskExecutionStatus();
+      printProgress(taskExecutionStatus, taskExecutionResource);
+      return taskExecutionStatus == TaskExecutionStatus.COMPLETE || taskExecutionStatus == TaskExecutionStatus.ERROR;
+    });
+  }
+
+  private void printProgress(TaskExecutionStatus taskExecutionStatus, TaskExecutionResource taskExecutionResource) {
+    if (taskExecutionStatus != TaskExecutionStatus.ERROR) {
+      final String executionId = Long.toString(taskExecutionResource.getJobExecutionIds().getFirst());
+      final String datasetId = getArgumentValue(taskExecutionResource, ARGUMENT_DATASET_ID);
+      final String sourceExecutionId = getArgumentValue(taskExecutionResource, ARGUMENT_EXECUTION_ID);
+
+      final RegisterConfigurationProperties registerProperties = batchConfigurationProperties.getRegisterProperties();
+      final long sourceTotal;
+      if (taskExecutionResource.getTaskName().equals(registerProperties.getOaiHarvestName())) {
+        sourceTotal = executionRecordExternalIdentifierRepository.countByDatasetIdAndExecutionId(
+            datasetId, executionId);
+      } else {
+        sourceTotal = executionRecordRepository.countByDatasetIdAndExecutionId(
+            datasetId, sourceExecutionId);
+      }
+
+      final long successProcessed = executionRecordRepository.countByDatasetIdAndExecutionId(
+          datasetId, executionId);
+      final long exceptions = executionRecordExceptionLogRepository.countByDatasetIdAndExecutionId(
+          datasetId, executionId);
+      final long processed = successProcessed + exceptions;
+
+      LOGGER.info(format("Task progress - Processed/SourceTotal: %s/%s, Exceptions: %s", processed, sourceTotal, exceptions));
+    }
+  }
+
+  private void pollingUnknownDuringPodDeployment(Supplier<TaskExecutionResource> getTaskExecutionResource) {
+    //Await for potential UNKNOWN status in case of pod deployment failure.
+    try {
+      await().atMost(1, TimeUnit.MINUTES).until(() -> {
+        TaskExecutionStatus taskExecutionStatus = getTaskExecutionResource.get().getTaskExecutionStatus();
+        return taskExecutionStatus != TaskExecutionStatus.UNKNOWN;
+      });
+    } catch (ConditionTimeoutException ex) {
+      LOGGER.error("Launch failed with status: {}", TaskExecutionStatus.UNKNOWN);
+      throw ex;
+    }
+  }
+
+  private Map<String, String> prefixMap(String prefix, String suffix, Map<String, String> map) {
+    return TransformedMap.transformedMap(map, key -> format("%s.%s.%s", prefix, suffix, key), value -> value);
+  }
 
   @Test
   void launchOaiTask() {
@@ -116,21 +299,17 @@ class ApplicationTestIT {
     additionalAppProperties.put(OAIHARVEST_PARALLELIZATION_SIZE, jobProperties.getOaiHarvest().getParallelizationSize());
 
     final Map<String, String> deployerProperties = new HashMap<>();
-    deployerProperties.put(DEPLOYER_KUBERNETES_LIMITS_CPU, "4000m");
-    deployerProperties.put(DEPLOYER_KUBERNETES_LIMITS_MEMORY, "8000M");
-    deployerProperties.put(DEPLOYER_KUBERNETES_REQUESTS_CPU, "4000m");
-    deployerProperties.put(DEPLOYER_KUBERNETES_REQUESTS_MEMORY, "8000M");
+    deployerProperties.put(DEPLOYER_KUBERNETES_LIMITS_CPU, "2000m");
+    deployerProperties.put(DEPLOYER_KUBERNETES_LIMITS_MEMORY, "800M");
+    deployerProperties.put(DEPLOYER_KUBERNETES_REQUESTS_CPU, "2000m");
+    deployerProperties.put(DEPLOYER_KUBERNETES_REQUESTS_MEMORY, "800M");
 
     final ArrayList<String> arguments = new ArrayList<>();
     arguments.add(ARGUMENT_DATASET_ID + "=1");
     arguments.add(ARGUMENT_EXECUTION_ID + "=1");
     arguments.add(ARGUMENT_OAI_ENDPOINT + "=https://metis-repository-rest.test.eanadev.org/repository/oai");
-    arguments.add(ARGUMENT_OAI_SET + "=spring_poc_dataset_with_validation_error");
+    arguments.add(ARGUMENT_OAI_SET + "=oai_flink_poc");
     arguments.add(ARGUMENT_METADATA_PREFIX + "=edm");
-//    arguments.add(ARGUMENT_OAI_ENDPOINT + "=http://panic.image.ntua.gr:9000/efg/oai");
-//    arguments.add(ARGUMENT_OAI_SET + "=1076");
-//    arguments.add(ARGUMENT_METADATA_PREFIX + "=rdf");
-
 
     pollingStatus(launchTask(taskName, deployerProperties, additionalAppProperties, arguments));
   }
@@ -145,14 +324,14 @@ class ApplicationTestIT {
     additionalAppProperties.put(VALIDATION_PARALLELIZATION_SIZE, jobProperties.getValidation().getParallelizationSize());
 
     final Map<String, String> deployerProperties = new HashMap<>();
-    deployerProperties.put(DEPLOYER_KUBERNETES_LIMITS_CPU, "4000m");
-    deployerProperties.put(DEPLOYER_KUBERNETES_LIMITS_MEMORY, "8000M");
-    deployerProperties.put(DEPLOYER_KUBERNETES_REQUESTS_CPU, "4000m");
-    deployerProperties.put(DEPLOYER_KUBERNETES_REQUESTS_MEMORY, "8000M");
+    deployerProperties.put(DEPLOYER_KUBERNETES_LIMITS_CPU, "2000m");
+    deployerProperties.put(DEPLOYER_KUBERNETES_LIMITS_MEMORY, "800M");
+    deployerProperties.put(DEPLOYER_KUBERNETES_REQUESTS_CPU, "2000m");
+    deployerProperties.put(DEPLOYER_KUBERNETES_REQUESTS_MEMORY, "800M");
 
     final ArrayList<String> arguments = new ArrayList<>();
     arguments.add(ARGUMENT_DATASET_ID + "=1");
-    arguments.add(ARGUMENT_EXECUTION_ID + "=2");
+    arguments.add(ARGUMENT_EXECUTION_ID + "=4");
     arguments.add(ARGUMENT_BATCH_JOB_SUBTYPE + "=EXTERNAL");
 
     pollingStatus(launchTask(taskName, deployerProperties, additionalAppProperties, arguments));
@@ -168,14 +347,14 @@ class ApplicationTestIT {
     additionalAppProperties.put(TRANSFORMATION_PARALLELIZATION_SIZE, jobProperties.getTransformation().getParallelizationSize());
 
     final Map<String, String> deployerProperties = new HashMap<>();
-    deployerProperties.put(DEPLOYER_KUBERNETES_LIMITS_CPU, "4000m");
-    deployerProperties.put(DEPLOYER_KUBERNETES_LIMITS_MEMORY, "8000M");
-    deployerProperties.put(DEPLOYER_KUBERNETES_REQUESTS_CPU, "4000m");
-    deployerProperties.put(DEPLOYER_KUBERNETES_REQUESTS_MEMORY, "8000M");
+    deployerProperties.put(DEPLOYER_KUBERNETES_LIMITS_CPU, "2000m");
+    deployerProperties.put(DEPLOYER_KUBERNETES_LIMITS_MEMORY, "800M");
+    deployerProperties.put(DEPLOYER_KUBERNETES_REQUESTS_CPU, "2000m");
+    deployerProperties.put(DEPLOYER_KUBERNETES_REQUESTS_MEMORY, "800M");
 
     final ArrayList<String> arguments = new ArrayList<>();
     arguments.add(ARGUMENT_DATASET_ID + "=1");
-    arguments.add(ARGUMENT_EXECUTION_ID + "=322");
+    arguments.add(ARGUMENT_EXECUTION_ID + "=2");
     arguments.add(ARGUMENT_DATASET_NAME + "=idA_metisDatasetNameA");
     arguments.add(ARGUMENT_DATASET_COUNTRY + "=Greece");
     arguments.add(ARGUMENT_DATASET_LANGUAGE + "=el");
@@ -194,14 +373,14 @@ class ApplicationTestIT {
     additionalAppProperties.put(VALIDATION_PARALLELIZATION_SIZE, jobProperties.getValidation().getParallelizationSize());
 
     final Map<String, String> deployerProperties = new HashMap<>();
-    deployerProperties.put(DEPLOYER_KUBERNETES_LIMITS_CPU, "4000m");
-    deployerProperties.put(DEPLOYER_KUBERNETES_LIMITS_MEMORY, "8000M");
-    deployerProperties.put(DEPLOYER_KUBERNETES_REQUESTS_CPU, "4000m");
-    deployerProperties.put(DEPLOYER_KUBERNETES_REQUESTS_MEMORY, "8000M");
+    deployerProperties.put(DEPLOYER_KUBERNETES_LIMITS_CPU, "2000m");
+    deployerProperties.put(DEPLOYER_KUBERNETES_LIMITS_MEMORY, "800M");
+    deployerProperties.put(DEPLOYER_KUBERNETES_REQUESTS_CPU, "2000m");
+    deployerProperties.put(DEPLOYER_KUBERNETES_REQUESTS_MEMORY, "800M");
 
     final ArrayList<String> arguments = new ArrayList<>();
     arguments.add(ARGUMENT_DATASET_ID + "=1");
-    arguments.add(ARGUMENT_EXECUTION_ID + "=323");
+    arguments.add(ARGUMENT_EXECUTION_ID + "=278");
     arguments.add(ARGUMENT_BATCH_JOB_SUBTYPE + "=INTERNAL");
 
     pollingStatus(launchTask(taskName, deployerProperties, additionalAppProperties, arguments));
@@ -307,7 +486,8 @@ class ApplicationTestIT {
     additionalAppProperties.put(INDEXING_ZOOKEEPER_INSTANCES, jobProperties.getIndexing().getZookeeperInstances());
     additionalAppProperties.put(INDEXING_ZOOKEEPER_PORT_NUMBER, jobProperties.getIndexing().getZookeeperPortNumber());
     additionalAppProperties.put(INDEXING_ZOOKEEPER_CHROOT, jobProperties.getIndexing().getZookeeperChroot());
-    additionalAppProperties.put(INDEXING_ZOOKEEPER_DEFAULT_COLLECTION, jobProperties.getIndexing().getZookeeperDefaultCollection());
+    additionalAppProperties.put(INDEXING_ZOOKEEPER_DEFAULT_COLLECTION,
+        jobProperties.getIndexing().getZookeeperDefaultCollection());
 
     final Map<String, String> deployerProperties = new HashMap<>();
     deployerProperties.put(DEPLOYER_KUBERNETES_LIMITS_CPU, "2000m");
@@ -320,74 +500,6 @@ class ApplicationTestIT {
     arguments.add(ARGUMENT_EXECUTION_ID + "=289");
 
     pollingStatus(launchTask(taskName, deployerProperties, additionalAppProperties, arguments));
-  }
-
-  private void pollingStatus(LaunchResponseResource launchResponseResource) {
-    final Supplier<TaskExecutionResource> getTaskExecutionResource = () ->
-        dataFlowOperations.taskOperations().taskExecutionStatus(launchResponseResource.getExecutionId(), "boot3");
-    TaskExecutionResource taskExecutionResource = getTaskExecutionResource.get();
-    LOGGER.info("Task launched with taskId: {}", taskExecutionResource.getExecutionId());
-    pollingUnknownDuringPodDeployment(getTaskExecutionResource);
-    pollingRunning(getTaskExecutionResource);
-    taskExecutionResource = getTaskExecutionResource.get();
-    LOGGER.info("Task finished with details:");
-    LOGGER.info("Task finished with jobIds: {}, taskId: {}, status: {}, startTime: {}, endTime: {}",
-        taskExecutionResource.getJobExecutionIds(), taskExecutionResource.getExecutionId(),
-        taskExecutionResource.getTaskExecutionStatus(), taskExecutionResource.getStartTime(), taskExecutionResource.getEndTime());
-  }
-
-  private void pollingRunning(Supplier<TaskExecutionResource> getTaskExecutionResource) {
-    await().forever().until(() -> {
-      final TaskExecutionResource taskExecutionResource = getTaskExecutionResource.get();
-      final TaskExecutionStatus taskExecutionStatus = taskExecutionResource.getTaskExecutionStatus();
-      printProgress(taskExecutionStatus, taskExecutionResource);
-      return taskExecutionStatus == TaskExecutionStatus.COMPLETE || taskExecutionStatus == TaskExecutionStatus.ERROR;
-    });
-  }
-
-  private void printProgress(TaskExecutionStatus taskExecutionStatus, TaskExecutionResource taskExecutionResource) {
-    if (taskExecutionStatus != TaskExecutionStatus.ERROR) {
-      final String executionId = Long.toString(taskExecutionResource.getJobExecutionIds().getFirst());
-      final String datasetId = getArgumentValue(taskExecutionResource, ARGUMENT_DATASET_ID);
-      final String sourceExecutionId = getArgumentValue(taskExecutionResource, ARGUMENT_EXECUTION_ID);
-
-      final RegisterConfigurationProperties registerProperties = batchConfigurationProperties.getRegisterProperties();
-      final long sourceTotal;
-      if (taskExecutionResource.getTaskName().equals(registerProperties.getOaiHarvestName())) {
-        sourceTotal = executionRecordExternalIdentifierRepository.countByDatasetIdAndExecutionId(
-            datasetId, executionId);
-      } else {
-        sourceTotal = executionRecordRepository.countByDatasetIdAndExecutionId(
-            datasetId, sourceExecutionId);
-      }
-
-      final long successProcessed = executionRecordRepository.countByDatasetIdAndExecutionId(
-          datasetId, executionId);
-      final long exceptions = executionRecordExceptionLogRepository.countByDatasetIdAndExecutionId(
-          datasetId, executionId);
-      final long processed = successProcessed + exceptions;
-
-      LOGGER.info(format("Task progress - Processed/SourceTotal: %s/%s, Exceptions: %s", processed, sourceTotal, exceptions));
-    }
-  }
-
-  private static @NotNull String getArgumentValue(TaskExecutionResource taskExecutionResource, String argumentDatasetId) {
-    return taskExecutionResource.getArguments().stream().filter(value -> value.contains(argumentDatasetId))
-                                .map(value -> value.split("=")[1])
-                                .findFirst().orElseThrow();
-  }
-
-  private void pollingUnknownDuringPodDeployment(Supplier<TaskExecutionResource> getTaskExecutionResource) {
-    //Await for potential UNKNOWN status in case of pod deployment failure.
-    try {
-      await().atMost(1, TimeUnit.MINUTES).until(() -> {
-        TaskExecutionStatus taskExecutionStatus = getTaskExecutionResource.get().getTaskExecutionStatus();
-        return taskExecutionStatus != TaskExecutionStatus.UNKNOWN;
-      });
-    } catch (ConditionTimeoutException ex) {
-      LOGGER.error("Launch failed with status: {}", TaskExecutionStatus.UNKNOWN);
-      throw ex;
-    }
   }
 
   LaunchResponseResource launchTask(String taskName, Map<String, String> deployerProperties,
@@ -405,9 +517,5 @@ class ApplicationTestIT {
     Map<String, String> properties = concat.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
     return dataFlowOperations.taskOperations().launch(taskName, properties, arguments);
-  }
-
-  private Map<String, String> prefixMap(String prefix, String suffix, Map<String, String> map) {
-    return TransformedMap.transformedMap(map, key -> format("%s.%s.%s", prefix, suffix, key), value -> value);
   }
 }
