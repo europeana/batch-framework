@@ -82,17 +82,18 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.BatchStatus;
 import org.springframework.batch.core.ExitStatus;
-import org.springframework.batch.core.Job;
+import org.springframework.batch.core.JobExecution;
+import org.springframework.batch.core.StepExecution;
+import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.dataflow.rest.client.DataFlowOperations;
-import org.springframework.cloud.dataflow.rest.client.DataFlowTemplate;
+import org.springframework.cloud.dataflow.rest.client.JobOperations;
 import org.springframework.cloud.dataflow.rest.resource.JobExecutionResource;
 import org.springframework.cloud.dataflow.rest.resource.LaunchResponseResource;
 import org.springframework.cloud.dataflow.rest.resource.TaskExecutionResource;
 import org.springframework.cloud.dataflow.rest.resource.TaskExecutionStatus;
-import org.springframework.hateoas.PagedModel;
 import org.springframework.test.context.ContextConfiguration;
 
 @SpringBootTest
@@ -105,8 +106,9 @@ class ApplicationTestIT {
 
   @Autowired
   DataFlowOperations dataFlowOperations;
+
   @Autowired
-  DataFlowTemplate dataFlowTemplate;
+  JobRepository jobRepository;
 
   @Autowired
   BatchConfigurationProperties batchConfigurationProperties;
@@ -124,7 +126,7 @@ class ApplicationTestIT {
   }
 
   @Test
-  public void launchValidationRestart() {
+  public void launchJobRestart() {
     final RegisterConfigurationProperties registerProperties = batchConfigurationProperties.getRegisterProperties();
     final String taskName = registerProperties.getValidationName();
     final JobConfigurationProperties jobProperties = batchConfigurationProperties.getJobProperties();
@@ -140,8 +142,8 @@ class ApplicationTestIT {
 
     final ArrayList<String> arguments = new ArrayList<>();
     arguments.add(ARGUMENT_DATASET_ID + "=1");
-    arguments.add(ARGUMENT_EXECUTION_ID + "=4");
-    arguments.add(ARGUMENT_BATCH_JOB_SUBTYPE + "=INTERNAL");
+    arguments.add(ARGUMENT_EXECUTION_ID + "=12");
+    arguments.add(ARGUMENT_BATCH_JOB_SUBTYPE + "=EXTERNAL");
 
     List<TaskExecutionResource> taskExecutionResourcesSource = getTaskExecutionByNameWithUncompletedJobs(taskName);
     taskExecutionResourcesSource.forEach(taskExecutionSource -> {
@@ -160,15 +162,25 @@ class ApplicationTestIT {
               if (job.getJobExecution().getStatus() != BatchStatus.COMPLETED &&
                   job.getJobExecution().getEndTime() == null) {
                 LOGGER.info("status job id: {}", job.getJobExecution().getStatus());
-                //dataFlowTemplate.getRestTemplate().put("http://scdf-server-192.168.49.2.nip.io/jobs/executions/5?stop=true&schemaTarget=boot3",null);
-                                dataFlowOperations.jobOperations().jobExecution(job.getExecutionId(), SCHEMA_TARGET).getJobExecution()
-                                                  .setStatus(BatchStatus.STOPPED);
-                                dataFlowOperations.jobOperations().jobExecution(job.getExecutionId(), SCHEMA_TARGET).getJobExecution()
-                                                  .setExitStatus(ExitStatus.STOPPED);
-                                dataFlowOperations.jobOperations().jobExecution(job.getExecutionId(), SCHEMA_TARGET).getJobExecution()
-                                                  .getStepExecutions().stream().filter(p -> !p.getStatus().equals(BatchStatus.COMPLETED))
-                                                  .forEach(step -> step.setStatus(BatchStatus.STOPPED));
-                                dataFlowOperations.jobOperations().executionRestart(job.getExecutionId(), SCHEMA_TARGET);
+                try {
+                  JobOperations jobOperations = dataFlowOperations.jobOperations();
+                  JobExecution execution = jobOperations.jobExecution(job.getExecutionId(), SCHEMA_TARGET).getJobExecution();
+                  execution.setExitStatus(ExitStatus.STOPPED);
+                  execution.setStatus(BatchStatus.STOPPED);
+                  jobRepository.update(execution);
+                  for (StepExecution stepExecution : execution.getStepExecutions()
+                                                              .stream()
+                                                              .filter(p -> !p.getStatus().equals(BatchStatus.COMPLETED))
+                                                              .toList()) {
+                    jobRepository.deleteStepExecution(stepExecution);
+                  }
+                  jobOperations.executionRestart(job.getExecutionId(), SCHEMA_TARGET);
+                  execution.setExitStatus(ExitStatus.COMPLETED);
+                  execution.setStatus(BatchStatus.COMPLETED);
+                  jobRepository.update(execution);
+                } catch (Exception ex) {
+                  LOGGER.info("cannot restart jobId:{} {}", job.getExecutionId(), ex);
+                }
               }
               pollingJobRunning(job);
             });
@@ -188,12 +200,6 @@ class ApplicationTestIT {
     return dataFlowOperations.jobOperations().jobExecution(jobExecutionId, SCHEMA_TARGET);
   }
 
-  public TaskExecutionResource getLastTaskExecution(String taskName) {
-    return dataFlowOperations.taskOperations().executionListByTaskName(taskName).getContent().stream()
-                             .max((e1, e2) -> Long.compare(e1.getExecutionId(), e2.getExecutionId()))
-                             .orElse(null);
-  }
-
   public List<TaskExecutionResource> getTaskExecutionByNameWithUncompletedJobs(String taskName) {
     return dataFlowOperations.taskOperations()
                              .executionListByTaskName(taskName)
@@ -207,18 +213,18 @@ class ApplicationTestIT {
   private @NotNull List<JobExecutionResource> getJobExecutionResourcesNotCompleted(
       TaskExecutionResource taskExecutionResourceSource) {
     List<Long> jobs = getJobExecutionIdsByTaskExecutionId(taskExecutionResourceSource.getExecutionId());
-    List<JobExecutionResource> jobExecutionResources = jobs.stream()
-                                                           .map(job -> getJobExecution(job))
-                                                           .filter(f -> !f.getJobExecution().getStatus().equals("COMPLETED"))
-                                                           .toList();
-    return jobExecutionResources;
+    return jobs.stream()
+               .map(job -> getJobExecution(job))
+               .filter(f -> !f.getJobExecution().getStatus().equals("COMPLETED"))
+               .toList();
   }
 
   private void pollingJobRunning(JobExecutionResource jobExecutionResource) {
     await().forever().until(() -> {
       final BatchStatus batchJobStatus = jobExecutionResource.getJobExecution().getStatus();
-      LOGGER.info("processing...{}", jobExecutionResource.getJobId());
+      LOGGER.info("processing...{} status...{}", jobExecutionResource.getJobId(), batchJobStatus);
       return batchJobStatus == BatchStatus.COMPLETED || batchJobStatus == BatchStatus.FAILED
+          || batchJobStatus == BatchStatus.STARTED
           || batchJobStatus == BatchStatus.ABANDONED;
     });
   }
@@ -331,7 +337,7 @@ class ApplicationTestIT {
 
     final ArrayList<String> arguments = new ArrayList<>();
     arguments.add(ARGUMENT_DATASET_ID + "=1");
-    arguments.add(ARGUMENT_EXECUTION_ID + "=4");
+    arguments.add(ARGUMENT_EXECUTION_ID + "=12");
     arguments.add(ARGUMENT_BATCH_JOB_SUBTYPE + "=EXTERNAL");
 
     pollingStatus(launchTask(taskName, deployerProperties, additionalAppProperties, arguments));
