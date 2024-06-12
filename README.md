@@ -23,18 +23,18 @@ Data for the spring batch/task actual record results will be auto generated on t
 
 # Update SCDF server files:
 Modify the following:
-- Update the server/server-config.yaml file with the postgres credentials and the minikube domain `host.minikube.internal` if it not there.  
-- Update the server/ingress.yaml file host and replace the ip in the `scdf-server-<minikube-ip>.nip.io` with the ip from minikube retrieved from:  
+- Update the `batch-common/server/server-config.yaml` file with the postgres credentials and the minikube domain `host.minikube.internal` if it not there.  
+- Update the `batch-common/server/ingress.yaml` file host and replace the ip in the `scdf-server-<minikube-ip>.nip.io` with the ip from minikube retrieved from:  
   `minikube ip`
 
 # Deploying Spring Cloud Data Flow in k8s
 Create the server objects:  
-    `kubectl create -f kubernetes/server`
+    `kubectl create -f batch-common/kubernetes/server`
 
 Once it is started we should be able to see the auto generated spring batch/task tables in the database under the public schema.  
 
 Delete the server objects:  
-    `kubectl delete -f kubernetes/server`
+    `kubectl delete -f batch-common/kubernetes/server`
 
 # Build the project
 Maven build the project to generate the `.jar` files.
@@ -43,7 +43,7 @@ Maven build the project to generate the `.jar` files.
 When building the docker images from a terminal first run:  
     `eval $(minikube docker-env)`  
 Then run the bash script to build and deploy all images:  
-    `cd script`  
+    `cd batch-common/script`  
     `./docker-build.sh`
 
 # Prepare the SCDF jobs
@@ -51,23 +51,28 @@ Copy the file `batch-client/src/test/resources/application.properties.sample` to
 Update the `batch-client/src/test/resources/application.properties` with the correct credentials.  
 Register the SCDF 'applications' by running the test method `data.RegistrationTestIT.registerApplications`.  
 Create the SCDF 'tasks' by running the test method `data.RegistrationTestIT.createTasks`.
-Accessing the SCDF server UI from the address in the `server/ingress.yaml` where we should now be able to see all applications and tasks registered.  
+Access the SCDF server UI. From the address in the `batch-common/server/ingress.yaml` we should see a list of links as a response from the server.  
+From those links we click on the link that has the prefix `/dashboard` to access the UI where we should now be able to see all applications and tasks registered.  
 If needed we can destroy(will also delete k8s historical pods) the tasks using `data.RegistrationTestIT.destroyTasks`.
 If needed we can unregister the applications using `data.RegistrationTestIT.unregisterApplications`
 
 # Start a job in SCDF
 In the test file `data.ApplicationTestIT` there are test methods for each plugin. To run a plugin 
 we have to update the `ARGUMENT_EXECUTION_ID` to the execution id for the source data, 
-the identifier of the execution from a previous plugin(this does not apply for the oai plugin).
+the identifier of the execution from a previous plugin(this does not apply for the oai plugin).  
+If you get the error `0/1 nodes are available: 1 Insufficient cpu. preemption: 0/1 nodes are available: 1 No preemption victims found for incoming pod.`, it 
+means that there are not enough resources available on your machine. To fix that you can make sure there is availability of resources by removing/stopping 
+other pods, or try reducing the resources of the job/pod when sending the launch command.
 
 
-# Run Jobs/Tasks using Spring Cloud Data Flow Shell
+
+# Run Jobs/Tasks using Spring Cloud Data Flow Shell(old way of accessing the server, possibly outdated)
 Download the script .jar from:  
 https://repo1.maven.org/maven2/org/springframework/cloud/spring-cloud-dataflow-shell/2.11.2/spring-cloud-dataflow-shell-2.11.2.jar  
 
 Get into the shell(Update the uri to the data from server location):
 ```console
-java -jar spring-cloud-dataflow-shell-2.11.2.jar --dataflow.uri=http://scdf-server-192.168.49.2.nip.io:9393  
+java -jar spring-cloud-dataflow-shell-2.11.2.jar --dataflow.uri=http://scdf-server-192.168.49.2.nip.io  
 ```
 
 Some example commands:  
