@@ -8,6 +8,11 @@ spring.datasource.driver-class-name=org.postgresql.Driver
 spring.datasource.hikari.maximumPoolSize=5
 spring.jpa.generate-ddl=true
 
+job.manager.url=
+job.manager.user=
+job.manager.password=
+jar.id=
+
 batch.registerProperties.oaiHarvestName=batch-oai-harvest
 batch.registerProperties.oaiHarvestUri=docker:europeana/batch-oai-harvest:latest
 batch.registerProperties.validationName=batch-validation
