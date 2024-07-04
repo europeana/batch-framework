@@ -37,7 +37,7 @@ public class IndexingItemProcessor implements MetisItemProcessor<ExecutionRecord
 
     @Value("${indexing.performRedirects}")
     public boolean performRedirect;
-    @Value("#{stepExecution.jobExecution.jobInstance.id}")
+    @Value("#{jobParameters['overrideJobId'] ?: stepExecution.jobExecution.jobInstance.id}")
     private Long jobInstanceId;
 
     private final Date recordDate;

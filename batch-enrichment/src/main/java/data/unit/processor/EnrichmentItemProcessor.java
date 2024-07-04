@@ -38,7 +38,7 @@ public class EnrichmentItemProcessor implements MetisItemProcessor<ExecutionReco
   private String enrichmentEntityApiUrl;
   @Value("${enrichment.entity-api-key}")
   private String enrichmentEntityApiKey;
-  @Value("#{stepExecution.jobExecution.jobInstance.id}")
+  @Value("#{jobParameters['overrideJobId'] ?: stepExecution.jobExecution.jobInstance.id}")
   private Long jobInstanceId;
 
   private final ItemProcessorUtil<ProcessedResult<String>> itemProcessorUtil;

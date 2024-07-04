@@ -38,7 +38,7 @@ public class OaiRecordHarvesterItemProcessor implements ItemProcessor<ExecutionR
     private String oaiMetadataPrefix;
     @Value("#{jobParameters['datasetId']}")
     private String datasetId;
-    @Value("#{stepExecution.jobExecution.jobInstance.id}")
+    @Value("#{jobParameters['overrideJobId'] ?: stepExecution.jobExecution.jobInstance.id}")
     private Long jobInstanceId;
 
     @Override

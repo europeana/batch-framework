@@ -17,7 +17,7 @@ import java.util.List;
 @StepScope
 public class OaiIdentifiersRepositoryItemReader extends RepositoryItemReader<ExecutionRecordExternalIdentifier> {
 
-    @Value("#{stepExecution.jobExecution.jobInstance.id}")
+    @Value("#{jobParameters['overrideJobId'] ?: stepExecution.jobExecution.jobInstance.id}")
     private Long jobInstanceId;
 
     private final ExecutionRecordExternalIdentifierRepository<ExecutionRecordExternalIdentifier> executionRecordExternalIdentifierRepository;

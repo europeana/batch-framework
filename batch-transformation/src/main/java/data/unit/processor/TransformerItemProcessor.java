@@ -44,7 +44,7 @@ public class TransformerItemProcessor implements MetisItemProcessor<ExecutionRec
   private String datasetLanguage;
   @Value("#{jobParameters['xsltUrl']}")
   private String xsltUrl;
-  @Value("#{stepExecution.jobExecution.jobInstance.id}")
+  @Value("#{jobParameters['overrideJobId'] ?: stepExecution.jobExecution.jobInstance.id}")
   private Long jobInstanceId;
 
   private final ItemProcessorUtil<String> itemProcessorUtil;
