@@ -6,68 +6,27 @@ import static eu.europeana.cloud.flink.client.constants.postgres.JobParamName.*;
 import static eu.europeana.cloud.flink.client.constants.postgres.JobParamValue.VALIDATION_EXTERNAL;
 import static eu.europeana.cloud.flink.client.constants.postgres.JobParamValue.VALIDATION_INTERNAL;
 import static java.util.Collections.emptyMap;
-import static org.assertj.core.api.Assertions.assertThat;
 
-import com.zaxxer.hikari.HikariConfig;
-import data.config.FlinkClientConfig;
-import data.config.MetisDataflowClientConfig;
-import data.config.properties.BatchConfigurationProperties;
 import data.config.properties.JobConfigurationProperties;
-import data.entity.ExecutionRecord;
-import data.repositories.ExecutionRecordExceptionLogRepository;
-import data.repositories.ExecutionRecordRepository;
 import eu.europeana.cloud.flink.client.JobExecutor;
 import eu.europeana.cloud.flink.client.entities.SubmitJobRequest;
-import jakarta.annotation.Resource;
-import jakarta.persistence.EntityManager;
 import java.lang.invoke.MethodHandles;
 import java.util.HashMap;
 import java.util.Map;
+import org.apache.commons.lang3.time.StopWatch;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestMethodOrder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.env.AbstractEnvironment;
-import org.springframework.test.context.ContextConfiguration;
 
 
-@SpringBootTest
-@ContextConfiguration(classes = {MetisDataflowClientConfig.class, FlinkClientConfig.class})
-@EnableAutoConfiguration
-@TestMethodOrder(MethodOrderer.MethodName.class)
-public class PerformaceCompareTest {
+public class FlinkPerformaceTest extends AbstractPerformanceTest {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-  public static final int PARALLELISM = 2;
-
-  @Autowired
-  private HikariConfig dbConfig;
 
   private static JobExecutor executor;
-
-  @Resource
-  private ExecutionRecordRepository<ExecutionRecord> executionRecordRepository;
-
-  @Autowired
-  EntityManager entityManager;
-
-  @Resource
-  ExecutionRecordExceptionLogRepository executionRecordExceptionLogRepository;
-
-  private static boolean firstTest = true;
-
-  private static boolean cleared;
-
-  @Autowired
-  private DbCleaner dbCleaner;
-
-  @Autowired
-  private BatchConfigurationProperties batchConfigurationProperties;
 
   @BeforeAll
   public static void createExecutor(@Autowired AbstractEnvironment environment) {
@@ -79,9 +38,9 @@ public class PerformaceCompareTest {
 
     executeStep(1,
         "eu.europeana.cloud.job.oai.OAIJob",
-        Map.of(OAI_REPOSITORY_URL, "https://metis-repository-rest.test.eanadev.org/repository/oai"
-            , SET_SPEC, "ecloud_e2e_tests"
-            , METADATA_PREFIX, "edm"));
+        Map.of(OAI_REPOSITORY_URL, sourceProperties.getUrl()
+            , SET_SPEC, sourceProperties.getSetSpec()
+            , METADATA_PREFIX, sourceProperties.getMetadataPrefix()));
   }
 
   @Test
@@ -194,24 +153,9 @@ public class PerformaceCompareTest {
         .parallelism(String.valueOf(PARALLELISM))
         .programArgs(jobParams)
         .build();
-
+    startWatch = StopWatch.createStarted();
     executor.execute(request);
-    assertThat(executionRecordRepository.countByDatasetIdAndExecutionId(datasetId, taskId)).isEqualTo(8);
-    assertThat(executionRecordExceptionLogRepository.countByDatasetIdAndExecutionId(datasetId, taskId)).isEqualTo(0);
+    validateResult(stepNumber);
   }
 
-
-  private void enforceDbClear(int stepNumber) {
-    if (firstTest) {
-      firstTest = false;
-      dbCleaner.clearDbFor(stepNumber);
-      cleared = true;
-    } else {
-      if (cleared) {
-        LOGGER.info("There is no need to clear DB. It was cleared before first test.");
-      } else {
-        throw new RuntimeException("The DB could not be cleared before first test.");
-      }
-    }
-  }
 }

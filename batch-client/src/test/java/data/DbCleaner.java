@@ -28,12 +28,14 @@ public class DbCleaner {
   private static final String[] TABLES = {
       "Execution_Record",
       "Execution_Record_Exception_Log",
+      "Execution_Record_External_Identifier",
       "Task_Info",
   };
 
   private static final String[] SELECTIVE_DELETE_REQUESTS = {
       "DELETE from \"batch-framework\".Execution_Record WHERE dataset_Id <> '"+JUNIT_DATASET+"' OR execution_Id NOT IN :set",
       "DELETE from \"batch-framework\".Execution_Record_Exception_Log WHERE dataset_Id <> '"+JUNIT_DATASET+"' OR execution_Id NOT IN :set",
+      "DELETE from \"batch-framework\".Execution_Record_External_Identifier WHERE dataset_Id <> '"+JUNIT_DATASET+"' OR execution_Id NOT IN :set",
       "DELETE from \"batch-framework\".Task_Info WHERE CAST(task_id as VARCHAR) NOT IN :set",
   };
 

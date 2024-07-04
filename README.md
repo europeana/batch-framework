@@ -57,9 +57,10 @@ If needed we can destroy(will also delete k8s historical pods) the tasks using `
 If needed we can unregister the applications using `data.RegistrationTestIT.unregisterApplications`
 
 # Start a job in SCDF
-In the test file `data.ApplicationTestIT` there are test methods for each plugin. To run a plugin 
-we have to update the `ARGUMENT_EXECUTION_ID` to the execution id for the source data, 
-the identifier of the execution from a previous plugin(this does not apply for the oai plugin).  
+1. You need to fill source.* properties in application.properties file with valid OAI source config
+2. In the test file `data.SpringBatchTestIT` there are test methods for each plugin. 
+The tests clear whole database before executing, leaving only the test dataset previous steps.
+Single test could be run, but only if previous steps were completed on last previous test execution.
 If you get the error `0/1 nodes are available: 1 Insufficient cpu. preemption: 0/1 nodes are available: 1 No preemption victims found for incoming pod.`, it 
 means that there are not enough resources available on your machine. To fix that you can make sure there is availability of resources by removing/stopping 
 other pods, or try reducing the resources of the job/pod when sending the launch command.

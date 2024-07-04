@@ -13,6 +13,21 @@ job.manager.user=
 job.manager.password=
 jar.id=
 
+source.url=https://metis-repository-rest.test.eanadev.org/repository/oai
+source.setSpec=ecloud_e2e_tests
+source.metadataPrefix=edm
+source.recordCount=8
+
+#source.url=https://metis-repository-rest.test.eanadev.org/repository/oai
+#source.setSpec=spring_poc_dataset_with_validation_error
+#source.metadataPrefix=edm
+#source.recordCount=11
+
+#source.url=http://panic.image.ntua.gr:9000/efg/oai
+#source.setSpec=1076
+#source.metadataPrefix=rdf
+#source.recordCount=5352
+
 batch.registerProperties.oaiHarvestName=batch-oai-harvest
 batch.registerProperties.oaiHarvestUri=docker:europeana/batch-oai-harvest:latest
 batch.registerProperties.validationName=batch-validation
