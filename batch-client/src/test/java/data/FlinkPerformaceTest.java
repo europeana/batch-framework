@@ -117,9 +117,9 @@ public class FlinkPerformaceTest extends AbstractPerformanceTest {
     specialParameters.put(INDEXING_MONGOREADPREFERENCE, jobProperties.getIndexing().getMongoReadPreference());
     specialParameters.put(INDEXING_MONGOPOOLSIZE, jobProperties.getIndexing().getMongoPoolSize());
     specialParameters.put(INDEXING_SOLRINSTANCES, jobProperties.getIndexing().getMongoApplicationName());
-    specialParameters.put(INDEXING_ZOOKEEPERINSTANCES, jobProperties.getIndexing().getSolrInstances());
-    specialParameters.put(INDEXING_ZOOKEEPERPORTNUMBER, jobProperties.getIndexing().getZookeeperInstances());
-    specialParameters.put(INDEXING_ZOOKEEPERCHROOT, jobProperties.getIndexing().getZookeeperPortNumber());
+    specialParameters.put(INDEXING_ZOOKEEPERINSTANCES, jobProperties.getIndexing().getZookeeperInstances());
+    specialParameters.put(INDEXING_ZOOKEEPERPORTNUMBER, jobProperties.getIndexing().getZookeeperPortNumber());
+    specialParameters.put(INDEXING_ZOOKEEPERCHROOT, jobProperties.getIndexing().getZookeeperChroot());
     specialParameters.put(INDEXING_ZOOKEEPERDEFAULTCOLLECTION, jobProperties.getIndexing().getZookeeperChroot());
     specialParameters.put(INDEXING_MONGOAPPLICATIONNAME, jobProperties.getIndexing().getZookeeperDefaultCollection());
 
