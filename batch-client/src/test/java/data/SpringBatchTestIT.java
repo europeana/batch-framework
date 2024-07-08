@@ -132,7 +132,7 @@ class SpringBatchTestIT extends AbstractPerformanceTest{
 
     pollingStatus(launchTask(taskName, deployerProperties, additionalAppProperties, arguments));
 
-    validateResult(1);
+    validateResult(1, sourceProperties.getRecordCount());
   }
 
   @Test
@@ -159,7 +159,7 @@ class SpringBatchTestIT extends AbstractPerformanceTest{
     arguments.add(ARGUMENT_BATCH_JOB_SUBTYPE + "=EXTERNAL");
 
     pollingStatus(launchTask(taskName, deployerProperties, additionalAppProperties, arguments));
-    validateResult(2);
+    validateResult(2, sourceProperties.getRecordCount());
   }
 
   @Test
@@ -189,7 +189,7 @@ class SpringBatchTestIT extends AbstractPerformanceTest{
     arguments.add(ARGUMENT_XSLT_URL + "=https://metis-core-rest.test.eanadev.org/datasets/xslt/6204e5e2514e773e6745f7e9");
 
     pollingStatus(launchTask(taskName, deployerProperties, additionalAppProperties, arguments));
-    validateResult(3);
+    validateResult(3, sourceProperties.getRecordCount());
   }
 
   @Test
@@ -216,7 +216,7 @@ class SpringBatchTestIT extends AbstractPerformanceTest{
     arguments.add(ARGUMENT_BATCH_JOB_SUBTYPE + "=INTERNAL");
 
     pollingStatus(launchTask(taskName, deployerProperties, additionalAppProperties, arguments));
-    validateResult(4);
+    validateResult(4, sourceProperties.getRecordCount());
   }
 
   @Test
@@ -243,7 +243,7 @@ class SpringBatchTestIT extends AbstractPerformanceTest{
 
     pollingStatus(launchTask(taskName, deployerProperties, additionalAppProperties, arguments));
 
-    validateResult(5);
+    validateResult(5, sourceProperties.getRecordCount());
   }
 
   @Test
@@ -274,7 +274,7 @@ class SpringBatchTestIT extends AbstractPerformanceTest{
 
     pollingStatus(launchTask(taskName, deployerProperties, additionalAppProperties, arguments));
 
-    validateResult(6);
+    validateResult(6, sourceProperties.getRecordCount());
   }
 
   @Test
@@ -302,7 +302,7 @@ class SpringBatchTestIT extends AbstractPerformanceTest{
 
     pollingStatus(launchTask(taskName, deployerProperties, additionalAppProperties, arguments));
 
-    validateResult(7);
+    validateResult(7, sourceProperties.getRecordCount());
   }
 
   @Test
@@ -351,7 +351,7 @@ class SpringBatchTestIT extends AbstractPerformanceTest{
 
     pollingStatus(launchTask(taskName, deployerProperties, additionalAppProperties, arguments));
 
-    validateResult(8);
+    validateResult(8, sourceProperties.getRecordCount());
   }
 
   private void pollingStatus(LaunchResponseResource launchResponseResource) {

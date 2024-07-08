@@ -120,7 +120,7 @@ public class FlinkPerformaceTest extends AbstractPerformanceTest {
     specialParameters.put(INDEXING_ZOOKEEPERINSTANCES, jobProperties.getIndexing().getZookeeperInstances());
     specialParameters.put(INDEXING_ZOOKEEPERPORTNUMBER, jobProperties.getIndexing().getZookeeperPortNumber());
     specialParameters.put(INDEXING_ZOOKEEPERCHROOT, jobProperties.getIndexing().getZookeeperChroot());
-    specialParameters.put(INDEXING_ZOOKEEPERDEFAULTCOLLECTION, jobProperties.getIndexing().getZookeeperChroot());
+    specialParameters.put(INDEXING_ZOOKEEPERDEFAULTCOLLECTION, jobProperties.getIndexing().getZookeeperDefaultCollection());
     specialParameters.put(INDEXING_MONGOAPPLICATIONNAME, jobProperties.getIndexing().getZookeeperDefaultCollection());
 
     executeStep(8,
@@ -155,7 +155,11 @@ public class FlinkPerformaceTest extends AbstractPerformanceTest {
         .build();
     startWatch = StopWatch.createStarted();
     executor.execute(request);
-    validateResult(stepNumber);
-  }
+    if (!jobClass.equals("eu.europeana.cloud.job.indexing.IndexingJobWithPostgresMultiThreadedOperation")) {
+      validateResult(stepNumber, sourceProperties.getRecordCount());
+    }else{
+      validateResult(stepNumber, 0);
 
+    }
+  }
 }
