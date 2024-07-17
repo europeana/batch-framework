@@ -90,5 +90,5 @@ batch.jobProperties.indexing.mongoApplicationName=batch-indexing
 batch.jobProperties.indexing.solrInstances=
 batch.jobProperties.indexing.zookeeperInstances=
 batch.jobProperties.indexing.zookeeperPortNumber=
-batch.jobProperties.indexing.zookeeperChroot=
+batch.jobProperties.indexing.zookeeperChroot=/
 batch.jobProperties.indexing.zookeeperDefaultCollection=

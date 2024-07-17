@@ -73,12 +73,12 @@ public abstract class AbstractPerformanceTest {
   }
 
 
-  protected void validateResult(int stepNumber, int expectedRecords) {
+  protected void validateResult(int stepNumber) {
     LOGGER.info("Step: {} - task execution time: {}", stepNumber, startWatch.formatTime());
     String datasetId = JUNIT_DATASET;
     String taskId = String.valueOf(stepNumber);
     assertThat(executionRecordRepository.countByDatasetIdAndExecutionId(datasetId, taskId))
-        .isEqualTo(expectedRecords);
+        .isEqualTo(sourceProperties.getRecordCount());
     assertThat(executionRecordExceptionLogRepository.countByDatasetIdAndExecutionId(datasetId, taskId))
         .isEqualTo(0);
   }

@@ -155,11 +155,7 @@ public class FlinkPerformaceTest extends AbstractPerformanceTest {
         .build();
     startWatch = StopWatch.createStarted();
     executor.execute(request);
-    if (!jobClass.equals("eu.europeana.cloud.job.indexing.IndexingJobWithPostgresMultiThreadedOperation")) {
-      validateResult(stepNumber, sourceProperties.getRecordCount());
-    }else{
-      validateResult(stepNumber, 0);
-
+    validateResult(stepNumber);
     }
-  }
+
 }
