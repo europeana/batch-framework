@@ -30,7 +30,6 @@ import org.springframework.test.context.ContextConfiguration;
 public abstract class AbstractPerformanceTest {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-  public static final int PARALLELISM = 2;
 
   @Autowired
   protected HikariConfig dbConfig;

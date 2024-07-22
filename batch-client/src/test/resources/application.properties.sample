@@ -8,10 +8,14 @@ spring.datasource.driver-class-name=org.postgresql.Driver
 spring.datasource.hikari.maximumPoolSize=5
 spring.jpa.generate-ddl=true
 
-job.manager.url=
-job.manager.user=
-job.manager.password=
-jar.id=
+flink.jobManagerUrl=
+flink.jarId=
+
+flink.jobManagerUser=
+flink.jobManagerPassword=
+flink.readerParallelism=8
+flink.operatorParallelism=8
+flink.sinkParallelism=8
 
 source.url=https://metis-repository-rest.test.eanadev.org/repository/oai
 source.setSpec=ecloud_e2e_tests

@@ -7,6 +7,7 @@ import static eu.europeana.cloud.flink.client.constants.postgres.JobParamValue.V
 import static eu.europeana.cloud.flink.client.constants.postgres.JobParamValue.VALIDATION_INTERNAL;
 import static java.util.Collections.emptyMap;
 
+import data.config.properties.FlinkConfigurationProperties;
 import data.config.properties.JobConfigurationProperties;
 import eu.europeana.cloud.flink.client.JobExecutor;
 import eu.europeana.cloud.flink.client.entities.SubmitJobRequest;
@@ -28,9 +29,13 @@ public class FlinkPerformaceTest extends AbstractPerformanceTest {
 
   private static JobExecutor executor;
 
+  @Autowired
+  private FlinkConfigurationProperties flinkConfigurationProperties;
+
   @BeforeAll
-  public static void createExecutor(@Autowired AbstractEnvironment environment) {
-    executor = new JobExecutor(environment);
+  public static void createExecutor(@Autowired FlinkConfigurationProperties properties) {
+    executor = new JobExecutor(properties.getJobManagerUrl(), properties.getJobManagerUser(),
+        properties.getJobManagerPassword(), properties.getJarId());
   }
 
   @Test
@@ -146,11 +151,13 @@ public class FlinkPerformaceTest extends AbstractPerformanceTest {
       jobParams.put(EXECUTION_ID, stepNumber - 1);
     }
     jobParams.putAll(specialParameters);
-
+    jobParams.put(READER_PARALLELISM,flinkConfigurationProperties.getReaderParallelism());
+    jobParams.put(OPERATOR_PARALLELISM,flinkConfigurationProperties.getOperatorParallelism());
+    jobParams.put(SINK_PARALLELISM,flinkConfigurationProperties.getSinkParallelism());
     SubmitJobRequest request = SubmitJobRequest
         .builder()
         .entryClass(jobClass)
-        .parallelism(String.valueOf(PARALLELISM))
+        .parallelism(String.valueOf(flinkConfigurationProperties.getMaxParallelism()))
         .programArgs(jobParams)
         .build();
     startWatch = StopWatch.createStarted();
