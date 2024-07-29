@@ -11,6 +11,7 @@
 
   <properties>
     <spring-cloud-dataflow-dependencies.version>2.11.2</spring-cloud-dataflow-dependencies.version>
+    <maven-surefire-plugin.version>2.22.2</maven-surefire-plugin.version>
   </properties>
   <dependencies>
     <dependency>
@@ -95,4 +96,12 @@
     </dependencies>
   </dependencyManagement>
 
+  <build>
+    <plugins>
+      <plugin>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>${maven-surefire-plugin.version}</version>
+      </plugin>
+    </plugins>
+  </build>
 </project>
