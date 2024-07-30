@@ -76,10 +76,10 @@ public abstract class AbstractPerformanceTest {
     LOGGER.info("Step: {} - task execution time: {}", stepNumber, startWatch.formatTime());
     String datasetId = JUNIT_DATASET;
     String taskId = String.valueOf(stepNumber);
-    assertThat(executionRecordRepository.countByDatasetIdAndExecutionId(datasetId, taskId))
-        .isEqualTo(sourceProperties.getRecordCount());
-    assertThat(executionRecordExceptionLogRepository.countByDatasetIdAndExecutionId(datasetId, taskId))
-        .isEqualTo(0);
+    int expectedRecordCount = stepNumber != 1 ? sourceProperties.getValidRecordCount() : sourceProperties.getRecordCount() ;
+    long expectedErrorCount = stepNumber != 2 ? 0: sourceProperties.getRecordCount() - sourceProperties.getValidRecordCount();
+    assertThat(executionRecordRepository.countByDatasetIdAndExecutionId(datasetId, taskId)).isEqualTo(expectedRecordCount);
+    assertThat(executionRecordExceptionLogRepository.countByDatasetIdAndExecutionId(datasetId, taskId)).isEqualTo(expectedErrorCount);
   }
 
 }

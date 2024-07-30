@@ -8,9 +8,20 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @Getter
 @ConfigurationProperties(prefix = "source")
 public class OaiSourceConfigurationProperties {
+
   String url;
   String setSpec;
   String metadataPrefix;
   int recordCount;
+  int validRecordCount = -1;
+
+  public int getValidRecordCount() {
+    if (validRecordCount == -1) {
+      return recordCount;
+    } else {
+      return validRecordCount;
+    }
+  }
 
 }
+

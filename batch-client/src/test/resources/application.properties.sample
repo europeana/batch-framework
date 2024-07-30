@@ -25,7 +25,8 @@ source.recordCount=8
 #source.url=https://metis-repository-rest.test.eanadev.org/repository/oai
 #source.setSpec=spring_poc_dataset_with_validation_error
 #source.metadataPrefix=edm
-#source.recordCount=11
+#source.recordCount=14
+#source.validRecordCount=9
 
 #source.url=http://panic.image.ntua.gr:9000/efg/oai
 #source.setSpec=1076
