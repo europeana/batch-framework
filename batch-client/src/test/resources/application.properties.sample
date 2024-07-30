@@ -57,6 +57,11 @@ batch.deploymentProperties.spring.datasource.hikari.maximumPoolSize=5
 batch.deploymentProperties.spring.jpa.generate-ddl=true
 batch.deploymentProperties.spring.jpa.properties.hibernate.jdbc.batch_size = 20
 
+batch.deployerProperties.kubernetes.requests.cpu=4000m
+batch.deployerProperties.kubernetes.limits.cpu=4000m
+batch.deployerProperties.kubernetes.requests.memory=8000M
+batch.deployerProperties.kubernetes.limits.memory=8000M
+
 batch.jobProperties.oaiHarvest.chunkSize=10
 batch.jobProperties.oaiHarvest.parallelizationSize=10
 batch.jobProperties.validation.chunkSize=1000

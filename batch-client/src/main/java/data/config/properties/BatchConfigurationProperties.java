@@ -16,4 +16,5 @@ public class BatchConfigurationProperties {
   @NestedConfigurationProperty
   private JobConfigurationProperties jobProperties;
   private Map<String, String> deploymentProperties;
+  private Map<String, String> deployerProperties;
 }

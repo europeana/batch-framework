@@ -113,13 +113,6 @@ class SpringBatchTestIT extends AbstractPerformanceTest{
     additionalAppProperties.put(OAIHARVEST_CHUNK_SIZE, jobProperties.getOaiHarvest().getChunkSize());
     additionalAppProperties.put(OAIHARVEST_PARALLELIZATION_SIZE, jobProperties.getOaiHarvest().getParallelizationSize());
 
-    final Map<String, String> deployerProperties = new HashMap<>();
-    deployerProperties.put(DEPLOYER_KUBERNETES_LIMITS_CPU, "4000m");
-    deployerProperties.put(DEPLOYER_KUBERNETES_LIMITS_MEMORY, "8000M");
-    deployerProperties.put(DEPLOYER_KUBERNETES_REQUESTS_CPU, "4000m");
-    deployerProperties.put(DEPLOYER_KUBERNETES_REQUESTS_MEMORY, "8000M");
-
-
     final ArrayList<String> arguments = new ArrayList<>();
     arguments.add(ARGUMENT_DATASET_ID + "=" + DbCleaner.JUNIT_DATASET);
     arguments.add(ARGUMENT_EXECUTION_ID + "=1");
@@ -130,7 +123,7 @@ class SpringBatchTestIT extends AbstractPerformanceTest{
     arguments.add(ARGUMENT_METADATA_PREFIX + "="+sourceProperties.getMetadataPrefix());
 
 
-    pollingStatus(launchTask(taskName, deployerProperties, additionalAppProperties, arguments));
+    pollingStatus(launchTask(taskName, batchConfigurationProperties.getDeployerProperties(), additionalAppProperties, arguments));
 
     validateResult(1);
   }
@@ -146,19 +139,13 @@ class SpringBatchTestIT extends AbstractPerformanceTest{
     additionalAppProperties.put(VALIDATION_CHUNK_SIZE, jobProperties.getValidation().getChunkSize());
     additionalAppProperties.put(VALIDATION_PARALLELIZATION_SIZE, jobProperties.getValidation().getParallelizationSize());
 
-    final Map<String, String> deployerProperties = new HashMap<>();
-    deployerProperties.put(DEPLOYER_KUBERNETES_LIMITS_CPU, "4000m");
-    deployerProperties.put(DEPLOYER_KUBERNETES_LIMITS_MEMORY, "8000M");
-    deployerProperties.put(DEPLOYER_KUBERNETES_REQUESTS_CPU, "4000m");
-    deployerProperties.put(DEPLOYER_KUBERNETES_REQUESTS_MEMORY, "8000M");
-
     final ArrayList<String> arguments = new ArrayList<>();
     arguments.add(ARGUMENT_DATASET_ID + "=" + DbCleaner.JUNIT_DATASET);
     arguments.add(ARGUMENT_EXECUTION_ID + "=1");
     arguments.add(ARGUMENT_OVERRIDE_JOB_ID+"=2");
     arguments.add(ARGUMENT_BATCH_JOB_SUBTYPE + "=EXTERNAL");
 
-    pollingStatus(launchTask(taskName, deployerProperties, additionalAppProperties, arguments));
+    pollingStatus(launchTask(taskName, batchConfigurationProperties.getDeployerProperties(), additionalAppProperties, arguments));
     validateResult(2);
   }
 
@@ -173,12 +160,6 @@ class SpringBatchTestIT extends AbstractPerformanceTest{
     additionalAppProperties.put(TRANSFORMATION_CHUNK_SIZE, jobProperties.getTransformation().getChunkSize());
     additionalAppProperties.put(TRANSFORMATION_PARALLELIZATION_SIZE, jobProperties.getTransformation().getParallelizationSize());
 
-    final Map<String, String> deployerProperties = new HashMap<>();
-    deployerProperties.put(DEPLOYER_KUBERNETES_LIMITS_CPU, "4000m");
-    deployerProperties.put(DEPLOYER_KUBERNETES_LIMITS_MEMORY, "8000M");
-    deployerProperties.put(DEPLOYER_KUBERNETES_REQUESTS_CPU, "4000m");
-    deployerProperties.put(DEPLOYER_KUBERNETES_REQUESTS_MEMORY, "8000M");
-
     final ArrayList<String> arguments = new ArrayList<>();
     arguments.add(ARGUMENT_DATASET_ID + "=" + DbCleaner.JUNIT_DATASET);
     arguments.add(ARGUMENT_EXECUTION_ID + "=2");
@@ -188,7 +169,7 @@ class SpringBatchTestIT extends AbstractPerformanceTest{
     arguments.add(ARGUMENT_DATASET_LANGUAGE + "=el");
     arguments.add(ARGUMENT_XSLT_URL + "=https://metis-core-rest.test.eanadev.org/datasets/xslt/6204e5e2514e773e6745f7e9");
 
-    pollingStatus(launchTask(taskName, deployerProperties, additionalAppProperties, arguments));
+    pollingStatus(launchTask(taskName, batchConfigurationProperties.getDeployerProperties(), additionalAppProperties, arguments));
     validateResult(3);
   }
 
@@ -203,19 +184,13 @@ class SpringBatchTestIT extends AbstractPerformanceTest{
     additionalAppProperties.put(VALIDATION_CHUNK_SIZE, jobProperties.getValidation().getChunkSize());
     additionalAppProperties.put(VALIDATION_PARALLELIZATION_SIZE, jobProperties.getValidation().getParallelizationSize());
 
-    final Map<String, String> deployerProperties = new HashMap<>();
-    deployerProperties.put(DEPLOYER_KUBERNETES_LIMITS_CPU, "4000m");
-    deployerProperties.put(DEPLOYER_KUBERNETES_LIMITS_MEMORY, "8000M");
-    deployerProperties.put(DEPLOYER_KUBERNETES_REQUESTS_CPU, "4000m");
-    deployerProperties.put(DEPLOYER_KUBERNETES_REQUESTS_MEMORY, "8000M");
-
     final ArrayList<String> arguments = new ArrayList<>();
     arguments.add(ARGUMENT_DATASET_ID + "=" + DbCleaner.JUNIT_DATASET);
     arguments.add(ARGUMENT_EXECUTION_ID + "=3");
     arguments.add(ARGUMENT_OVERRIDE_JOB_ID+"=4");
     arguments.add(ARGUMENT_BATCH_JOB_SUBTYPE + "=INTERNAL");
 
-    pollingStatus(launchTask(taskName, deployerProperties, additionalAppProperties, arguments));
+    pollingStatus(launchTask(taskName, batchConfigurationProperties.getDeployerProperties(), additionalAppProperties, arguments));
     validateResult(4);
   }
 
@@ -230,18 +205,12 @@ class SpringBatchTestIT extends AbstractPerformanceTest{
     additionalAppProperties.put(NORMALIZATION_CHUNK_SIZE, jobProperties.getNormalization().getChunkSize());
     additionalAppProperties.put(NORMALIZATION_PARALLELIZATION_SIZE, jobProperties.getNormalization().getParallelizationSize());
 
-    final Map<String, String> deployerProperties = new HashMap<>();
-    deployerProperties.put(DEPLOYER_KUBERNETES_LIMITS_CPU, "2000m");
-    deployerProperties.put(DEPLOYER_KUBERNETES_LIMITS_MEMORY, "800M");
-    deployerProperties.put(DEPLOYER_KUBERNETES_REQUESTS_CPU, "2000m");
-    deployerProperties.put(DEPLOYER_KUBERNETES_REQUESTS_MEMORY, "800M");
-
     final ArrayList<String> arguments = new ArrayList<>();
     arguments.add(ARGUMENT_DATASET_ID + "=" + DbCleaner.JUNIT_DATASET);
     arguments.add(ARGUMENT_EXECUTION_ID + "=4");
     arguments.add(ARGUMENT_OVERRIDE_JOB_ID+"=5");
 
-    pollingStatus(launchTask(taskName, deployerProperties, additionalAppProperties, arguments));
+    pollingStatus(launchTask(taskName, batchConfigurationProperties.getDeployerProperties(), additionalAppProperties, arguments));
 
     validateResult(5);
   }
@@ -261,18 +230,12 @@ class SpringBatchTestIT extends AbstractPerformanceTest{
     additionalAppProperties.put(ENRICHMENT_ENTITY_API_URL, jobProperties.getEnrichment().getEntityApiUrl());
     additionalAppProperties.put(ENRICHMENT_ENTITY_API_KEY, jobProperties.getEnrichment().getEntityApiKey());
 
-    final Map<String, String> deployerProperties = new HashMap<>();
-    deployerProperties.put(DEPLOYER_KUBERNETES_LIMITS_CPU, "2000m");
-    deployerProperties.put(DEPLOYER_KUBERNETES_LIMITS_MEMORY, "800M");
-    deployerProperties.put(DEPLOYER_KUBERNETES_REQUESTS_CPU, "2000m");
-    deployerProperties.put(DEPLOYER_KUBERNETES_REQUESTS_MEMORY, "800M");
-
     final ArrayList<String> arguments = new ArrayList<>();
     arguments.add(ARGUMENT_DATASET_ID + "=" + DbCleaner.JUNIT_DATASET);
     arguments.add(ARGUMENT_EXECUTION_ID + "=5");
     arguments.add(ARGUMENT_OVERRIDE_JOB_ID+"=6");
 
-    pollingStatus(launchTask(taskName, deployerProperties, additionalAppProperties, arguments));
+    pollingStatus(launchTask(taskName, batchConfigurationProperties.getDeployerProperties(), additionalAppProperties, arguments));
 
     validateResult(6);
   }
@@ -289,18 +252,12 @@ class SpringBatchTestIT extends AbstractPerformanceTest{
     additionalAppProperties.put(MEDIA_CHUNK_SIZE, jobProperties.getMedia().getChunkSize());
     additionalAppProperties.put(MEDIA_PARALLELIZATION_SIZE, jobProperties.getMedia().getParallelizationSize());
 
-    final Map<String, String> deployerProperties = new HashMap<>();
-    deployerProperties.put(DEPLOYER_KUBERNETES_LIMITS_CPU, "2000m");
-    deployerProperties.put(DEPLOYER_KUBERNETES_LIMITS_MEMORY, "1500M");
-    deployerProperties.put(DEPLOYER_KUBERNETES_REQUESTS_CPU, "2000m");
-    deployerProperties.put(DEPLOYER_KUBERNETES_REQUESTS_MEMORY, "1500M");
-
     final ArrayList<String> arguments = new ArrayList<>();
     arguments.add(ARGUMENT_DATASET_ID + "=" + DbCleaner.JUNIT_DATASET);
     arguments.add(ARGUMENT_EXECUTION_ID + "=6");
     arguments.add(ARGUMENT_OVERRIDE_JOB_ID+"=7");
 
-    pollingStatus(launchTask(taskName, deployerProperties, additionalAppProperties, arguments));
+    pollingStatus(launchTask(taskName, batchConfigurationProperties.getDeployerProperties(), additionalAppProperties, arguments));
 
     validateResult(7);
   }
@@ -338,18 +295,12 @@ class SpringBatchTestIT extends AbstractPerformanceTest{
     additionalAppProperties.put(INDEXING_ZOOKEEPER_CHROOT, jobProperties.getIndexing().getZookeeperChroot());
     additionalAppProperties.put(INDEXING_ZOOKEEPER_DEFAULT_COLLECTION, jobProperties.getIndexing().getZookeeperDefaultCollection());
 
-    final Map<String, String> deployerProperties = new HashMap<>();
-    deployerProperties.put(DEPLOYER_KUBERNETES_LIMITS_CPU, "2000m");
-    deployerProperties.put(DEPLOYER_KUBERNETES_LIMITS_MEMORY, "800M");
-    deployerProperties.put(DEPLOYER_KUBERNETES_REQUESTS_CPU, "2000m");
-    deployerProperties.put(DEPLOYER_KUBERNETES_REQUESTS_MEMORY, "800M");
-
     final ArrayList<String> arguments = new ArrayList<>();
     arguments.add(ARGUMENT_DATASET_ID + "=" + DbCleaner.JUNIT_DATASET);
     arguments.add(ARGUMENT_EXECUTION_ID + "=7");
     arguments.add(ARGUMENT_OVERRIDE_JOB_ID+"=8");
 
-    pollingStatus(launchTask(taskName, deployerProperties, additionalAppProperties, arguments));
+    pollingStatus(launchTask(taskName, batchConfigurationProperties.getDeployerProperties(), additionalAppProperties, arguments));
 
     validateResult(8);
   }
