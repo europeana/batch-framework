@@ -13,6 +13,8 @@ import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
+import org.apache.commons.lang3.time.StopWatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.configuration.annotation.StepScope;
@@ -65,9 +67,15 @@ public class OaiIdentifiersEndpointItemReader implements ItemReader<ExecutionRec
     private void harvestIdentifiers() throws HarvesterException, IOException {
         LOGGER.info("Harvesting identifiers for {}", oaiEndpoint);
         OaiHarvest oaiHarvest = new OaiHarvest(oaiEndpoint, oaiMetadataPrefix, oaiSet);
+        StopWatch watch = StopWatch.createStarted();
         try (OaiRecordHeaderIterator headerIterator = oaiHarvester.harvestRecordHeaders(oaiHarvest)) {
             headerIterator.forEach(oaiRecordHeader -> {
                 oaiRecordHeaders.add(oaiRecordHeader);
+                if (watch.getTime(TimeUnit.SECONDS) > 10) {
+                    LOGGER.info("Already harvested {} records...", oaiRecordHeaders.size());
+                    watch.reset();
+                    watch.start();
+                }
                 return ReportingIteration.IterationResult.CONTINUE;
             });
         }

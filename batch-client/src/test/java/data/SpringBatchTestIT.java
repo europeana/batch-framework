@@ -47,10 +47,6 @@ import static data.parameter.ArgumentString.ARGUMENT_OAI_ENDPOINT;
 import static data.parameter.ArgumentString.ARGUMENT_OAI_SET;
 import static data.parameter.ArgumentString.ARGUMENT_OVERRIDE_JOB_ID;
 import static data.parameter.ArgumentString.ARGUMENT_XSLT_URL;
-import static data.parameter.DeployerString.DEPLOYER_KUBERNETES_LIMITS_CPU;
-import static data.parameter.DeployerString.DEPLOYER_KUBERNETES_LIMITS_MEMORY;
-import static data.parameter.DeployerString.DEPLOYER_KUBERNETES_REQUESTS_CPU;
-import static data.parameter.DeployerString.DEPLOYER_KUBERNETES_REQUESTS_MEMORY;
 import static data.parameter.DeploymentString.DEPLOYMENT_PARAMETER_APP_PREFIX;
 import static data.parameter.DeploymentString.DEPLOYMENT_PARAMETER_DEPLOYER_PREFIX;
 import static java.lang.String.format;
@@ -71,21 +67,28 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.apache.commons.collections4.map.TransformedMap;
 import org.apache.commons.lang3.time.StopWatch;
+import org.awaitility.core.ConditionFactory;
 import org.awaitility.core.ConditionTimeoutException;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cloud.dataflow.rest.client.DataFlowClientException;
 import org.springframework.cloud.dataflow.rest.client.DataFlowOperations;
 import org.springframework.cloud.dataflow.rest.resource.LaunchResponseResource;
 import org.springframework.cloud.dataflow.rest.resource.TaskExecutionResource;
 import org.springframework.cloud.dataflow.rest.resource.TaskExecutionStatus;
+import org.springframework.web.client.RestClientException;
+import static eu.europeana.cloud.flink.client.JobExecutor.MAX_RETRIES;
+import static eu.europeana.cloud.flink.client.JobExecutor.SLEEP_BETWEEN_RETRIES;
 
 class SpringBatchTestIT extends AbstractPerformanceTest{
 
@@ -320,11 +323,27 @@ class SpringBatchTestIT extends AbstractPerformanceTest{
   }
 
   private void pollingRunning(Supplier<TaskExecutionResource> getTaskExecutionResource) {
-    await().forever().until(() -> {
+    pollingWithRetryOnException(await().forever(), () -> {
       final TaskExecutionResource taskExecutionResource = getTaskExecutionResource.get();
       final TaskExecutionStatus taskExecutionStatus = taskExecutionResource.getTaskExecutionStatus();
       printProgress(taskExecutionStatus, taskExecutionResource);
       return taskExecutionStatus == TaskExecutionStatus.COMPLETE || taskExecutionStatus == TaskExecutionStatus.ERROR;
+    });
+  }
+
+  private void pollingWithRetryOnException(ConditionFactory conditionFactory, BooleanSupplier operation) {
+    AtomicInteger consecutiveExceptionCount = new AtomicInteger(0);
+    conditionFactory.until(() -> {
+      try {
+        return operation.getAsBoolean();
+      } catch (DataFlowClientException | RestClientException e) {
+        Thread.sleep(SLEEP_BETWEEN_RETRIES);
+        if (consecutiveExceptionCount.incrementAndGet() > MAX_RETRIES) {
+          throw e;
+        } else {
+          return false;
+        }
+      }
     });
   }
 
@@ -363,7 +382,7 @@ class SpringBatchTestIT extends AbstractPerformanceTest{
   private void pollingUnknownDuringPodDeployment(Supplier<TaskExecutionResource> getTaskExecutionResource) {
     //Await for potential UNKNOWN status in case of pod deployment failure.
     try {
-      await().atMost(24, TimeUnit.HOURS).until(() -> {
+      pollingWithRetryOnException(await().atMost(24, TimeUnit.HOURS), () -> {
         TaskExecutionStatus taskExecutionStatus = getTaskExecutionResource.get().getTaskExecutionStatus();
         return taskExecutionStatus != TaskExecutionStatus.UNKNOWN;
       });
