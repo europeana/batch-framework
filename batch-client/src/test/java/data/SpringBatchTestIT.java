@@ -337,6 +337,7 @@ class SpringBatchTestIT extends AbstractPerformanceTest{
       try {
         return operation.getAsBoolean();
       } catch (DataFlowClientException | RestClientException e) {
+        LOGGER.warn("Exception occurred during polling", e);
         Thread.sleep(SLEEP_BETWEEN_RETRIES);
         if (consecutiveExceptionCount.incrementAndGet() > MAX_RETRIES) {
           throw e;
@@ -349,6 +350,10 @@ class SpringBatchTestIT extends AbstractPerformanceTest{
 
   private void printProgress(TaskExecutionStatus taskExecutionStatus, TaskExecutionResource taskExecutionResource) {
     if (taskExecutionStatus != TaskExecutionStatus.ERROR) {
+      if (taskExecutionResource.getJobExecutionIds().size() == 0) {
+        LOGGER.warn("Task progress - no information, job id is not present!");
+        return;
+      }
       final String executionId = Long.toString(taskExecutionResource.getJobExecutionIds().getFirst());
       final String datasetId = getArgumentValue(taskExecutionResource, ARGUMENT_DATASET_ID);
       final String sourceExecutionId = getArgumentValue(taskExecutionResource, ARGUMENT_EXECUTION_ID);
