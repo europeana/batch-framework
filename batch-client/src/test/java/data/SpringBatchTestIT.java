@@ -63,6 +63,7 @@ import jakarta.annotation.Resource;
 import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -400,6 +401,7 @@ class SpringBatchTestIT extends AbstractPerformanceTest{
   LaunchResponseResource launchTask(String taskName, Map<String, String> deployerProperties,
       Map<String, String> additionalDeploymentProperties, List<String> arguments) {
     final Map<String, String> deploymentProperties = batchConfigurationProperties.getDeploymentProperties();
+    deployerProperties=new LinkedHashMap<>(deployerProperties);
     deploymentProperties.putAll(additionalDeploymentProperties);
     final Map<String, String> appPrefixedDeploymentProperties = prefixMap(DEPLOYMENT_PARAMETER_APP_PREFIX, taskName,
         deploymentProperties);
