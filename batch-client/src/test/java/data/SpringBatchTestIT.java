@@ -107,8 +107,8 @@ class SpringBatchTestIT extends AbstractPerformanceTest{
 
 
   @Test
-  void step1_shouldExecuteOAIHarvestCompletellyWithoutErrors() {
-    enforceDbClear(1);
+  void step1_shouldExecuteOAIHarvestCompletellyWithoutErrors() throws InterruptedException {
+    beforeEach(1);
 
     final RegisterConfigurationProperties registerProperties = batchConfigurationProperties.getRegisterProperties();
     final String taskName = registerProperties.getOaiHarvestName();
@@ -133,8 +133,8 @@ class SpringBatchTestIT extends AbstractPerformanceTest{
   }
 
   @Test
-  void step2_shouldExecuteExternalValidationWithoutErrors() {
-    enforceDbClear(2);
+  void step2_shouldExecuteExternalValidationWithoutErrors() throws InterruptedException {
+    beforeEach(2);
 
     final RegisterConfigurationProperties registerProperties = batchConfigurationProperties.getRegisterProperties();
     final String taskName = registerProperties.getValidationName();
@@ -154,8 +154,8 @@ class SpringBatchTestIT extends AbstractPerformanceTest{
   }
 
   @Test
-  void step3_shouldExecuteXsltTransformationWithoutErrors() {
-    enforceDbClear(3);
+  void step3_shouldExecuteXsltTransformationWithoutErrors() throws InterruptedException {
+    beforeEach(3);
 
     final RegisterConfigurationProperties registerProperties = batchConfigurationProperties.getRegisterProperties();
     final String taskName = registerProperties.getTransformationName();
@@ -178,8 +178,8 @@ class SpringBatchTestIT extends AbstractPerformanceTest{
   }
 
   @Test
-  void step4_shouldExecuteIternalValidationWithoutErrors() {
-    enforceDbClear(4);
+  void step4_shouldExecuteIternalValidationWithoutErrors() throws InterruptedException {
+    beforeEach(4);
 
     final RegisterConfigurationProperties registerProperties = batchConfigurationProperties.getRegisterProperties();
     final String taskName = registerProperties.getValidationName();
@@ -199,8 +199,8 @@ class SpringBatchTestIT extends AbstractPerformanceTest{
   }
 
   @Test
-  void step5_shouldExecuteNormalizationWithoutErrors() {
-    enforceDbClear(5);
+  void step5_shouldExecuteNormalizationWithoutErrors() throws InterruptedException {
+    beforeEach(5);
 
     final RegisterConfigurationProperties registerProperties = batchConfigurationProperties.getRegisterProperties();
     final String taskName = registerProperties.getNormalizationName();
@@ -220,8 +220,8 @@ class SpringBatchTestIT extends AbstractPerformanceTest{
   }
 
   @Test
-  void step6_shouldExecuteEnrichmentWithoutErrors() {
-    enforceDbClear(6);
+  void step6_shouldExecuteEnrichmentWithoutErrors() throws InterruptedException {
+    beforeEach(6);
 
     final RegisterConfigurationProperties registerProperties = batchConfigurationProperties.getRegisterProperties();
     final String taskName = registerProperties.getEnrichmentName();
@@ -245,8 +245,8 @@ class SpringBatchTestIT extends AbstractPerformanceTest{
   }
 
   @Test
-  void step7_shouldExecuteMediaWithoutErrors() {
-    enforceDbClear(7);
+  void step7_shouldExecuteMediaWithoutErrors() throws InterruptedException {
+    beforeEach(7);
 
     final RegisterConfigurationProperties registerProperties = batchConfigurationProperties.getRegisterProperties();
     final String taskName = registerProperties.getMediaName();
@@ -267,8 +267,8 @@ class SpringBatchTestIT extends AbstractPerformanceTest{
   }
 
   @Test
-  void step8_shouldExecuteIndexingWithoutErrors() {
-    enforceDbClear(8);
+  void step8_shouldExecuteIndexingWithoutErrors() throws InterruptedException {
+    beforeEach(8);
 
     final RegisterConfigurationProperties registerProperties = batchConfigurationProperties.getRegisterProperties();
     final String taskName = registerProperties.getIndexingName();

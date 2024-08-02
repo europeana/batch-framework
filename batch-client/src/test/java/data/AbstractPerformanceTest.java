@@ -59,21 +59,29 @@ public abstract class AbstractPerformanceTest {
   @Autowired
   protected TestConfigurationProperties testProperties;
 
-
-  protected void enforceDbClear(int stepNumber) {
+  //Could not use original jupiter's @BeforeEach because we need to pass test number parameter
+  protected void beforeEach(int stepNumber) throws InterruptedException {
     if (firstTest) {
       firstTest = false;
       dbCleaner.clearDbFor(stepNumber);
       cleared = true;
     } else {
       if (cleared) {
+        waitBetweenTests();
         LOGGER.info("There is no need to clear DB. It was cleared before first test.");
       } else {
-        throw new RuntimeException("The DB could not be cleared before first test.");
+        throw new RuntimeException("The DB could not be cleared before first test. Could not execute following tests.");
       }
+      LOGGER.info("Executing test for workflow step no: {}", stepNumber);
     }
   }
 
+  private void waitBetweenTests() throws InterruptedException {
+    if (testProperties.getPauseBetweenTestsMs() > 0) {
+      LOGGER.info("Waiting {} milliseconds between test executions...", testProperties.getPauseBetweenTestsMs());
+      Thread.sleep(testProperties.getPauseBetweenTestsMs());
+    }
+  }
 
   protected void validateResult(int stepNumber) {
     LOGGER.info("Step: {} - task execution time: {}", stepNumber, startWatch.formatTime());

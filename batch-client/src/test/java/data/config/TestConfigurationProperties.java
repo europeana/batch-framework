@@ -9,6 +9,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties(prefix = "test")
 public class TestConfigurationProperties {
 
+  long pauseBetweenTestsMs;
   String datasetId;
   DbCleaningMode dbCleaning;
 }

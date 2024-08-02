@@ -18,7 +18,6 @@ import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.AbstractEnvironment;
 
 
 public class FlinkPerformaceTest extends AbstractPerformanceTest {
@@ -132,12 +131,12 @@ public class FlinkPerformaceTest extends AbstractPerformanceTest {
   }
 
   public void executeStep(int stepNumber, String jobClass, Map<String, String> specialParameters) throws InterruptedException {
-    enforceDbClear(stepNumber);
+    beforeEach(stepNumber);
     String datasetId = testProperties.getDatasetId();
     String taskId = String.valueOf(stepNumber);
 
     LOGGER.info("Submitting job request datasetId: {}, taskId: {}", datasetId, taskId);
-    Map<String, Object> jobParams = new HashMap(Map.of(
+    Map<String, Object> jobParams = new HashMap<>(Map.of(
         DATASOURCE_URL, dbConfig.getJdbcUrl()
         , DATASOURCE_USERNAME, dbConfig.getUsername()
         , DATASOURCE_PASSWORD, dbConfig.getPassword()
