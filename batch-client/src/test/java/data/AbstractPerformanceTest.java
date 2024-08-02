@@ -1,9 +1,9 @@
 package data;
 
-import static data.DbCleaner.JUNIT_DATASET;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.zaxxer.hikari.HikariConfig;
+import data.config.TestConfigurationProperties;
 import data.config.TestsConfig;
 import data.config.MetisDataflowClientConfig;
 import data.config.properties.BatchConfigurationProperties;
@@ -56,6 +56,9 @@ public abstract class AbstractPerformanceTest {
   @Autowired
   protected OaiSourceConfigurationProperties sourceProperties;
 
+  @Autowired
+  protected TestConfigurationProperties testProperties;
+
 
   protected void enforceDbClear(int stepNumber) {
     if (firstTest) {
@@ -74,7 +77,7 @@ public abstract class AbstractPerformanceTest {
 
   protected void validateResult(int stepNumber) {
     LOGGER.info("Step: {} - task execution time: {}", stepNumber, startWatch.formatTime());
-    String datasetId = JUNIT_DATASET;
+    String datasetId = testProperties.getDatasetId();
     String taskId = String.valueOf(stepNumber);
     int expectedRecordCount = stepNumber != 1 ? sourceProperties.getValidRecordCount() : sourceProperties.getRecordCount() ;
     long expectedErrorCount = stepNumber != 2 ? 0: sourceProperties.getRecordCount() - sourceProperties.getValidRecordCount();

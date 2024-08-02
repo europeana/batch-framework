@@ -1,3 +1,7 @@
+test.pauseBetweenTestsMs=0
+test.datasetId=JUnitX
+test.dbCleaning=CLEAN_CURRENT_AND_FOLLOWING_STEPS_OF_TEST_DATASET
+
 #spring.cloud.dataflow.client.serverUri=http://scdf-server-192.168.49.2.nip.io
 
 ## This is the connection from the host to the host

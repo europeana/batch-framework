@@ -118,7 +118,7 @@ class SpringBatchTestIT extends AbstractPerformanceTest{
     additionalAppProperties.put(OAIHARVEST_PARALLELIZATION_SIZE, jobProperties.getOaiHarvest().getParallelizationSize());
 
     final ArrayList<String> arguments = new ArrayList<>();
-    arguments.add(ARGUMENT_DATASET_ID + "=" + DbCleaner.JUNIT_DATASET);
+    arguments.add(ARGUMENT_DATASET_ID + "=" + testProperties.getDatasetId());
     arguments.add(ARGUMENT_EXECUTION_ID + "=1");
     arguments.add(ARGUMENT_OVERRIDE_JOB_ID+"=1");
 
@@ -144,7 +144,7 @@ class SpringBatchTestIT extends AbstractPerformanceTest{
     additionalAppProperties.put(VALIDATION_PARALLELIZATION_SIZE, jobProperties.getValidation().getParallelizationSize());
 
     final ArrayList<String> arguments = new ArrayList<>();
-    arguments.add(ARGUMENT_DATASET_ID + "=" + DbCleaner.JUNIT_DATASET);
+    arguments.add(ARGUMENT_DATASET_ID + "=" + testProperties.getDatasetId());
     arguments.add(ARGUMENT_EXECUTION_ID + "=1");
     arguments.add(ARGUMENT_OVERRIDE_JOB_ID+"=2");
     arguments.add(ARGUMENT_BATCH_JOB_SUBTYPE + "=EXTERNAL");
@@ -165,7 +165,7 @@ class SpringBatchTestIT extends AbstractPerformanceTest{
     additionalAppProperties.put(TRANSFORMATION_PARALLELIZATION_SIZE, jobProperties.getTransformation().getParallelizationSize());
 
     final ArrayList<String> arguments = new ArrayList<>();
-    arguments.add(ARGUMENT_DATASET_ID + "=" + DbCleaner.JUNIT_DATASET);
+    arguments.add(ARGUMENT_DATASET_ID + "=" + testProperties.getDatasetId());
     arguments.add(ARGUMENT_EXECUTION_ID + "=2");
     arguments.add(ARGUMENT_OVERRIDE_JOB_ID+"=3");
     arguments.add(ARGUMENT_DATASET_NAME + "=idA_metisDatasetNameA");
@@ -189,7 +189,7 @@ class SpringBatchTestIT extends AbstractPerformanceTest{
     additionalAppProperties.put(VALIDATION_PARALLELIZATION_SIZE, jobProperties.getValidation().getParallelizationSize());
 
     final ArrayList<String> arguments = new ArrayList<>();
-    arguments.add(ARGUMENT_DATASET_ID + "=" + DbCleaner.JUNIT_DATASET);
+    arguments.add(ARGUMENT_DATASET_ID + "=" + testProperties.getDatasetId());
     arguments.add(ARGUMENT_EXECUTION_ID + "=3");
     arguments.add(ARGUMENT_OVERRIDE_JOB_ID+"=4");
     arguments.add(ARGUMENT_BATCH_JOB_SUBTYPE + "=INTERNAL");
@@ -210,7 +210,7 @@ class SpringBatchTestIT extends AbstractPerformanceTest{
     additionalAppProperties.put(NORMALIZATION_PARALLELIZATION_SIZE, jobProperties.getNormalization().getParallelizationSize());
 
     final ArrayList<String> arguments = new ArrayList<>();
-    arguments.add(ARGUMENT_DATASET_ID + "=" + DbCleaner.JUNIT_DATASET);
+    arguments.add(ARGUMENT_DATASET_ID + "=" + testProperties.getDatasetId());
     arguments.add(ARGUMENT_EXECUTION_ID + "=4");
     arguments.add(ARGUMENT_OVERRIDE_JOB_ID+"=5");
 
@@ -235,7 +235,7 @@ class SpringBatchTestIT extends AbstractPerformanceTest{
     additionalAppProperties.put(ENRICHMENT_ENTITY_API_KEY, jobProperties.getEnrichment().getEntityApiKey());
 
     final ArrayList<String> arguments = new ArrayList<>();
-    arguments.add(ARGUMENT_DATASET_ID + "=" + DbCleaner.JUNIT_DATASET);
+    arguments.add(ARGUMENT_DATASET_ID + "=" + testProperties.getDatasetId());
     arguments.add(ARGUMENT_EXECUTION_ID + "=5");
     arguments.add(ARGUMENT_OVERRIDE_JOB_ID+"=6");
 
@@ -257,7 +257,7 @@ class SpringBatchTestIT extends AbstractPerformanceTest{
     additionalAppProperties.put(MEDIA_PARALLELIZATION_SIZE, jobProperties.getMedia().getParallelizationSize());
 
     final ArrayList<String> arguments = new ArrayList<>();
-    arguments.add(ARGUMENT_DATASET_ID + "=" + DbCleaner.JUNIT_DATASET);
+    arguments.add(ARGUMENT_DATASET_ID + "=" + testProperties.getDatasetId());
     arguments.add(ARGUMENT_EXECUTION_ID + "=6");
     arguments.add(ARGUMENT_OVERRIDE_JOB_ID+"=7");
 
@@ -300,7 +300,7 @@ class SpringBatchTestIT extends AbstractPerformanceTest{
     additionalAppProperties.put(INDEXING_ZOOKEEPER_DEFAULT_COLLECTION, jobProperties.getIndexing().getZookeeperDefaultCollection());
 
     final ArrayList<String> arguments = new ArrayList<>();
-    arguments.add(ARGUMENT_DATASET_ID + "=" + DbCleaner.JUNIT_DATASET);
+    arguments.add(ARGUMENT_DATASET_ID + "=" + testProperties.getDatasetId());
     arguments.add(ARGUMENT_EXECUTION_ID + "=7");
     arguments.add(ARGUMENT_OVERRIDE_JOB_ID+"=8");
 

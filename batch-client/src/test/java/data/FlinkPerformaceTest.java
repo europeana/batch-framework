@@ -1,7 +1,5 @@
 package data;
 
-import static data.DbCleaner.JUNIT_DATASET;
-
 import static eu.europeana.cloud.flink.client.constants.postgres.JobParamName.*;
 import static eu.europeana.cloud.flink.client.constants.postgres.JobParamValue.VALIDATION_EXTERNAL;
 import static eu.europeana.cloud.flink.client.constants.postgres.JobParamValue.VALIDATION_INTERNAL;
@@ -135,8 +133,8 @@ public class FlinkPerformaceTest extends AbstractPerformanceTest {
 
   public void executeStep(int stepNumber, String jobClass, Map<String, String> specialParameters) throws InterruptedException {
     enforceDbClear(stepNumber);
-    String datasetId = JUNIT_DATASET;
-    String taskId = String.valueOf(stepNumber); // String.valueOf(new Random().nextLong(Long.MAX_VALUE));
+    String datasetId = testProperties.getDatasetId();
+    String taskId = String.valueOf(stepNumber);
 
     LOGGER.info("Submitting job request datasetId: {}, taskId: {}", datasetId, taskId);
     Map<String, Object> jobParams = new HashMap(Map.of(

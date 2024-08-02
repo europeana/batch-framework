@@ -8,7 +8,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-@EnableConfigurationProperties({OaiSourceConfigurationProperties.class, FlinkConfigurationProperties.class})
+@EnableConfigurationProperties({OaiSourceConfigurationProperties.class, FlinkConfigurationProperties.class,
+    TestConfigurationProperties.class})
 public class TestsConfig {
 
   @Bean
