@@ -141,7 +141,8 @@ public class FlinkPerformaceTest extends AbstractPerformanceTest {
         , DATASOURCE_USERNAME, dbConfig.getUsername()
         , DATASOURCE_PASSWORD, dbConfig.getPassword()
         , DATASET_ID, datasetId
-        , CHUNK_SIZE, "100"
+        , CHUNK_SIZE, flinkConfigurationProperties.getChunkSize()
+        , MAX_RECORD_PENDING, flinkConfigurationProperties.getMaxRecordPending()
         , TASK_ID, taskId
     ));
     if (stepNumber > 1) {

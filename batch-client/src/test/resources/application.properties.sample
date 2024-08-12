@@ -20,6 +20,8 @@ flink.jobManagerPassword=
 flink.readerParallelism=8
 flink.operatorParallelism=8
 flink.sinkParallelism=8
+flink.maxRecordPending=100
+flink.chunkSize=100
 
 source.url=https://metis-repository-rest.test.eanadev.org/repository/oai
 source.setSpec=ecloud_e2e_tests

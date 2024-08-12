@@ -16,8 +16,10 @@ public class FlinkConfigurationProperties {
   int readerParallelism;
   int operatorParallelism;
   int sinkParallelism;
+  int maxRecordPending;
+  int chunkSize;
 
   public int getMaxParallelism() {
-    return IntStream.of(readerParallelism,operatorParallelism,sinkParallelism).max().getAsInt();
+    return IntStream.of(readerParallelism, operatorParallelism, sinkParallelism).max().getAsInt();
   }
 }
