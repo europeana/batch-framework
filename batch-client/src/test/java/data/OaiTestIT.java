@@ -100,7 +100,7 @@ class OaiTestIT {
 
     /**
      * This test iterates over OAI identifiers from Metis test repository and checks if
-     * response contains valida XML all the identifiers are 50 letters long.
+     * response contains valid XML all the identifiers are 50 letters long.
      * It uses default http client for communication with repository and HTTP protocol.
      * <p>
      * This test should <b> NEVER FAIL</b>.
@@ -121,7 +121,7 @@ class OaiTestIT {
 
     /**
      * This test iterates over OAI identifiers from Metis test repository and checks if
-     * response contains valida XML all the identifiers are 50 letters long.
+     * response contains valid XML all the identifiers are 50 letters long.
      * It uses default http client for communication with repository and HTTPS protocol.
      * <p>
      * This test should <b> NEVER FAIL</b>.
