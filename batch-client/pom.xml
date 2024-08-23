@@ -81,6 +81,12 @@
       <artifactId>spring-web</artifactId>
       <version>5.3.15</version>
     </dependency>
+    <dependency>
+      <groupId>eu.europeana.metis</groupId>
+      <artifactId>metis-harvesting</artifactId>
+      <version>${metis.version}</version>
+      <scope>test</scope>
+    </dependency>
 
   </dependencies>
 
