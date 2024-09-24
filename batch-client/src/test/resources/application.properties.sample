@@ -1,3 +1,7 @@
+test.pauseBetweenTestsMs=0
+test.datasetId=JUnitX
+test.dbCleaning=CLEAN_CURRENT_AND_FOLLOWING_STEPS_OF_TEST_DATASET
+
 #spring.cloud.dataflow.client.serverUri=http://scdf-server-192.168.49.2.nip.io
 
 ## This is the connection from the host to the host
@@ -7,6 +11,33 @@ spring.datasource.password=admin
 spring.datasource.driver-class-name=org.postgresql.Driver
 spring.datasource.hikari.maximumPoolSize=5
 spring.jpa.generate-ddl=true
+
+flink.jobManagerUrl=
+flink.jarId=
+
+flink.jobManagerUser=
+flink.jobManagerPassword=
+flink.readerParallelism=8
+flink.operatorParallelism=8
+flink.sinkParallelism=8
+flink.maxRecordPending=100
+flink.chunkSize=100
+
+source.url=https://metis-repository-rest.test.eanadev.org/repository/oai
+source.setSpec=ecloud_e2e_tests
+source.metadataPrefix=edm
+source.recordCount=8
+
+#source.url=https://metis-repository-rest.test.eanadev.org/repository/oai
+#source.setSpec=spring_poc_dataset_with_validation_error
+#source.metadataPrefix=edm
+#source.recordCount=14
+#source.validRecordCount=9
+
+#source.url=http://panic.image.ntua.gr:9000/efg/oai
+#source.setSpec=1076
+#source.metadataPrefix=rdf
+#source.recordCount=5352
 
 batch.registerProperties.oaiHarvestName=batch-oai-harvest
 batch.registerProperties.oaiHarvestUri=docker:europeana/batch-oai-harvest:latest
@@ -31,6 +62,11 @@ batch.deploymentProperties.spring.datasource.driver-class-name=org.postgresql.Dr
 batch.deploymentProperties.spring.datasource.hikari.maximumPoolSize=5
 batch.deploymentProperties.spring.jpa.generate-ddl=true
 batch.deploymentProperties.spring.jpa.properties.hibernate.jdbc.batch_size = 20
+
+batch.deployerProperties.kubernetes.requests.cpu=4000m
+batch.deployerProperties.kubernetes.limits.cpu=4000m
+batch.deployerProperties.kubernetes.requests.memory=8000M
+batch.deployerProperties.kubernetes.limits.memory=8000M
 
 batch.jobProperties.oaiHarvest.chunkSize=10
 batch.jobProperties.oaiHarvest.parallelizationSize=10
@@ -70,5 +106,5 @@ batch.jobProperties.indexing.mongoApplicationName=batch-indexing
 batch.jobProperties.indexing.solrInstances=
 batch.jobProperties.indexing.zookeeperInstances=
 batch.jobProperties.indexing.zookeeperPortNumber=
-batch.jobProperties.indexing.zookeeperChroot=
+batch.jobProperties.indexing.zookeeperChroot=/
 batch.jobProperties.indexing.zookeeperDefaultCollection=

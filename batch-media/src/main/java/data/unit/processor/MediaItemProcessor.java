@@ -46,7 +46,7 @@ public class MediaItemProcessor implements MetisItemProcessor<ExecutionRecord, E
   private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static final BatchJobType batchJobType = MEDIA;
 
-  @Value("#{stepExecution.jobExecution.jobInstance.id}")
+  @Value("#{jobParameters['overrideJobId'] ?: stepExecution.jobExecution.jobInstance.id}")
   private Long jobInstanceId;
 
   private final ItemProcessorUtil<String> itemProcessorUtil;

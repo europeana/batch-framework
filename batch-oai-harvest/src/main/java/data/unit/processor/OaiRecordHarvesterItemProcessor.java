@@ -38,7 +38,7 @@ public class OaiRecordHarvesterItemProcessor implements ItemProcessor<ExecutionR
     private String oaiMetadataPrefix;
     @Value("#{jobParameters['datasetId']}")
     private String datasetId;
-    @Value("#{stepExecution.jobExecution.jobInstance.id}")
+    @Value("#{jobParameters['overrideJobId'] ?: stepExecution.jobExecution.jobInstance.id}")
     private Long jobInstanceId;
 
     @Override
@@ -47,7 +47,7 @@ public class OaiRecordHarvesterItemProcessor implements ItemProcessor<ExecutionR
         LOGGER.info("OaiHarvestItemReader thread: {}", Thread.currentThread());
         OaiHarvest oaiHarvest = new OaiHarvest(oaiEndpoint, oaiMetadataPrefix, oaiSet);
         final OaiRecord oaiRecord = oaiHarvester.harvestRecord(oaiHarvest, executionRecordExternalIdentifier.getRecordId());
-        String resultString = new String(oaiRecord.getRecord().readAllBytes(), StandardCharsets.UTF_8);
+        String resultString = new String(oaiRecord.getContent().readAllBytes(), StandardCharsets.UTF_8);
         return getExecutionRecordDTO(resultString);
     }
 

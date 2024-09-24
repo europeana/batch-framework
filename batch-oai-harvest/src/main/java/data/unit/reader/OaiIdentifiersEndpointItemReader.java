@@ -3,16 +3,18 @@ package data.unit.reader;
 import data.entity.ExecutionRecordExternalIdentifier;
 import eu.europeana.metis.harvesting.HarvesterException;
 import eu.europeana.metis.harvesting.HarvesterFactory;
+import eu.europeana.metis.harvesting.HarvestingIterator;
 import eu.europeana.metis.harvesting.ReportingIteration;
 import eu.europeana.metis.harvesting.oaipmh.OaiHarvest;
 import eu.europeana.metis.harvesting.oaipmh.OaiHarvester;
 import eu.europeana.metis.harvesting.oaipmh.OaiRecordHeader;
-import eu.europeana.metis.harvesting.oaipmh.OaiRecordHeaderIterator;
 import jakarta.annotation.PostConstruct;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
+import org.apache.commons.lang3.time.StopWatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.configuration.annotation.StepScope;
@@ -34,7 +36,7 @@ public class OaiIdentifiersEndpointItemReader implements ItemReader<ExecutionRec
     private String oaiMetadataPrefix;
     @Value("#{jobParameters['datasetId']}")
     private String datasetId;
-    @Value("#{stepExecution.jobExecution.jobInstance.id}")
+    @Value("#{jobParameters['overrideJobId'] ?: stepExecution.jobExecution.jobInstance.id}")
     private Long jobInstanceId;
 
     final OaiHarvester oaiHarvester = HarvesterFactory.createOaiHarvester();
@@ -65,9 +67,16 @@ public class OaiIdentifiersEndpointItemReader implements ItemReader<ExecutionRec
     private void harvestIdentifiers() throws HarvesterException, IOException {
         LOGGER.info("Harvesting identifiers for {}", oaiEndpoint);
         OaiHarvest oaiHarvest = new OaiHarvest(oaiEndpoint, oaiMetadataPrefix, oaiSet);
-        try (OaiRecordHeaderIterator headerIterator = oaiHarvester.harvestRecordHeaders(oaiHarvest)) {
+        StopWatch watch = StopWatch.createStarted();
+        try (HarvestingIterator<OaiRecordHeader, OaiRecordHeader> headerIterator =
+            oaiHarvester.harvestRecordHeaders(oaiHarvest)) {
             headerIterator.forEach(oaiRecordHeader -> {
                 oaiRecordHeaders.add(oaiRecordHeader);
+                if (watch.getTime(TimeUnit.SECONDS) > 10) {
+                    LOGGER.info("Already harvested {} records...", oaiRecordHeaders.size());
+                    watch.reset();
+                    watch.start();
+                }
                 return ReportingIteration.IterationResult.CONTINUE;
             });
         }

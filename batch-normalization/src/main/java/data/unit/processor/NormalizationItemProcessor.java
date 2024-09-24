@@ -24,7 +24,7 @@ public class NormalizationItemProcessor implements MetisItemProcessor<ExecutionR
 
   private static final BatchJobType batchJobType = NORMALIZATION;
 
-  @Value("#{stepExecution.jobExecution.jobInstance.id}")
+  @Value("#{jobParameters['overrideJobId'] ?: stepExecution.jobExecution.jobInstance.id}")
   private Long jobInstanceId;
 
   private final ItemProcessorUtil<NormalizationResult> itemProcessorUtil;

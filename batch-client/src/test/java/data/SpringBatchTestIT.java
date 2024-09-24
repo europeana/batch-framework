@@ -45,17 +45,13 @@ import static data.parameter.ArgumentString.ARGUMENT_EXECUTION_ID;
 import static data.parameter.ArgumentString.ARGUMENT_METADATA_PREFIX;
 import static data.parameter.ArgumentString.ARGUMENT_OAI_ENDPOINT;
 import static data.parameter.ArgumentString.ARGUMENT_OAI_SET;
+import static data.parameter.ArgumentString.ARGUMENT_OVERRIDE_JOB_ID;
 import static data.parameter.ArgumentString.ARGUMENT_XSLT_URL;
-import static data.parameter.DeployerString.DEPLOYER_KUBERNETES_LIMITS_CPU;
-import static data.parameter.DeployerString.DEPLOYER_KUBERNETES_LIMITS_MEMORY;
-import static data.parameter.DeployerString.DEPLOYER_KUBERNETES_REQUESTS_CPU;
-import static data.parameter.DeployerString.DEPLOYER_KUBERNETES_REQUESTS_MEMORY;
 import static data.parameter.DeploymentString.DEPLOYMENT_PARAMETER_APP_PREFIX;
 import static data.parameter.DeploymentString.DEPLOYMENT_PARAMETER_DEPLOYER_PREFIX;
 import static java.lang.String.format;
 import static org.awaitility.Awaitility.await;
 
-import data.config.MetisDataflowClientConfig;
 import data.config.properties.BatchConfigurationProperties;
 import data.config.properties.JobConfigurationProperties;
 import data.config.properties.RegisterConfigurationProperties;
@@ -67,32 +63,35 @@ import jakarta.annotation.Resource;
 import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.apache.commons.collections4.map.TransformedMap;
+import org.apache.commons.lang3.time.StopWatch;
+import org.awaitility.core.ConditionFactory;
 import org.awaitility.core.ConditionTimeoutException;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.cloud.dataflow.rest.client.DataFlowClientException;
 import org.springframework.cloud.dataflow.rest.client.DataFlowOperations;
 import org.springframework.cloud.dataflow.rest.resource.LaunchResponseResource;
 import org.springframework.cloud.dataflow.rest.resource.TaskExecutionResource;
 import org.springframework.cloud.dataflow.rest.resource.TaskExecutionStatus;
-import org.springframework.test.context.ContextConfiguration;
+import org.springframework.web.client.RestClientException;
+import static eu.europeana.cloud.flink.client.JobExecutor.MAX_RETRIES;
+import static eu.europeana.cloud.flink.client.JobExecutor.SLEEP_BETWEEN_RETRIES;
 
-@SpringBootTest
-@ContextConfiguration(classes = {MetisDataflowClientConfig.class})
-@EnableAutoConfiguration
-class ApplicationTestIT {
+class SpringBatchTestIT extends AbstractPerformanceTest{
 
   public static final String SCHEMA_TARGET = "boot3";
   private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
@@ -109,8 +108,11 @@ class ApplicationTestIT {
   @Resource
   ExecutionRecordExternalIdentifierRepository executionRecordExternalIdentifierRepository;
 
+
   @Test
-  void launchOaiTask() {
+  void step1_shouldExecuteOAIHarvestCompletellyWithoutErrors() throws InterruptedException {
+    beforeEach(1);
+
     final RegisterConfigurationProperties registerProperties = batchConfigurationProperties.getRegisterProperties();
     final String taskName = registerProperties.getOaiHarvestName();
     final JobConfigurationProperties jobProperties = batchConfigurationProperties.getJobProperties();
@@ -118,24 +120,25 @@ class ApplicationTestIT {
     additionalAppProperties.put(OAIHARVEST_CHUNK_SIZE, jobProperties.getOaiHarvest().getChunkSize());
     additionalAppProperties.put(OAIHARVEST_PARALLELIZATION_SIZE, jobProperties.getOaiHarvest().getParallelizationSize());
 
-    final Map<String, String> deployerProperties = new HashMap<>();
-    deployerProperties.put(DEPLOYER_KUBERNETES_LIMITS_CPU, "2000m");
-    deployerProperties.put(DEPLOYER_KUBERNETES_LIMITS_MEMORY, "800M");
-    deployerProperties.put(DEPLOYER_KUBERNETES_REQUESTS_CPU, "2000m");
-    deployerProperties.put(DEPLOYER_KUBERNETES_REQUESTS_MEMORY, "800M");
-
     final ArrayList<String> arguments = new ArrayList<>();
-    arguments.add(ARGUMENT_DATASET_ID + "=1");
+    arguments.add(ARGUMENT_DATASET_ID + "=" + testProperties.getDatasetId());
     arguments.add(ARGUMENT_EXECUTION_ID + "=1");
-    arguments.add(ARGUMENT_OAI_ENDPOINT + "=https://metis-repository-rest.test.eanadev.org/repository/oai");
-    arguments.add(ARGUMENT_OAI_SET + "=oai_flink_poc");
-    arguments.add(ARGUMENT_METADATA_PREFIX + "=edm");
+    arguments.add(ARGUMENT_OVERRIDE_JOB_ID+"=1");
 
-    pollingStatus(launchTask(taskName, deployerProperties, additionalAppProperties, arguments));
+    arguments.add(ARGUMENT_OAI_ENDPOINT + "="+sourceProperties.getUrl());
+    arguments.add(ARGUMENT_OAI_SET + "="+sourceProperties.getSetSpec());
+    arguments.add(ARGUMENT_METADATA_PREFIX + "="+sourceProperties.getMetadataPrefix());
+
+
+    pollingStatus(launchTask(taskName, batchConfigurationProperties.getDeployerProperties(), additionalAppProperties, arguments));
+
+    validateResult(1);
   }
 
   @Test
-  void launchValidationExternalTask() {
+  void step2_shouldExecuteExternalValidationWithoutErrors() throws InterruptedException {
+    beforeEach(2);
+
     final RegisterConfigurationProperties registerProperties = batchConfigurationProperties.getRegisterProperties();
     final String taskName = registerProperties.getValidationName();
     final JobConfigurationProperties jobProperties = batchConfigurationProperties.getJobProperties();
@@ -143,22 +146,20 @@ class ApplicationTestIT {
     additionalAppProperties.put(VALIDATION_CHUNK_SIZE, jobProperties.getValidation().getChunkSize());
     additionalAppProperties.put(VALIDATION_PARALLELIZATION_SIZE, jobProperties.getValidation().getParallelizationSize());
 
-    final Map<String, String> deployerProperties = new HashMap<>();
-    deployerProperties.put(DEPLOYER_KUBERNETES_LIMITS_CPU, "2000m");
-    deployerProperties.put(DEPLOYER_KUBERNETES_LIMITS_MEMORY, "800M");
-    deployerProperties.put(DEPLOYER_KUBERNETES_REQUESTS_CPU, "2000m");
-    deployerProperties.put(DEPLOYER_KUBERNETES_REQUESTS_MEMORY, "800M");
-
     final ArrayList<String> arguments = new ArrayList<>();
-    arguments.add(ARGUMENT_DATASET_ID + "=1");
-    arguments.add(ARGUMENT_EXECUTION_ID + "=37");
+    arguments.add(ARGUMENT_DATASET_ID + "=" + testProperties.getDatasetId());
+    arguments.add(ARGUMENT_EXECUTION_ID + "=1");
+    arguments.add(ARGUMENT_OVERRIDE_JOB_ID+"=2");
     arguments.add(ARGUMENT_BATCH_JOB_SUBTYPE + "=EXTERNAL");
 
-    pollingStatus(launchTask(taskName, deployerProperties, additionalAppProperties, arguments));
+    pollingStatus(launchTask(taskName, batchConfigurationProperties.getDeployerProperties(), additionalAppProperties, arguments));
+    validateResult(2);
   }
 
   @Test
-  void launchTransformationTask() {
+  void step3_shouldExecuteXsltTransformationWithoutErrors() throws InterruptedException {
+    beforeEach(3);
+
     final RegisterConfigurationProperties registerProperties = batchConfigurationProperties.getRegisterProperties();
     final String taskName = registerProperties.getTransformationName();
     final JobConfigurationProperties jobProperties = batchConfigurationProperties.getJobProperties();
@@ -166,25 +167,23 @@ class ApplicationTestIT {
     additionalAppProperties.put(TRANSFORMATION_CHUNK_SIZE, jobProperties.getTransformation().getChunkSize());
     additionalAppProperties.put(TRANSFORMATION_PARALLELIZATION_SIZE, jobProperties.getTransformation().getParallelizationSize());
 
-    final Map<String, String> deployerProperties = new HashMap<>();
-    deployerProperties.put(DEPLOYER_KUBERNETES_LIMITS_CPU, "2000m");
-    deployerProperties.put(DEPLOYER_KUBERNETES_LIMITS_MEMORY, "800M");
-    deployerProperties.put(DEPLOYER_KUBERNETES_REQUESTS_CPU, "2000m");
-    deployerProperties.put(DEPLOYER_KUBERNETES_REQUESTS_MEMORY, "800M");
-
     final ArrayList<String> arguments = new ArrayList<>();
-    arguments.add(ARGUMENT_DATASET_ID + "=1");
+    arguments.add(ARGUMENT_DATASET_ID + "=" + testProperties.getDatasetId());
     arguments.add(ARGUMENT_EXECUTION_ID + "=2");
+    arguments.add(ARGUMENT_OVERRIDE_JOB_ID+"=3");
     arguments.add(ARGUMENT_DATASET_NAME + "=idA_metisDatasetNameA");
     arguments.add(ARGUMENT_DATASET_COUNTRY + "=Greece");
     arguments.add(ARGUMENT_DATASET_LANGUAGE + "=el");
     arguments.add(ARGUMENT_XSLT_URL + "=https://metis-core-rest.test.eanadev.org/datasets/xslt/6204e5e2514e773e6745f7e9");
 
-    pollingStatus(launchTask(taskName, deployerProperties, additionalAppProperties, arguments));
+    pollingStatus(launchTask(taskName, batchConfigurationProperties.getDeployerProperties(), additionalAppProperties, arguments));
+    validateResult(3);
   }
 
   @Test
-  void launchValidationInternalTask() {
+  void step4_shouldExecuteIternalValidationWithoutErrors() throws InterruptedException {
+    beforeEach(4);
+
     final RegisterConfigurationProperties registerProperties = batchConfigurationProperties.getRegisterProperties();
     final String taskName = registerProperties.getValidationName();
     final JobConfigurationProperties jobProperties = batchConfigurationProperties.getJobProperties();
@@ -192,22 +191,20 @@ class ApplicationTestIT {
     additionalAppProperties.put(VALIDATION_CHUNK_SIZE, jobProperties.getValidation().getChunkSize());
     additionalAppProperties.put(VALIDATION_PARALLELIZATION_SIZE, jobProperties.getValidation().getParallelizationSize());
 
-    final Map<String, String> deployerProperties = new HashMap<>();
-    deployerProperties.put(DEPLOYER_KUBERNETES_LIMITS_CPU, "2000m");
-    deployerProperties.put(DEPLOYER_KUBERNETES_LIMITS_MEMORY, "800M");
-    deployerProperties.put(DEPLOYER_KUBERNETES_REQUESTS_CPU, "2000m");
-    deployerProperties.put(DEPLOYER_KUBERNETES_REQUESTS_MEMORY, "800M");
-
     final ArrayList<String> arguments = new ArrayList<>();
-    arguments.add(ARGUMENT_DATASET_ID + "=1");
-    arguments.add(ARGUMENT_EXECUTION_ID + "=278");
+    arguments.add(ARGUMENT_DATASET_ID + "=" + testProperties.getDatasetId());
+    arguments.add(ARGUMENT_EXECUTION_ID + "=3");
+    arguments.add(ARGUMENT_OVERRIDE_JOB_ID+"=4");
     arguments.add(ARGUMENT_BATCH_JOB_SUBTYPE + "=INTERNAL");
 
-    pollingStatus(launchTask(taskName, deployerProperties, additionalAppProperties, arguments));
+    pollingStatus(launchTask(taskName, batchConfigurationProperties.getDeployerProperties(), additionalAppProperties, arguments));
+    validateResult(4);
   }
 
   @Test
-  void launchNormalizationTask() {
+  void step5_shouldExecuteNormalizationWithoutErrors() throws InterruptedException {
+    beforeEach(5);
+
     final RegisterConfigurationProperties registerProperties = batchConfigurationProperties.getRegisterProperties();
     final String taskName = registerProperties.getNormalizationName();
     final JobConfigurationProperties jobProperties = batchConfigurationProperties.getJobProperties();
@@ -215,21 +212,20 @@ class ApplicationTestIT {
     additionalAppProperties.put(NORMALIZATION_CHUNK_SIZE, jobProperties.getNormalization().getChunkSize());
     additionalAppProperties.put(NORMALIZATION_PARALLELIZATION_SIZE, jobProperties.getNormalization().getParallelizationSize());
 
-    final Map<String, String> deployerProperties = new HashMap<>();
-    deployerProperties.put(DEPLOYER_KUBERNETES_LIMITS_CPU, "2000m");
-    deployerProperties.put(DEPLOYER_KUBERNETES_LIMITS_MEMORY, "800M");
-    deployerProperties.put(DEPLOYER_KUBERNETES_REQUESTS_CPU, "2000m");
-    deployerProperties.put(DEPLOYER_KUBERNETES_REQUESTS_MEMORY, "800M");
-
     final ArrayList<String> arguments = new ArrayList<>();
-    arguments.add(ARGUMENT_DATASET_ID + "=1");
-    arguments.add(ARGUMENT_EXECUTION_ID + "=279");
+    arguments.add(ARGUMENT_DATASET_ID + "=" + testProperties.getDatasetId());
+    arguments.add(ARGUMENT_EXECUTION_ID + "=4");
+    arguments.add(ARGUMENT_OVERRIDE_JOB_ID+"=5");
 
-    pollingStatus(launchTask(taskName, deployerProperties, additionalAppProperties, arguments));
+    pollingStatus(launchTask(taskName, batchConfigurationProperties.getDeployerProperties(), additionalAppProperties, arguments));
+
+    validateResult(5);
   }
 
   @Test
-  void launchEnrichmentTask() {
+  void step6_shouldExecuteEnrichmentWithoutErrors() throws InterruptedException {
+    beforeEach(6);
+
     final RegisterConfigurationProperties registerProperties = batchConfigurationProperties.getRegisterProperties();
     final String taskName = registerProperties.getEnrichmentName();
     final JobConfigurationProperties jobProperties = batchConfigurationProperties.getJobProperties();
@@ -241,21 +237,20 @@ class ApplicationTestIT {
     additionalAppProperties.put(ENRICHMENT_ENTITY_API_URL, jobProperties.getEnrichment().getEntityApiUrl());
     additionalAppProperties.put(ENRICHMENT_ENTITY_API_KEY, jobProperties.getEnrichment().getEntityApiKey());
 
-    final Map<String, String> deployerProperties = new HashMap<>();
-    deployerProperties.put(DEPLOYER_KUBERNETES_LIMITS_CPU, "2000m");
-    deployerProperties.put(DEPLOYER_KUBERNETES_LIMITS_MEMORY, "800M");
-    deployerProperties.put(DEPLOYER_KUBERNETES_REQUESTS_CPU, "2000m");
-    deployerProperties.put(DEPLOYER_KUBERNETES_REQUESTS_MEMORY, "800M");
-
     final ArrayList<String> arguments = new ArrayList<>();
-    arguments.add(ARGUMENT_DATASET_ID + "=1");
-    arguments.add(ARGUMENT_EXECUTION_ID + "=280");
+    arguments.add(ARGUMENT_DATASET_ID + "=" + testProperties.getDatasetId());
+    arguments.add(ARGUMENT_EXECUTION_ID + "=5");
+    arguments.add(ARGUMENT_OVERRIDE_JOB_ID+"=6");
 
-    pollingStatus(launchTask(taskName, deployerProperties, additionalAppProperties, arguments));
+    pollingStatus(launchTask(taskName, batchConfigurationProperties.getDeployerProperties(), additionalAppProperties, arguments));
+
+    validateResult(6);
   }
 
   @Test
-  void launchMediaTask() {
+  void step7_shouldExecuteMediaWithoutErrors() throws InterruptedException {
+    beforeEach(7);
+
     final RegisterConfigurationProperties registerProperties = batchConfigurationProperties.getRegisterProperties();
     final String taskName = registerProperties.getMediaName();
     final JobConfigurationProperties jobProperties = batchConfigurationProperties.getJobProperties();
@@ -264,21 +259,20 @@ class ApplicationTestIT {
     additionalAppProperties.put(MEDIA_CHUNK_SIZE, jobProperties.getMedia().getChunkSize());
     additionalAppProperties.put(MEDIA_PARALLELIZATION_SIZE, jobProperties.getMedia().getParallelizationSize());
 
-    final Map<String, String> deployerProperties = new HashMap<>();
-    deployerProperties.put(DEPLOYER_KUBERNETES_LIMITS_CPU, "2000m");
-    deployerProperties.put(DEPLOYER_KUBERNETES_LIMITS_MEMORY, "1500M");
-    deployerProperties.put(DEPLOYER_KUBERNETES_REQUESTS_CPU, "2000m");
-    deployerProperties.put(DEPLOYER_KUBERNETES_REQUESTS_MEMORY, "1500M");
-
     final ArrayList<String> arguments = new ArrayList<>();
-    arguments.add(ARGUMENT_DATASET_ID + "=1");
-    arguments.add(ARGUMENT_EXECUTION_ID + "=288");
+    arguments.add(ARGUMENT_DATASET_ID + "=" + testProperties.getDatasetId());
+    arguments.add(ARGUMENT_EXECUTION_ID + "=6");
+    arguments.add(ARGUMENT_OVERRIDE_JOB_ID+"=7");
 
-    pollingStatus(launchTask(taskName, deployerProperties, additionalAppProperties, arguments));
+    pollingStatus(launchTask(taskName, batchConfigurationProperties.getDeployerProperties(), additionalAppProperties, arguments));
+
+    validateResult(7);
   }
 
   @Test
-  void launchIndexTask() {
+  void step8_shouldExecuteIndexingWithoutErrors() throws InterruptedException {
+    beforeEach(8);
+
     final RegisterConfigurationProperties registerProperties = batchConfigurationProperties.getRegisterProperties();
     final String taskName = registerProperties.getIndexingName();
     final JobConfigurationProperties jobProperties = batchConfigurationProperties.getJobProperties();
@@ -309,17 +303,14 @@ class ApplicationTestIT {
     additionalAppProperties.put(INDEXING_ZOOKEEPER_DEFAULT_COLLECTION,
         jobProperties.getIndexing().getZookeeperDefaultCollection());
 
-    final Map<String, String> deployerProperties = new HashMap<>();
-    deployerProperties.put(DEPLOYER_KUBERNETES_LIMITS_CPU, "2000m");
-    deployerProperties.put(DEPLOYER_KUBERNETES_LIMITS_MEMORY, "800M");
-    deployerProperties.put(DEPLOYER_KUBERNETES_REQUESTS_CPU, "2000m");
-    deployerProperties.put(DEPLOYER_KUBERNETES_REQUESTS_MEMORY, "800M");
-
     final ArrayList<String> arguments = new ArrayList<>();
-    arguments.add(ARGUMENT_DATASET_ID + "=1");
-    arguments.add(ARGUMENT_EXECUTION_ID + "=289");
+    arguments.add(ARGUMENT_DATASET_ID + "=" + testProperties.getDatasetId());
+    arguments.add(ARGUMENT_EXECUTION_ID + "=7");
+    arguments.add(ARGUMENT_OVERRIDE_JOB_ID+"=8");
 
-    pollingStatus(launchTask(taskName, deployerProperties, additionalAppProperties, arguments));
+    pollingStatus(launchTask(taskName, batchConfigurationProperties.getDeployerProperties(), additionalAppProperties, arguments));
+
+    validateResult(8);
   }
 
   LaunchResponseResource launchTask(String taskName, Map<String, String> deployerProperties,
@@ -360,7 +351,7 @@ class ApplicationTestIT {
   }
 
   private void pollingRunning(Supplier<TaskExecutionResource> getTaskExecutionResource) {
-    await().forever().until(() -> {
+    pollingWithRetryOnException(await().forever(), () -> {
       final TaskExecutionResource taskExecutionResource = getTaskExecutionResource.get();
       final TaskExecutionStatus taskExecutionStatus = taskExecutionResource.getTaskExecutionStatus();
       printProgress(taskExecutionStatus, taskExecutionResource);
@@ -368,8 +359,29 @@ class ApplicationTestIT {
     });
   }
 
+  private void pollingWithRetryOnException(ConditionFactory conditionFactory, BooleanSupplier operation) {
+    AtomicInteger consecutiveExceptionCount = new AtomicInteger(0);
+    conditionFactory.until(() -> {
+      try {
+        return operation.getAsBoolean();
+      } catch (DataFlowClientException | RestClientException e) {
+        LOGGER.warn("Exception occurred during polling", e);
+        Thread.sleep(SLEEP_BETWEEN_RETRIES);
+        if (consecutiveExceptionCount.incrementAndGet() > MAX_RETRIES) {
+          throw e;
+        } else {
+          return false;
+        }
+      }
+    });
+  }
+
   private void printProgress(TaskExecutionStatus taskExecutionStatus, TaskExecutionResource taskExecutionResource) {
     if (taskExecutionStatus != TaskExecutionStatus.ERROR) {
+      if (taskExecutionResource.getJobExecutionIds().size() == 0) {
+        LOGGER.warn("Task progress - no information, job id is not present!");
+        return;
+      }
       final String executionId = Long.toString(taskExecutionResource.getJobExecutionIds().getFirst());
       final String instanceId = Long.toString(
           dataFlowOperations.jobOperations().jobExecution(Long.parseLong(executionId), SCHEMA_TARGET).getJobId());
@@ -395,7 +407,7 @@ class ApplicationTestIT {
   private void pollingUnknownDuringPodDeployment(Supplier<TaskExecutionResource> getTaskExecutionResource) {
     //Await for potential UNKNOWN status in case of pod deployment failure.
     try {
-      await().atMost(1, TimeUnit.MINUTES).until(() -> {
+      pollingWithRetryOnException(await().atMost(24, TimeUnit.HOURS), () -> {
         TaskExecutionStatus taskExecutionStatus = getTaskExecutionResource.get().getTaskExecutionStatus();
         return taskExecutionStatus != TaskExecutionStatus.UNKNOWN;
       });
@@ -403,6 +415,24 @@ class ApplicationTestIT {
       LOGGER.error("Launch failed with status: {}", TaskExecutionStatus.UNKNOWN);
       throw ex;
     }
+  }
+
+  LaunchResponseResource launchTask(String taskName, Map<String, String> deployerProperties,
+      Map<String, String> additionalDeploymentProperties, List<String> arguments) {
+    final Map<String, String> deploymentProperties = batchConfigurationProperties.getDeploymentProperties();
+    deployerProperties=new LinkedHashMap<>(deployerProperties);
+    deploymentProperties.putAll(additionalDeploymentProperties);
+    final Map<String, String> appPrefixedDeploymentProperties = prefixMap(DEPLOYMENT_PARAMETER_APP_PREFIX, taskName,
+        deploymentProperties);
+
+    final Map<String, String> deployerPrefixedDeploymentProperties = prefixMap(DEPLOYMENT_PARAMETER_DEPLOYER_PREFIX, taskName,
+        deployerProperties);
+
+    final Stream<Entry<String, String>> concat = Stream.concat(deployerPrefixedDeploymentProperties.entrySet().stream(),
+        appPrefixedDeploymentProperties.entrySet().stream());
+    Map<String, String> properties = concat.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+    startWatch = StopWatch.createStarted();
+    return dataFlowOperations.taskOperations().launch(taskName, properties, arguments);
   }
 
   private Map<String, String> prefixMap(String prefix, String suffix, Map<String, String> map) {

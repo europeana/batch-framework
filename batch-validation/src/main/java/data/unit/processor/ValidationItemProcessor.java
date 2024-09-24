@@ -39,7 +39,7 @@ public class ValidationItemProcessor implements MetisItemProcessor<ExecutionReco
 
   @Value("#{jobParameters['batchJobSubType']}")
   private ValidationBatchBatchJobSubType batchJobSubType;
-  @Value("#{stepExecution.jobExecution.jobInstance.id}")
+  @Value("#{jobParameters['overrideJobId'] ?: stepExecution.jobExecution.jobInstance.id}")
   private Long jobInstanceId;
 
   private static final String EDM_SORTER_FILE_URL = "http://ftp.eanadev.org/schema_zips/edm_sorter_20230809.xsl";
