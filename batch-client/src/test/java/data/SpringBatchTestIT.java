@@ -313,23 +313,6 @@ class SpringBatchTestIT extends AbstractPerformanceTest{
     validateResult(8);
   }
 
-  LaunchResponseResource launchTask(String taskName, Map<String, String> deployerProperties,
-      Map<String, String> additionalDeploymentProperties, List<String> arguments) {
-    final Map<String, String> deploymentProperties = batchConfigurationProperties.getDeploymentProperties();
-    deploymentProperties.putAll(additionalDeploymentProperties);
-    final Map<String, String> appPrefixedDeploymentProperties = prefixMap(DEPLOYMENT_PARAMETER_APP_PREFIX, taskName,
-        deploymentProperties);
-
-    final Map<String, String> deployerPrefixedDeploymentProperties = prefixMap(DEPLOYMENT_PARAMETER_DEPLOYER_PREFIX, taskName,
-        deployerProperties);
-
-    final Stream<Entry<String, String>> concat = Stream.concat(deployerPrefixedDeploymentProperties.entrySet().stream(),
-        appPrefixedDeploymentProperties.entrySet().stream());
-    Map<String, String> properties = concat.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-
-    return dataFlowOperations.taskOperations().launch(taskName, properties, arguments);
-  }
-
   private static @NotNull String getArgumentValue(TaskExecutionResource taskExecutionResource, String argumentDatasetId) {
     return taskExecutionResource.getArguments().stream().filter(value -> value.contains(argumentDatasetId))
                                 .map(value -> value.split("=")[1])
