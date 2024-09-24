@@ -101,3 +101,19 @@ task execution list --name batch-oai-harvest
 task execution status --id 2 --schemaTarget boot3
 task execution cleanup --id 2 --schemaTarget boot3
 ``` 
+
+# Deploying on an openshift cluster
+Deploying it on the openshift has similar approach like on the Kubernetes but with slight differences:
+- We need to use openshift variant of the deployment script:  `batch-common/script/docker-build-openshift.sh`
+- We need to use openshift variant of the server config yaml:
+  - Use `batch-common/server/server-config-openshift.yaml`
+  - We assume using external database, so we need not create Postgres container but only set valid url and credentials.
+  - Replace <POSTGRES_JDBC_URL> with valid jdbc connection string for your Postgres server.
+  - Replace <PASSWORD> with password to your Postgres server
+- We need to use openshift variant of deployment yaml: `batch-common/server/server-deployment-openshift.yaml`
+- We need to use route instead of ingress:
+  - Edit `batch-common/server/server-openshift-route.yaml`
+  - Replace <PROJECT_NAME> with valid openshift project name
+  - Replace <IP_WHITELIST> with list of IPs from which you want to connect to the SCDF server. 
+  - Replace <ENDPOINT_DOMAIN_NAME> with valid name which is a subdomain of your openshift server wildcard domain
+  - Apply the configuration on your server.
