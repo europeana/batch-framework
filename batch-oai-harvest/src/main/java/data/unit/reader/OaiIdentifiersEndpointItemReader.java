@@ -3,11 +3,11 @@ package data.unit.reader;
 import data.entity.ExecutionRecordExternalIdentifier;
 import eu.europeana.metis.harvesting.HarvesterException;
 import eu.europeana.metis.harvesting.HarvesterFactory;
+import eu.europeana.metis.harvesting.HarvestingIterator;
 import eu.europeana.metis.harvesting.ReportingIteration;
 import eu.europeana.metis.harvesting.oaipmh.OaiHarvest;
 import eu.europeana.metis.harvesting.oaipmh.OaiHarvester;
 import eu.europeana.metis.harvesting.oaipmh.OaiRecordHeader;
-import eu.europeana.metis.harvesting.oaipmh.OaiRecordHeaderIterator;
 import jakarta.annotation.PostConstruct;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
@@ -68,7 +68,8 @@ public class OaiIdentifiersEndpointItemReader implements ItemReader<ExecutionRec
         LOGGER.info("Harvesting identifiers for {}", oaiEndpoint);
         OaiHarvest oaiHarvest = new OaiHarvest(oaiEndpoint, oaiMetadataPrefix, oaiSet);
         StopWatch watch = StopWatch.createStarted();
-        try (OaiRecordHeaderIterator headerIterator = oaiHarvester.harvestRecordHeaders(oaiHarvest)) {
+        try (HarvestingIterator<OaiRecordHeader, OaiRecordHeader> headerIterator =
+            oaiHarvester.harvestRecordHeaders(oaiHarvest)) {
             headerIterator.forEach(oaiRecordHeader -> {
                 oaiRecordHeaders.add(oaiRecordHeader);
                 if (watch.getTime(TimeUnit.SECONDS) > 10) {
